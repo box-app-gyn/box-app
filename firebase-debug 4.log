@@ -1,0 +1,46 @@
+[debug] [2025-06-28T13:29:33.575Z] ----------------------------------------------------------------------
+[debug] [2025-06-28T13:29:33.577Z] Command:       /Users/nettomello/.nvm/versions/node/v22.14.0/bin/node /Users/nettomello/.nvm/versions/node/v22.14.0/bin/firebase init hosting
+[debug] [2025-06-28T13:29:33.577Z] CLI Version:   14.9.0
+[debug] [2025-06-28T13:29:33.577Z] Platform:      darwin
+[debug] [2025-06-28T13:29:33.577Z] Node Version:  v22.14.0
+[debug] [2025-06-28T13:29:33.577Z] Time:          Sat Jun 28 2025 10:29:33 GMT-0300 (Brasilia Standard Time)
+[debug] [2025-06-28T13:29:33.577Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-28T13:29:33.667Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-28T13:29:33.668Z] > authorizing via signed-in user (interbox25cerrado@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/nettomello/Desktop/REPO AO VIVO/cerrado-app
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-06-28T13:29:33.669Z] Using project from CLI flag: cerrado-interbox-2025
+[debug] [2025-06-28T13:29:33.670Z] Checked if tokens are valid: true, expires at: 1751119365653
+[debug] [2025-06-28T13:29:33.670Z] Checked if tokens are valid: true, expires at: 1751119365653
+[debug] [2025-06-28T13:29:33.670Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/cerrado-interbox-2025 [none]
+[debug] [2025-06-28T13:29:34.407Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/cerrado-interbox-2025 200
+[debug] [2025-06-28T13:29:34.408Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/cerrado-interbox-2025 {"projectId":"cerrado-interbox-2025","projectNumber":"524875884568","displayName":"CERRADO INTERBOX 2025","name":"projects/cerrado-interbox-2025","resources":{"hostingSite":"cerrado-interbox-2025"},"state":"ACTIVE","etag":"1_6ea476ed-842a-4b66-a442-d5763e27af0b"}
+[info] i  Using project cerrado-interbox-2025 (CERRADO INTERBOX 2025) 
+[info] 
+=== Hosting Setup
+[debug] [2025-06-28T13:29:34.416Z] Checked if tokens are valid: true, expires at: 1751119365653
+[debug] [2025-06-28T13:29:34.416Z] Checked if tokens are valid: true, expires at: 1751119365653
+[debug] [2025-06-28T13:29:34.416Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/cerrado-interbox-2025 [none]
+[debug] [2025-06-28T13:29:34.986Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/cerrado-interbox-2025 200
+[debug] [2025-06-28T13:29:34.986Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/cerrado-interbox-2025 {"projectId":"cerrado-interbox-2025","projectNumber":"524875884568","displayName":"CERRADO INTERBOX 2025","name":"projects/cerrado-interbox-2025","resources":{"hostingSite":"cerrado-interbox-2025"},"state":"ACTIVE","etag":"1_6ea476ed-842a-4b66-a442-d5763e27af0b"}

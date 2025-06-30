@@ -1,0 +1,19 @@
+{
+  "name": "cerrado-app-scripts",
+  "version": "1.0.0",
+  "description": "Scripts para configuração do Cerrado App",
+  "main": "create-admin-users.js",
+  "scripts": {
+    "create-admins": "node create-admin-users.js",
+    "create-admins-simple": "node create-admin-users-simple.js",
+    "add-existing-admins": "node add-existing-admins.js",
+    "setup": "npm install"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["firebase", "admin", "setup"],
+  "author": "Cerrado App Team",
+  "license": "MIT"
+} 

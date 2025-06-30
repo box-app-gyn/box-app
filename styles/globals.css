@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-interbox-dark text-interbox-white font-tech;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-cerrado-500 hover:bg-cerrado-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+  
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cerrado-500 focus:border-transparent;
+  }
+
+  /* Microinterações gamificadas */
+  .ritual-glow {
+    @apply relative;
+  }
+
+  .ritual-glow::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
+  }
+
+  .ritual-glow:hover::before {
+    @apply opacity-100;
+  }
+
+  .energy-pulse {
+    animation: energyPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes energyPulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(236, 72, 153, 0.8), 0 0 60px rgba(236, 72, 153, 0.3);
+    }
+  }
+
+  .portal-glow {
+    animation: portalGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes portalGlow {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.3);
+    }
+  }
+
+  /* Tooltip energético */
+  .tooltip-energetic {
+    @apply relative;
+  }
+
+  .tooltip-energetic::after {
+    content: attr(data-tooltip);
+    @apply absolute -top-12 left-1/2 transform -translate-x-1/2 
+           bg-pink-600 text-white px-3 py-1 rounded-lg text-sm font-bold
+           shadow-[0_0_15px_#E50914] opacity-0 transition-all duration-300
+           whitespace-nowrap z-10;
+  }
+
+  .tooltip-energetic::before {
+    content: '';
+    @apply absolute -top-8 left-1/2 transform -translate-x-1/2 
+           border-4 border-transparent border-t-pink-600 opacity-0 
+           transition-all duration-300;
+  }
+
+  .tooltip-energetic:hover::after,
+  .tooltip-energetic:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Glitch Scanner Effects */
+  .glitch-scan {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glitch-scan::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00f0ff, transparent);
+    animation: scanMove 2s linear infinite;
+    z-index: 100;
+  }
+
+  @keyframes scanMove {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  .glitch-distort {
+    animation: glitchDistort 0.2s ease-in-out infinite;
+  }
+
+  @keyframes glitchDistort {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-2px); }
+    20% { transform: translateX(2px); }
+    30% { transform: translateX(-1px); }
+    40% { transform: translateX(1px); }
+  }
+
+  .tribal-reveal {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tribal-reveal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+      transparent 0%, 
+      rgba(236, 72, 153, 0.1) 25%, 
+      transparent 50%, 
+      rgba(0, 240, 255, 0.1) 75%, 
+      transparent 100%);
+    animation: tribalSweep 3s ease-in-out infinite;
+    z-index: 10;
+  }
+
+  @keyframes tribalSweep {
+    0% { transform: translateX(-100%) translateY(-100%); }
+    50% { transform: translateX(100%) translateY(100%); }
+    100% { transform: translateX(-100%) translateY(-100%); }
+  }
+
+  /* Scanner Lines */
+  .scanner-lines {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 240, 255, 0.1) 2px,
+      rgba(0, 240, 255, 0.1) 4px
+    );
+    animation: scannerMove 1s linear infinite;
+  }
+
+  @keyframes scannerMove {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  /* Access Granted Effect */
+  .access-granted {
+    position: relative;
+  }
+
+  .access-granted::before {
+    content: 'ACCESS GRANTED';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: #10b981;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #10b981;
+    animation: accessPulse 2s ease-in-out infinite;
+    z-index: 1000;
+  }
+
+  @keyframes accessPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+
+  /* Headline Glow */
+  .headline-glow {
+    text-shadow:
+      0 0 8px #0092c0,
+      0 0 24px #0038d0,
+      2px 2px 0 #000332;
+  }
+
+  /* Animated Gradient Overlay */
+  .bg-animated-gradient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background: linear-gradient(120deg, #0038d0cc 0%, #ff1bdd44 100%);
+    mix-blend-mode: lighten;
+    animation: gradientMove 8s ease-in-out infinite alternate;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+
+  /* Neon Button Pulse */
+  .btn-neon-pulse {
+    @apply bg-pink-600 text-white font-bold rounded-xl border-2 border-pink-600 shadow-pink-600;
+    animation: neonPulse 2s ease-in-out infinite;
+    transition: box-shadow 0.3s, border-color 0.3s;
+  }
+  @keyframes neonPulse {
+    0%, 100% {
+      box-shadow: 0 0 16px #ec4899, 0 0 32px #ec489944;
+      border-color: #ec4899;
+    }
+    50% {
+      box-shadow: 0 0 32px #ec4899, 0 0 64px #ec489944;
+      border-color: #ec4899;
+    }
+  }
+
+  .animate-fade-in { animation: fadeIn 0.7s cubic-bezier(.25,.46,.45,.94) both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+} 

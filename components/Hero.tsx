@@ -1,0 +1,100 @@
+// /components/Hero.tsx
+import { motion } from 'framer-motion';
+import GamifiedCTA from './GamifiedCTA';
+import Image from 'next/image';
+import { useEffect, useRef } from 'react';
+
+function useDeviceParallax(ref: React.RefObject<HTMLDivElement>) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    function handleOrientation(event: DeviceOrientationEvent) {
+      if (!el) return;
+      const x = event.gamma || 0; // left-right
+      const y = event.beta || 0;  // front-back
+      el.style.transform = `translate3d(${x * 0.8}px, ${y * 0.5}px, 0)`;
+    }
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, [ref]);
+}
+
+export default function Hero() {
+  const logoRef = useRef<HTMLDivElement>(null);
+  useDeviceParallax(logoRef);
+
+  return (
+    <section className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-6 text-white">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/images/bg_main.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
+      
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0a0a1a]/80" />
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Logo circular com efeito de movimento parallax mobile */}
+        <div
+          ref={logoRef}
+          className="mx-auto mt-20 mb-8 w-90 h-90 flex items-center justify-center drop-shadow-neon-pink will-change-transform"
+          style={{ transition: 'transform 0.2s cubic-bezier(.25,.46,.45,.94)' }}
+        >
+          <Image
+            src="/logos/oficial_logo.png"
+            alt="Logo Oficial"
+            width={560}
+            height={560}
+            priority
+            className="rounded-full"
+          />
+        </div>
+
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 10 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="mt-20 max-w-2xl"
+        >
+          <h2 className="text-3xl md:text-5xl font-bold text-white headline-glow">
+            <span className="text-pink-500">O MAIOR EVENTO <span className='whitespace-nowrap'>DE TIMES</span></span><br/> DA AMÉRICA LATINA
+          </h2>
+        </motion.div>
+
+        {/* CTA Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.8 }}
+          className="mt-12 mb-4"
+        >
+          <GamifiedCTA 
+            href="https://chat.whatsapp.com/FHTqm0l36kc7RWYWMw1Kiz" 
+            tooltipText="O PORTAL ESTÁ ABERTO"
+            className="btn-neon-pulse px-8 py-3"
+          >
+            ACESSAR A ARENA
+          </GamifiedCTA>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.1 }}
+          className="mb-24"
+        >
+          <p className="mt-20 text-base md:text-lg text-neutral-200 font-semibold drop-shadow-lg">
+            Aqui você não se inscreve. Você assume seu chamado.
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

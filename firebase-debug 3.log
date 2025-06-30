@@ -1,0 +1,14 @@
+[debug] [2025-06-28T13:28:43.420Z] ----------------------------------------------------------------------
+[debug] [2025-06-28T13:28:43.421Z] Command:       /Users/nettomello/.nvm/versions/node/v22.14.0/bin/node /Users/nettomello/.nvm/versions/node/v22.14.0/bin/firebase projects:create cerrado-interbox-2025 --display-name CERRADØ INTERBOX 2025
+[debug] [2025-06-28T13:28:43.422Z] CLI Version:   14.9.0
+[debug] [2025-06-28T13:28:43.422Z] Platform:      darwin
+[debug] [2025-06-28T13:28:43.422Z] Node Version:  v22.14.0
+[debug] [2025-06-28T13:28:43.422Z] Time:          Sat Jun 28 2025 10:28:43 GMT-0300 (Brasilia Standard Time)
+[debug] [2025-06-28T13:28:43.422Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-28T13:28:43.502Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-28T13:28:43.503Z] > authorizing via signed-in user (interbox25cerrado@gmail.com)
+[debug] [2025-06-28T13:28:43.504Z] Checked if tokens are valid: true, expires at: 1751119365653
+[debug] [2025-06-28T13:28:43.505Z] Checked if tokens are valid: true, expires at: 1751119365653
+[debug] [2025-06-28T13:28:43.505Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2025-06-28T13:28:43.505Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"cerrado-interbox-2025","name":"CERRADØ INTERBOX 2025"}
