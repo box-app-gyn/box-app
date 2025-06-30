@@ -1,19 +1,47 @@
-import React from 'react';
-import Head from 'next/head';
+import React, { useEffect } from 'react';
 import GamifiedCTA from '../components/GamifiedCTA';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import SEOHead from '@/components/SEOHead';
 
 const TimesPage: React.FC = () => {
+  const { trackPage, trackCTA, trackScroll } = useAnalytics();
+
+  // Tracking de visualização da página de times
+  useEffect(() => {
+    trackPage('times');
+  }, [trackPage]);
+
+  // Tracking de scroll na página de times
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercentage = Math.round((scrollY / pageHeight) * 100);
+      
+      // Rastrear scroll a cada 25% da página
+      if (scrollPercentage > 0 && scrollPercentage % 25 === 0) {
+        trackScroll('times_page', scrollPercentage);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [trackScroll]);
+
+  const handleCommunityClick = () => {
+    trackCTA('ENTRAR NA COMUNIDADE', '/times');
+  };
+
   return (
     <>
-      <Head>
-        <title>Para Atletas - CERRADØ INTERBOX 2025</title>
-        <meta name="description" content="Pronto para competir com propósito? O CERRADØ INTERBOX vai além da arena. Aqui começa o ritual." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
+      <SEOHead 
+        title="Para Atletas - CERRADØ INTERBOX 2025"
+        description="Pronto para competir com propósito? O CERRADØ INTERBOX vai além da arena. Aqui começa o ritual. Forme seu time e entre pra arena."
+        image="/images/og-interbox.png"
+        type="website"
+      />
       <Header />
       
       <main className="min-h-screen bg-gray-950 text-white">
@@ -121,6 +149,7 @@ const TimesPage: React.FC = () => {
                 <GamifiedCTA 
                   href="https://chat.whatsapp.com/FHTqm0l36kc7RWYWMw1Kiz"
                   tooltipText="Entrar na Comunidade"
+                  onClick={handleCommunityClick}
                   className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
                 >
                   📲 Entrar na Comunidade INTERBOX

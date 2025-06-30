@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // Habilitado para Firebase Hosting
+  // Removido output: 'export' para permitir middleware e headers
+  // output: 'export', // Habilitado para Firebase Hosting
   trailingSlash: true,
   experimental: {
     // appDir: true,
@@ -60,6 +61,20 @@ const nextConfig = {
               "form-action 'self'",
               "upgrade-insecure-requests"
             ].join('; '),
+          },
+        ],
+      },
+      // Headers específicos para Open Graph
+      {
+        source: '/images/og-interbox.png',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Content-Type',
+            value: 'image/png',
           },
         ],
       },

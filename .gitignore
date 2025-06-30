@@ -50,4 +50,7 @@ service-account*.json
 
 # IDE
 .vscode/
-.idea/ 
+.idea/
+
+# Vertex AI Service Account Key (CRITICAL - NEVER COMMIT!)
+/caminho/para/vertex-ai-sa-key.json 

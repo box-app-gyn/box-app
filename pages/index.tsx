@@ -6,6 +6,7 @@ import Sobre from "@/components/Sobre";
 import Beneficios from "@/components/Beneficios";
 import CallToAction from "@/components/CallToAction";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 function LinhaDelicada() {
   return (
@@ -17,18 +18,26 @@ function LinhaDelicada() {
 
 export default function Home() {
   return (
-    <ParallaxWrapper>
-      {/* Topo visual */}
-      <LinhaDelicada />
-      <Header />
-      <Hero />
-      <LinhaDelicada />
-      <Sobre />
-      <LinhaDelicada />
-      <Beneficios />
-      <LinhaDelicada />
-      <CallToAction />
-      <Footer />
-    </ParallaxWrapper>
+    <>
+      <SEOHead 
+        title="CERRADØ INTERBOX 2025 - O Maior Evento de Times da América Latina"
+        description="24, 25 e 26 de outubro. O CERRADØ INTERBOX vai além da arena. Aqui você não se inscreve. Você assume seu chamado."
+        image="/images/og-interbox.png"
+        type="website"
+      />
+      <ParallaxWrapper>
+        {/* Topo visual */}
+        <LinhaDelicada />
+        <Header />
+        <Hero />
+        <LinhaDelicada />
+        <Sobre />
+        <LinhaDelicada />
+        <Beneficios />
+        <LinhaDelicada />
+        <CallToAction />
+        <Footer />
+      </ParallaxWrapper>
+    </>
   );
 } 

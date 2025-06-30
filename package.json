@@ -5,11 +5,18 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:firebase": "cp next.config.firebase.js next.config.js && next build && cp next.config.js next.config.firebase.js",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "setup:vertex-ai": "./scripts/setup-vertex-ai.sh",
+    "setup:vertex-ai:fallback": "./scripts/setup-vertex-ai-fallback.sh",
+    "setup:vertex-ai:check": "gcloud projects describe interbox-app-8d400 --format='value(projectId)'",
+    "vertex-ai:logs": "gcloud logging read 'resource.type=aiplatform.googleapis.com/Model' --limit=20",
+    "vertex-ai:status": "gcloud services list --enabled --filter='name:aiplatform.googleapis.com'"
   },
   "dependencies": {
+    "@google-cloud/vertexai": "^0.2.0",
     "apexcharts": "^4.7.0",
     "dotenv": "^17.0.0",
     "firebase": "^11.9.1",
