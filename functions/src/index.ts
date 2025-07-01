@@ -17,6 +17,9 @@ import {
 } from './teams';
 import { logger, createRequestContext } from './utils/logger';
 
+// Chat Functions
+import { sendMessage, getChatHistory, saveFeedback, createSession, pollMessages } from './chat';
+
 // Cloud Functions exportadas
 export const criarPedidoPIXFunction = criarPedidoPIX;
 export const validaAudiovisualFunction = validaAudiovisual;
@@ -27,6 +30,13 @@ export const enviarConviteTimeFunction = enviarConviteTime;
 export const responderConviteTimeFunction = responderConviteTime;
 export const listarConvitesUsuarioFunction = listarConvitesUsuario;
 export const cancelarConviteTimeFunction = cancelarConviteTime;
+
+// Chat Functions
+export const sendMessageFunction = sendMessage;
+export const getChatHistoryFunction = getChatHistory;
+export const saveFeedbackFunction = saveFeedback;
+export const createSessionFunction = createSession;
+export const pollMessagesFunction = pollMessages;
 
 // Rate limiting para webhooks
 const RATE_LIMIT_WINDOW = 60000; // 1 minuto

@@ -24,6 +24,9 @@ export default function Home() {
         description="24, 25 e 26 de outubro. O CERRADØ INTERBOX vai além da arena. Aqui você não se inscreve. Você assume seu chamado."
         image="/images/og-interbox.png"
         type="website"
+        keywords="CERRADØ INTERBOX, competição de times, crossfit competition, fitness event, Brasil, América Latina, 2025"
+        tags={["crossfit", "competição", "times", "fitness", "evento", "Brasil"]}
+        canonical="https://cerradointerbox.com.br"
       />
       <ParallaxWrapper>
         {/* Topo visual */}

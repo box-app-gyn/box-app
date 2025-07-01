@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { trackEvent, trackConversion, trackPageView } from '@/components/GoogleAnalytics';
+import { trackEvent, trackPageView } from '@/components/GoogleAnalytics';
 
 // Tipos para eventos específicos do CERRADØ
 export interface CerradoEvent {
@@ -76,10 +76,6 @@ export const useAnalytics = () => {
 
   // Rastrear conversões específicas
   const trackCerradoConversion = useCallback((conversionType: string) => {
-    trackConversion(
-      process.env.NEXT_PUBLIC_GA_CONVERSION_ID || '',
-      conversionType
-    );
     track({
       action: 'submit',
       category: 'conversion',

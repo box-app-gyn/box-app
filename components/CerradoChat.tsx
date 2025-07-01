@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useChat } from '@/hooks/useChat';
+import { useChatAPI } from '@/hooks/useChatAPI';
 
 interface CerradoChatProps {
   isOpen: boolean;
@@ -8,7 +8,14 @@ interface CerradoChatProps {
 }
 
 export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
-  const { messages, isLoading, suggestions, sendMessage, addWelcomeMessage } = useChat();
+  const { 
+    messages, 
+    isLoading, 
+    error, 
+    sendMessage, 
+    createSession, 
+    clearChat 
+  } = useChatAPI();
   const [inputMessage, setInputMessage] = React.useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -21,12 +28,12 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
     scrollToBottom();
   }, [messages]);
 
-  // Mensagem de boas-vindas
+  // Criar sessão quando chat abrir
   useEffect(() => {
-    if (isOpen) {
-      addWelcomeMessage();
+    if (isOpen && messages.length === 0) {
+      createSession('cerrado-interbox-2025');
     }
-  }, [isOpen, addWelcomeMessage]);
+  }, [isOpen, createSession, messages.length]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -35,8 +42,8 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
     setInputMessage('');
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setInputMessage(suggestion);
+  const handleSuggestionClick = async (suggestion: string) => {
+    await sendMessage(suggestion);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -78,6 +85,17 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
 
           {/* Messages */}
           <div className="flex-1 p-4 overflow-y-auto max-h-[350px] space-y-4">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <div className="bg-red-900/50 border border-red-500/30 text-red-200 p-3 rounded-2xl">
+                  <p className="text-sm">Erro: {error}</p>
+                </div>
+              </motion.div>
+            )}
             {messages.map((message, index) => (
               <motion.div
                 key={index}
@@ -127,10 +145,15 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
           </div>
 
           {/* Suggestions */}
-          {suggestions.length > 0 && !isLoading && (
+          {messages.length === 0 && !isLoading && (
             <div className="px-4 pb-2">
               <div className="flex flex-wrap gap-2">
-                {suggestions.map((suggestion, index) => (
+                {[
+                  "Quando são as inscrições?",
+                  "Onde será o evento?",
+                  "Como formar um time?",
+                  "Sobre audiovisual"
+                ].map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}

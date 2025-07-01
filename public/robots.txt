@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cerradointerbox.com.br/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /setup-mfa
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /audiovisual
+Allow: /times
+Allow: /sobre
+Allow: /politica-privacidade
+Allow: /termos-uso
+
+# Crawl delay (optional)
+Crawl-delay: 1 

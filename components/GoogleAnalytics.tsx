@@ -49,14 +49,7 @@ export const trackEvent = (
   }
 };
 
-// Função para rastrear conversões
-export const trackConversion = (conversionId: string, conversionLabel: string) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', 'conversion', {
-      send_to: `${conversionId}/${conversionLabel}`,
-    });
-  }
-};
+
 
 // Função para rastrear pageviews
 export const trackPageView = (url: string) => {

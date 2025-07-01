@@ -57,7 +57,7 @@ Crie um arquivo `.env.local` na raiz do projeto:
 ```bash
 # Google Analytics
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-NEXT_PUBLIC_GA_CONVERSION_ID=AW-XXXXXXXXXX
+
 ```
 
 ### 2. Verificar Configuração
@@ -203,7 +203,7 @@ window.gtag('event', 'test', {
 
 ### Problema: Conversões não funcionam
 **Solução:**
-1. Verificar se `NEXT_PUBLIC_GA_CONVERSION_ID` está configurado
+1. Verificar se `NEXT_PUBLIC_GA_MEASUREMENT_ID` está configurado
 2. Verificar se o ID de conversão está correto
 3. Verificar se o evento está sendo disparado
 

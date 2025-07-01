@@ -1,8 +1,42 @@
 "use strict";
 // Sistema de logging para Cloud Functions
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logger = void 0;
+exports.firebaseLogger = exports.logger = void 0;
 exports.createRequestContext = createRequestContext;
+const functions = __importStar(require("firebase-functions"));
 const LOG_LEVELS = {
     DEBUG: 0,
     INFO: 1,
@@ -107,4 +141,18 @@ function createRequestContext(req) {
         ip: (req === null || req === void 0 ? void 0 : req.ip) || ((_c = req === null || req === void 0 ? void 0 : req.connection) === null || _c === void 0 ? void 0 : _c.remoteAddress),
     };
 }
+exports.firebaseLogger = {
+    info: (message, data) => {
+        functions.logger.info(message, data);
+    },
+    warn: (message, data) => {
+        functions.logger.warn(message, data);
+    },
+    error: (message, data) => {
+        functions.logger.error(message, data);
+    },
+    debug: (message, data) => {
+        functions.logger.debug(message, data);
+    }
+};
 //# sourceMappingURL=logger.js.map

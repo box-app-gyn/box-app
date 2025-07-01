@@ -41,6 +41,9 @@ const TimesPage: React.FC = () => {
         description="Pronto para competir com propósito? O CERRADØ INTERBOX vai além da arena. Aqui começa o ritual. Forme seu time e entre pra arena."
         image="/images/og-interbox.png"
         type="website"
+        keywords="atletas, times, competição, crossfit, inscrições, CERRADØ INTERBOX, formação de times"
+        tags={["atletas", "times", "competição", "crossfit", "inscrições"]}
+        canonical="https://cerradointerbox.com.br/times"
       />
       <Header />
       

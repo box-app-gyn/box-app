@@ -24,6 +24,7 @@
     "firebase-functions": "^6.3.2",
     "framer-motion": "^12.19.2",
     "next": "^14.0.0",
+    "node-fetch": "^3.3.2",
     "react": "^18.0.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^18.0.0",

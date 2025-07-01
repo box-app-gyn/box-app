@@ -41,6 +41,9 @@ export default function Audiovisual() {
         description="Faça parte da equipe audiovisual do CERRADØ INTERBOX 2025. Estamos reunindo criadores para eternizar a intensidade do maior evento de times da América Latina."
         image="/images/og-interbox.png"
         type="website"
+        keywords="audiovisual, creators, fotografia, vídeo, drone, podcast, mídia, CERRADØ INTERBOX, cobertura de evento"
+        tags={["audiovisual", "creators", "fotografia", "vídeo", "podcast", "mídia", "cobertura"]}
+        canonical="https://cerradointerbox.com.br/audiovisual"
       />
       <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a1a] to-[#0038d0]">
         <Header />

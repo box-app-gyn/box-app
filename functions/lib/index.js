@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onUserCreated = exports.flowpayWebhook = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.validaAudiovisualFunction = exports.criarPedidoPIXFunction = void 0;
+exports.onUserCreated = exports.flowpayWebhook = exports.pollMessagesFunction = exports.createSessionFunction = exports.saveFeedbackFunction = exports.getChatHistoryFunction = exports.sendMessageFunction = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.validaAudiovisualFunction = exports.criarPedidoPIXFunction = void 0;
 // /functions/src/index.ts
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
@@ -45,6 +45,8 @@ const audiovisual_1 = require("./audiovisual");
 const emails_1 = require("./emails");
 const teams_1 = require("./teams");
 const logger_1 = require("./utils/logger");
+// Chat Functions
+const chat_1 = require("./chat");
 // Cloud Functions exportadas
 exports.criarPedidoPIXFunction = pedidos_1.criarPedidoPIX;
 exports.validaAudiovisualFunction = audiovisual_1.validaAudiovisual;
@@ -54,6 +56,12 @@ exports.enviarConviteTimeFunction = teams_1.enviarConviteTime;
 exports.responderConviteTimeFunction = teams_1.responderConviteTime;
 exports.listarConvitesUsuarioFunction = teams_1.listarConvitesUsuario;
 exports.cancelarConviteTimeFunction = teams_1.cancelarConviteTime;
+// Chat Functions
+exports.sendMessageFunction = chat_1.sendMessage;
+exports.getChatHistoryFunction = chat_1.getChatHistory;
+exports.saveFeedbackFunction = chat_1.saveFeedback;
+exports.createSessionFunction = chat_1.createSession;
+exports.pollMessagesFunction = chat_1.pollMessages;
 // Rate limiting para webhooks
 const RATE_LIMIT_WINDOW = 60000; // 1 minuto
 const MAX_REQUESTS_PER_WINDOW = 10;

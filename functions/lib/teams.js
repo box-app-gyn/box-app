@@ -117,7 +117,7 @@ exports.enviarConviteTime = functions.https.onCall(async (data, context) => {
 });
 // Função para responder a convite
 exports.responderConviteTime = functions.https.onCall(async (data, context) => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const contextData = { userId: (_a = context.auth) === null || _a === void 0 ? void 0 : _a.uid };
     try {
         // Validar dados
@@ -142,14 +142,14 @@ exports.responderConviteTime = functions.https.onCall(async (data, context) => {
         if (conviteData.status !== 'pendente') {
             throw new functions.https.HttpsError('failed-precondition', 'Convite já foi respondido');
         }
-        if (conviteData.expiresAt && conviteData.expiresAt.toDate() < new Date()) {
+        if (conviteData.expiresAt && (((_c = conviteData.expiresAt) === null || _c === void 0 ? void 0 : _c.toDate) ? conviteData.expiresAt.toDate() : new Date(conviteData.expiresAt)) < new Date()) {
             throw new functions.https.HttpsError('failed-precondition', 'Convite expirado');
         }
         // Atualizar status do convite
         await conviteRef.update({
             status: data.resposta,
             respondedAt: admin.firestore.FieldValue.serverTimestamp(),
-            respondedBy: (_c = context.auth) === null || _c === void 0 ? void 0 : _c.uid
+            respondedBy: (_d = context.auth) === null || _d === void 0 ? void 0 : _d.uid
         });
         if (data.resposta === 'aceito') {
             // Adicionar usuário ao time

@@ -54,7 +54,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob: https://firebasestorage.googleapis.com",
-              "connect-src 'self' https://api.flowpay.com.br https://www.google-analytics.com",
+              "connect-src 'self' https://api.flowpay.com.br https://www.google-analytics.com http://localhost:5001",
               "frame-src 'none'",
               "object-src 'none'",
               "base-uri 'self'",
@@ -75,6 +75,46 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'image/png',
+          },
+        ],
+      },
+      // Headers para SEO e performance
+      {
+        source: '/sitemap.xml',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/xml',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400',
+          },
+        ],
+      },
+      {
+        source: '/robots.txt',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/plain',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400',
+          },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400',
           },
         ],
       },

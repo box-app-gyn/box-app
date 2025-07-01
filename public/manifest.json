@@ -1,0 +1,27 @@
+{
+  "name": "CERRADØ INTERBOX 2025",
+  "short_name": "CERRADØ",
+  "description": "O Maior Evento de Times da América Latina - 24, 25 e 26 de outubro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "fitness", "events"],
+  "lang": "pt-BR",
+  "dir": "ltr"
+} 
