@@ -6,8 +6,8 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-import { criarPedidoPIX } from './pedidos';
-import { validaAudiovisual } from './audiovisual';
+import { criarInscricaoTime } from './pedidos';
+import { validaAudiovisual, criarInscricaoAudiovisual } from './audiovisual';
 import { enviaEmailConfirmacao, enviaEmailBoasVindas } from './emails';
 import { 
   enviarConviteTime, 
@@ -21,8 +21,9 @@ import { logger, createRequestContext } from './utils/logger';
 import { sendMessage, getChatHistory, saveFeedback, createSession, pollMessages } from './chat';
 
 // Cloud Functions exportadas
-export const criarPedidoPIXFunction = criarPedidoPIX;
+export const criarInscricaoTimeFunction = criarInscricaoTime;
 export const validaAudiovisualFunction = validaAudiovisual;
+export const criarInscricaoAudiovisualFunction = criarInscricaoAudiovisual;
 export const enviaEmailConfirmacaoFunction = enviaEmailConfirmacao;
 
 // Funções de Times
@@ -141,8 +142,41 @@ export const flowpayWebhook = functions.https.onRequest(async (req: functions.ht
     }
 
     // Processar webhook do FlowPay
-    // TODO: Implementar lógica de atualização do pedido no Firestore
-    logger.business('Webhook processado com sucesso', { orderId, status }, context);
+    const { tipo, categoria, lote } = body.metadata || {};
+    
+    if (tipo === 'inscricao_time') {
+      // Atualizar inscrição de time
+      const inscricaoRef = admin.firestore().collection('inscricoes_times').doc(orderId);
+      await inscricaoRef.update({
+        status: 'confirmed',
+        paidAt: new Date(),
+        updatedAt: new Date(),
+        flowpayStatus: status
+      });
+      
+      logger.business('Inscrição de time confirmada', { 
+        orderId, 
+        status, 
+        categoria, 
+        lote 
+      }, context);
+      
+    } else if (tipo === 'audiovisual') {
+      // Atualizar inscrição de audiovisual
+      const audiovisualRef = admin.firestore().collection('audiovisual').doc(orderId);
+      await audiovisualRef.update({
+        status: 'confirmed',
+        paidAt: new Date(),
+        updatedAt: new Date(),
+        flowpayStatus: status
+      });
+      
+      logger.business('Inscrição audiovisual confirmada', { 
+        orderId, 
+        status, 
+        area: body.metadata?.area 
+      }, context);
+    }
 
     res.status(200).json({ success: true, orderId, status });
 
