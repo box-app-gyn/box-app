@@ -13,8 +13,7 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
     isLoading, 
     error, 
     sendMessage, 
-    createSession, 
-    clearChat 
+    createSession
   } = useChatAPI();
   const [inputMessage, setInputMessage] = React.useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);

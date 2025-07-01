@@ -63,11 +63,6 @@ export const useChatAPI = () => {
       ...options.headers,
     };
 
-    // Adicionar token de autenticação se disponível
-    if (user?.token) {
-      headers.Authorization = `Bearer ${user.token}`;
-    }
-
     try {
       console.log('🚀 Iniciando fetch...');
       const response = await fetch(url, {
@@ -96,7 +91,7 @@ export const useChatAPI = () => {
       });
       throw error;
     }
-  }, [user?.token]);
+  }, []);
 
   // Enviar mensagem
   const sendMessage = useCallback(async (message: string, context?: string): Promise<ChatResponse> => {
