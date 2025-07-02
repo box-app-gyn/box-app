@@ -79,30 +79,6 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { trackPage, trackAdmin } = useAnalytics();
 
-  const loadUserData = useCallback(async (userId: string) => {
-    try {
-      const userQuery = query(collection(db, 'users'), where('uid', '==', userId));
-      const userSnapshot = await getDocs(userQuery);
-      
-      if (!userSnapshot.empty) {
-        const userDoc = userSnapshot.docs[0];
-        const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
-        setUserData(userData);
-        
-        // Verificar se é admin ou marketing
-        if (userData.role !== 'admin' && userData.role !== 'marketing') {
-          router.push('/dashboard');
-          return;
-        }
-        
-        // Carregar dados baseado no role
-        await loadAdminData();
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados do usuário:', error);
-    }
-  }, [router]);
-
   const loadStats = useCallback(async () => {
     try {
       // Total de usuários
@@ -192,6 +168,30 @@ export default function AdminDashboard() {
       console.error('Erro ao carregar dados admin:', error);
     }
   }, [activeTab, loadStats, loadUsers, loadTeams, loadPedidos]);
+
+  const loadUserData = useCallback(async (userId: string) => {
+    try {
+      const userQuery = query(collection(db, 'users'), where('uid', '==', userId));
+      const userSnapshot = await getDocs(userQuery);
+      
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0];
+        const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
+        setUserData(userData);
+        
+        // Verificar se é admin ou marketing
+        if (userData.role !== 'admin' && userData.role !== 'marketing') {
+          router.push('/dashboard');
+          return;
+        }
+        
+        // Carregar dados baseado no role
+        await loadAdminData();
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
+  }, [router, loadAdminData]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
