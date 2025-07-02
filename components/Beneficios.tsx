@@ -10,7 +10,9 @@ export default function Beneficios() {
       <div>
         <h3 className="text-2xl md:text-3xl font-bold text-center mb-16 text-neutral-900 z-10 whitespace-pre-line">
           <span>
-            Aqui, a comunidade é protagonista.\nO Cerrado também é digital e o evento já começou!
+            Aqui, a comunidade é protagonista.
+            <br />
+            <span className="text-pink-600">INTERBØX esse ano é digital e o evento já começou!</span>
           </span>
         </h3>
         <div className="w-full flex justify-center items-center pointer-events-none select-none mb-12">

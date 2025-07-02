@@ -1,4 +1,5 @@
 import { logger } from '../utils/logger';
+import { SECURITY_UTILS } from '../../../constants/security';
 
 export interface VertexAIResponse {
   content: string;
@@ -29,19 +30,22 @@ export class VertexAIService {
     const startTime = Date.now();
 
     try {
-      // Construir prompt com contexto
-      const prompt = this.buildPrompt(request.message, request.context);
+      // Sanitizar e validar inputs
+      const sanitizedRequest = this.sanitizeRequest(request);
+      
+      // Construir prompt com contexto sanitizado
+      const prompt = this.buildPrompt(sanitizedRequest.message, sanitizedRequest.context);
 
       logger.info('Enviando requisição para Vertex AI', {
-        messageLength: request.message.length,
-        contextLength: JSON.stringify(request.context).length,
-        temperature: request.temperature,
-        maxTokens: request.maxTokens
+        messageLength: sanitizedRequest.message.length,
+        contextLength: JSON.stringify(sanitizedRequest.context).length,
+        temperature: sanitizedRequest.temperature,
+        maxTokens: sanitizedRequest.maxTokens
       });
 
       // Aqui você implementaria a chamada real para o Vertex AI
       // Por enquanto, vamos simular uma resposta
-      const response = await this.simulateVertexAIResponse(prompt, request);
+      const response = await this.simulateVertexAIResponse(prompt, sanitizedRequest);
 
       const processingTime = Date.now() - startTime;
 
@@ -59,16 +63,61 @@ export class VertexAIService {
     }
   }
 
+  private sanitizeRequest(request: VertexAIRequest): VertexAIRequest {
+    // Sanitizar mensagem
+    const sanitizedMessage = SECURITY_UTILS.sanitizeString(request.message, 500);
+    
+    // Sanitizar contexto
+    const sanitizedContext = this.sanitizeContext(request.context);
+    
+    // Validar parâmetros numéricos
+    const temperature = this.validateNumber(request.temperature, 0.1, 2.0, 0.7);
+    const maxTokens = this.validateNumber(request.maxTokens, 10, 4000, 1000);
+
+    return {
+      message: sanitizedMessage,
+      context: sanitizedContext,
+      temperature,
+      maxTokens
+    };
+  }
+
+  private sanitizeContext(context: any): any {
+    if (!context || typeof context !== 'object') {
+      return {
+        baseContext: '',
+        conversationHistory: '',
+        currentMessage: '',
+        sessionContext: ''
+      };
+    }
+
+    return {
+      baseContext: SECURITY_UTILS.sanitizeString(context.baseContext || '', 1000),
+      conversationHistory: SECURITY_UTILS.sanitizeString(context.conversationHistory || '', 2000),
+      currentMessage: SECURITY_UTILS.sanitizeString(context.currentMessage || '', 500),
+      sessionContext: SECURITY_UTILS.sanitizeString(context.sessionContext || '', 500)
+    };
+  }
+
+  private validateNumber(value: any, min: number, max: number, defaultValue: number): number {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return defaultValue;
+    }
+    return Math.max(min, Math.min(max, value));
+  }
+
   private buildPrompt(message: string, context: any): string {
     const { baseContext, conversationHistory, currentMessage } = context;
 
-    return `
-${baseContext}
+    // Template seguro usando template literals com dados já sanitizados
+    const prompt = `
+${baseContext || 'Você é o CERRADØ Assistant, o assistente virtual oficial do CERRADØ INTERBOX 2025.'}
 
 ${conversationHistory ? `Histórico da conversa:
 ${conversationHistory}
 
-` : ''}Mensagem atual do usuário: ${currentMessage}
+` : ''}Mensagem atual do usuário: ${currentMessage || message}
 
 Você é o CERRADØ Assistant, o assistente virtual oficial do CERRADØ INTERBOX 2025. Você é especializado em CrossFit e tem conhecimento profundo sobre o evento.
 
@@ -92,6 +141,8 @@ TOM E PERSONALIDADE:
 
 RESPONDA SEMPRE EM PORTUGUÊS e seja específico sobre o evento. Se a pergunta não for sobre o CERRADØ, oriente gentilmente para informações sobre o evento.
 `;
+
+    return prompt;
   }
 
   private async simulateVertexAIResponse(prompt: string, request: VertexAIRequest): Promise<VertexAIResponse> {

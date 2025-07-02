@@ -42,13 +42,47 @@ export const pollMessagesFunction = pollMessages;
 // Rate limiting para webhooks
 const RATE_LIMIT_WINDOW = 60000; // 1 minuto
 const MAX_REQUESTS_PER_WINDOW = 10;
+const MAX_RATE_LIMIT_ENTRIES = 1000; // Limite máximo de IPs em cache
+const CLEANUP_INTERVAL = 300000; // Limpeza a cada 5 minutos
+
 const webhookRateLimit = new Map<string, { count: number; resetTime: number }>();
+
+// Função para limpar entradas expiradas
+function cleanupExpiredEntries(): void {
+  const now = Date.now();
+  const expiredKeys: string[] = [];
+  
+  for (const [key, value] of webhookRateLimit.entries()) {
+    if (now > value.resetTime) {
+      expiredKeys.push(key);
+    }
+  }
+  
+  expiredKeys.forEach(key => webhookRateLimit.delete(key));
+  
+  // Se ainda estiver muito grande, remover entradas mais antigas
+  if (webhookRateLimit.size > MAX_RATE_LIMIT_ENTRIES) {
+    const entries = Array.from(webhookRateLimit.entries());
+    entries.sort((a, b) => a[1].resetTime - b[1].resetTime);
+    
+    const toRemove = entries.slice(0, webhookRateLimit.size - MAX_RATE_LIMIT_ENTRIES);
+    toRemove.forEach(([key]) => webhookRateLimit.delete(key));
+  }
+}
+
+// Configurar limpeza automática
+setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL);
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const clientData = webhookRateLimit.get(ip);
   
   if (!clientData || now > clientData.resetTime) {
+    // Limpar entradas expiradas antes de adicionar nova
+    if (webhookRateLimit.size >= MAX_RATE_LIMIT_ENTRIES) {
+      cleanupExpiredEntries();
+    }
+    
     webhookRateLimit.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
     return true;
   }

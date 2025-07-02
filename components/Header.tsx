@@ -84,12 +84,13 @@ export default function Header() {
             ? 'bg-black/95 backdrop-blur-lg border-b border-pink-500/30 shadow-lg' 
             : 'bg-black/80 backdrop-blur-md border-b border-pink-500/20'
         }`}
+        style={{ maxWidth: '100vw' }}
       >
         <motion.div 
-          className="container mx-auto px-4 transition-all duration-300"
+          className="w-full max-w-6xl mx-auto px-4 transition-all duration-300"
           animate={{
-            paddingTop: isScrolled ? '0.5rem' : '1rem',
-            paddingBottom: isScrolled ? '0.5rem' : '1rem'
+            paddingTop: isScrolled ? '0.25rem' : '0.5rem',
+            paddingBottom: isScrolled ? '0.25rem' : '0.5rem'
           }}
         >
           <div className="flex items-center justify-between">
@@ -106,8 +107,8 @@ export default function Header() {
                 <Image
                   src="/logos/nome_hrz.png"
                   alt="Interbox 2025"
-                  width={isScrolled ? 50 : 70}
-                  height={isScrolled ? 15 : 21}
+                  width={isScrolled ? 40 : 60}
+                  height={isScrolled ? 12 : 18}
                   className="transition-all duration-300"
                   style={{ width: 'auto', height: 'auto' }}
                 />
@@ -233,7 +234,7 @@ export default function Header() {
                 stiffness: 200,
                 duration: 0.5
               }}
-              className="md:hidden fixed top-0 right-0 h-full w-full max-w-md bg-black/98 backdrop-blur-xl z-50 border-l border-pink-500/20 shadow-2xl"
+              className="md:hidden fixed top-0 right-0 h-full w-80 bg-black/98 backdrop-blur-xl z-50 border-l border-pink-500/20 shadow-2xl"
             >
               {/* Conteúdo do menu */}
               <div className="flex flex-col h-full p-8">

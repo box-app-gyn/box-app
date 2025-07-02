@@ -13,6 +13,13 @@ interface GoogleAnalyticsProps {
   measurementId: string;
 }
 
+// Função para sanitizar measurementId
+const sanitizeMeasurementId = (id: string): string => {
+  // Permitir apenas caracteres válidos para GA ID (G-XXXXXXXXXX)
+  // return id.replace(/[^G-0-9]/g, '').slice(0, 15);
+  return id.slice(0, 15);
+};
+
 // Função para inicializar o Google Analytics
 export const initGA = (measurementId: string) => {
   if (typeof window !== 'undefined') {
@@ -50,8 +57,6 @@ export const trackEvent = (
   }
 };
 
-
-
 // Função para rastrear pageviews
 export const trackPageView = (url: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
@@ -63,13 +68,14 @@ export const trackPageView = (url: string) => {
 
 export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
   const router = useRouter();
+  const sanitizedId = sanitizeMeasurementId(measurementId);
 
   useEffect(() => {
     // Inicializar GA apenas em produção
     if (process.env.NODE_ENV === 'production') {
-      initGA(measurementId);
+      initGA(sanitizedId);
     }
-  }, [measurementId]);
+  }, [sanitizedId]);
 
   useEffect(() => {
     // Rastrear mudanças de rota
@@ -95,7 +101,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
       {/* Google Analytics Script */}
       <script
         async
-        src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${sanitizedId}`}
       />
       <script
         dangerouslySetInnerHTML={{
@@ -103,7 +109,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${measurementId}', {
+            gtag('config', '${sanitizedId}', {
               page_title: document.title,
               page_location: window.location.href,
               cookie_domain: 'cerradointerbox.com.br',

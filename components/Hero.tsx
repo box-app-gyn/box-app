@@ -77,7 +77,7 @@ export default function Hero() {
         {/* Logo circular com animações leves contínuas e strobo */}
         <motion.div
           ref={logoRef}
-          className="mx-auto mt-20 mb-8 w-60 h-60 md:w-80 md:h-80 lg:w-90 lg:h-90 flex items-center justify-center will-change-transform"
+          className="mx-auto mt-20 mb-8 w-80 h-80 md:w-96 md:h-96 lg:w-[500px] lg:h-[500px] flex items-center justify-center will-change-transform"
           style={{ transition: 'transform 0.2s cubic-bezier(.25,.46,.45,.94)' }}
           animate={{
             rotate: [0, 1, -1, 0],
@@ -105,31 +105,13 @@ export default function Hero() {
           }}
         >
           <motion.div
-            animate={{
-              boxShadow: strobeActive 
-                ? [
-                    '0 0 20px rgba(236, 72, 153, 0.8)',
-                    '0 0 40px rgba(236, 72, 153, 1)',
-                    '0 0 20px rgba(236, 72, 153, 0.8)'
-                  ]
-                : [
-                    '0 0 20px rgba(236, 72, 153, 0.6)',
-                    '0 0 30px rgba(236, 72, 153, 0.8)',
-                    '0 0 20px rgba(236, 72, 153, 0.6)'
-                  ]
-            }}
-            transition={{
-              duration: strobeActive ? 0.2 : 3,
-              repeat: strobeActive ? 0 : Infinity,
-              ease: "easeInOut"
-            }}
             className="rounded-full"
           >
             <Image
               src="/logos/oficial_logo.png"
               alt="Logo Oficial"
-              width={360}
-              height={360}
+              width={500}
+              height={500}
               priority
               className="rounded-full w-full h-full"
             />

@@ -3,6 +3,7 @@
 ## 🎫 **Tipos de Ingresso**
 
 ### 1. **INGRESSO INDIVIDUAL**
+
 - **Valor:** R$ 150,00
 - **Inclui:**
   - Acesso aos 3 dias do evento
@@ -11,6 +12,7 @@
   - Acesso à área de ativações
 
 ### 2. **KIT COMPLETO**
+
 - **Valor:** R$ 250,00
 - **Inclui:**
   - Tudo do ingresso individual
@@ -19,6 +21,7 @@
   - Snacks durante o evento
 
 ### 3. **PREMIUM**
+
 - **Valor:** R$ 350,00
 - **Inclui:**
   - Tudo do kit completo
@@ -30,6 +33,7 @@
 ## 📅 **Lotes de Inscrição**
 
 ### **1º LOTE** (13/07/2025 a 24/07/2025 ou até 120 primeiros times)
+
 - **RX:** R$ 494,95
 - **Todas as demais categorias:** R$ 394,95
 - **Kit especial:** 50 primeiros times (exceto RX)

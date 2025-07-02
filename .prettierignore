@@ -1,0 +1,83 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+.firebase/
+
+# Generated files
+*.min.js
+*.min.css
+*.map
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env*
+!.env.example
+
+# Firebase
+firebase-debug*.log
+.firebase/
+
+# Cache
+.cache/
+.temp/
+.tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Documentation
+docs/
+*.md
+
+# Config files
+*.json
+*.yaml
+*.yml
+
+# Public assets
+public/
+
+# Service worker
+sw.js
+workbox-*.js
+
+# Test files
+test-*.js
+test-*.html
+test-*.ts
+test-*.tsx
+
+# Scripts
+scripts/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Firebase service account keys
+*-sa-key.json
+service-account-*.json
+firebase-admin-key.json
+
+# Vertex AI keys
+vertex-ai-sa-key.json
+
+# Gamification import
+gamification-import.json 
