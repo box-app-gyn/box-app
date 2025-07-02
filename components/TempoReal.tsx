@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -41,7 +41,7 @@ const TempoReal: React.FC = () => {
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // Data de abertura do Lote 1 (13/07/2025)
-  const DATA_ABERTURA_LOTE1 = new Date('2025-07-13T00:00:00-03:00');
+  const DATA_ABERTURA_LOTE1 = useMemo(() => new Date('2025-07-13T00:00:00-03:00'), []);
 
   useEffect(() => {
     // Escutar dados em tempo real do Firestore

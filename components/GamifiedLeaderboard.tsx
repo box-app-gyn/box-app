@@ -32,7 +32,6 @@ function sanitizeUrl(url: string): string {
 export default function GamifiedLeaderboard({
   title = "🔥 Comunidade Ativa",
   subtitle = "Os mais engajados da tribo",
-  maxItems = 10,
   showUserPosition = true,
   className = ""
 }: GamifiedLeaderboardProps) {

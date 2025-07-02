@@ -103,7 +103,7 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       // Total de usuários
       const usersSnapshot = await getDocs(collection(db, 'users'));
@@ -137,9 +137,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     }
-  };
+  }, []);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
       const usersSnapshot = await getDocs(usersQuery);
@@ -148,9 +148,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
     }
-  };
+  }, []);
 
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
       const teamsQuery = query(collection(db, 'teams'), orderBy('createdAt', 'desc'));
       const teamsSnapshot = await getDocs(teamsQuery);
@@ -159,9 +159,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar times:', error);
     }
-  };
+  }, []);
 
-  const loadPedidos = async () => {
+  const loadPedidos = useCallback(async () => {
     try {
       const pedidosQuery = query(collection(db, 'pedidos'), orderBy('createdAt', 'desc'));
       const pedidosSnapshot = await getDocs(pedidosQuery);
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error);
     }
-  };
+  }, []);
 
   const loadAdminData = useCallback(async () => {
     try {
