@@ -82,6 +82,25 @@ function sanitizeHeaders(headers: Headers): Headers {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Pular middleware para arquivos estáticos e CSS
+  if (pathname.startsWith('/_next/') || 
+      pathname.startsWith('/styles/') || 
+      pathname.startsWith('/public/') || 
+      pathname.startsWith('/.well-known/') ||
+      pathname.includes('.css') ||
+      pathname.includes('.js') ||
+      pathname.includes('.ico') ||
+      pathname.includes('.png') ||
+      pathname.includes('.jpg') ||
+      pathname.includes('.jpeg') ||
+      pathname.includes('.gif') ||
+      pathname.includes('.svg') ||
+      pathname.includes('.woff') ||
+      pathname.includes('.woff2')) {
+    return NextResponse.next();
+  }
+
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
   const userAgent = request.headers.get('user-agent') || '';
 
@@ -102,12 +121,8 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
+     * Match only page routes, not static files
      */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }; 

@@ -7,11 +7,12 @@ import Beneficios from "@/components/Beneficios";
 import CallToAction from "@/components/CallToAction";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import Image from "next/image";
 
 function LinhaDelicada() {
   return (
     <div className="flex justify-center">
-      <img src="/images/liner.png" alt="" className="h-0.5 w-full max-w-[400px] object-cover select-none pointer-events-none" draggable="false" />
+              <Image src="/images/liner.png" alt="" className="h-0.5 w-full max-w-[400px] object-cover select-none pointer-events-none" draggable="false" width={400} height={1} style={{ width: 'auto', height: 'auto' }} />
     </div>
   );
 }

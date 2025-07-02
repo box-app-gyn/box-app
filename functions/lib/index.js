@@ -207,6 +207,20 @@ exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
             isActive: true,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            // 🎯 GAMIFICAÇÃO CAMADA 1
+            gamification: {
+                points: 10, // Pontos iniciais por cadastro
+                level: 'iniciante',
+                totalActions: 1,
+                lastActionAt: admin.firestore.FieldValue.serverTimestamp(),
+                achievements: ['first_blood'], // Primeira conquista
+                rewards: [],
+                streakDays: 1,
+                lastLoginStreak: admin.firestore.FieldValue.serverTimestamp(),
+                referralCode: `REF${uid.substring(0, 8).toUpperCase()}`,
+                referrals: [],
+                referralPoints: 0
+            }
         };
         await admin.firestore().collection('users').doc(uid).set(userData);
         logger_1.logger.business('Novo usuário criado', { email, displayName }, Object.assign(Object.assign({}, context), { userId: uid }));

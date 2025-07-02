@@ -107,9 +107,10 @@ export default function Header() {
                 <Image
                   src="/logos/nome_hrz.png"
                   alt="Interbox 2025"
-                  width={isScrolled ? 100 : 120}
-                  height={isScrolled ? 30 : 40}
+                  width={isScrolled ? 80 : 100}
+                  height={isScrolled ? 24 : 30}
                   className="transition-all duration-300"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
                 {/* Efeito de brilho no hover */}
                 <motion.div
@@ -121,10 +122,62 @@ export default function Header() {
               </motion.div>
             </Link>
 
-            {/* Menu Hambúrguer Animado */}
+            {/* Menu Desktop - Links de navegação */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link 
+                href="/#sobre" 
+                className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
+              >
+                Sobre
+              </Link>
+              <Link 
+                href="/times" 
+                className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
+              >
+                Times
+              </Link>
+              <Link 
+                href="/audiovisual" 
+                className="text-pink-400 hover:text-pink-300 transition-all duration-300 font-medium text-sm"
+              >
+                Audiovisual
+              </Link>
+              {user && (
+                <>
+                  <Link 
+                    href="/dashboard" 
+                    className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    href="/profile" 
+                    className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
+                  >
+                    Perfil
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
+                  >
+                    Sair
+                  </button>
+                </>
+              )}
+              {!user && (
+                <Link 
+                  href="/login" 
+                  className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200 font-medium text-sm"
+                >
+                  Entrar
+                </Link>
+              )}
+            </nav>
+
+            {/* Menu Hambúrguer - Apenas Mobile */}
             <motion.button
               onClick={toggleMenu}
-              className="relative z-50 flex flex-col justify-center items-center w-8 h-8 text-white hover:text-pink-400 transition-colors duration-300"
+              className="md:hidden relative z-50 flex flex-col justify-center items-center w-8 h-8 text-white hover:text-pink-400 transition-colors duration-300"
               whileTap={{ scale: 0.95 }}
             >
               {/* Linha superior */}
@@ -156,7 +209,7 @@ export default function Header() {
         </motion.div>
       </motion.header>
 
-      {/* Menu Lateral Fullscreen */}
+      {/* Menu Lateral Fullscreen - Apenas Mobile */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -166,7 +219,7 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-black/95 backdrop-blur-lg z-40"
+              className="md:hidden fixed inset-0 bg-black/95 backdrop-blur-lg z-40"
               onClick={() => setIsMenuOpen(false)}
             />
 
@@ -181,7 +234,7 @@ export default function Header() {
                 stiffness: 200,
                 duration: 0.5
               }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-black/98 backdrop-blur-xl z-50 border-l border-pink-500/20 shadow-2xl"
+              className="md:hidden fixed top-0 right-0 h-full w-full max-w-md bg-black/98 backdrop-blur-xl z-50 border-l border-pink-500/20 shadow-2xl"
             >
               {/* Conteúdo do menu */}
               <div className="flex flex-col h-full p-8">
@@ -195,9 +248,10 @@ export default function Header() {
                     <Image
                       src="/logos/nome_hrz.png"
                       alt="Interbox 2025"
-                      width={120}
-                      height={40}
+                      width={100}
+                      height={30}
                       className="filter brightness-110"
+                      style={{ width: 'auto', height: 'auto' }}
                     />
                   </motion.div>
                   
@@ -275,6 +329,19 @@ export default function Header() {
                           onClick={() => setIsMenuOpen(false)}
                         >
                           Dashboard
+                        </Link>
+                      </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.65 }}
+                      >
+                        <Link 
+                          href="/profile" 
+                          className="text-2xl font-bold text-white hover:text-pink-400 transition-all duration-300 block py-3 border-b border-pink-500/10 hover:border-pink-500/30"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Perfil
                         </Link>
                       </motion.div>
                       <motion.div

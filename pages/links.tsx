@@ -1,6 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const LinksPage: React.FC = () => {
   const links = [
@@ -57,9 +58,11 @@ const LinksPage: React.FC = () => {
               className="text-center mb-8"
             >
               <div className="flex justify-center mb-6">
-                <img
+                <Image
                   src="/logos/oficial_logo.png"
                   alt="CERRADØ INTERBOX"
+                  width={144}
+                  height={144}
                   className="h-36 md:h-48 w-auto"
                 />
               </div>

@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import GamifiedCTA from './GamifiedCTA';
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 function useDeviceParallax(ref: React.RefObject<HTMLDivElement>) {
@@ -23,7 +23,18 @@ function useDeviceParallax(ref: React.RefObject<HTMLDivElement>) {
 export default function Hero() {
   const logoRef = useRef<HTMLDivElement>(null);
   const { trackPage, trackScroll } = useAnalytics();
+  const [strobeActive, setStrobeActive] = useState(false);
   useDeviceParallax(logoRef);
+
+  // Efeito strobo a cada 400 segundos
+  useEffect(() => {
+    const strobeInterval = setInterval(() => {
+      setStrobeActive(true);
+      setTimeout(() => setStrobeActive(false), 200); // Strobe dura 200ms
+    }, 400000); // 400 segundos
+
+    return () => clearInterval(strobeInterval);
+  }, []);
 
   // Tracking de visualização da página inicial
   useEffect(() => {
@@ -63,21 +74,68 @@ export default function Hero() {
       
       {/* Content */}
       <div className="relative z-10">
-        {/* Logo circular com efeito de movimento parallax mobile */}
-        <div
+        {/* Logo circular com animações leves contínuas e strobo */}
+        <motion.div
           ref={logoRef}
           className="mx-auto mt-20 mb-8 w-90 h-90 flex items-center justify-center drop-shadow-neon-pink will-change-transform"
           style={{ transition: 'transform 0.2s cubic-bezier(.25,.46,.45,.94)' }}
+          animate={{
+            rotate: [0, 1, -1, 0],
+            scale: [1, 1.02, 0.98, 1],
+            filter: strobeActive 
+              ? ['brightness(1)', 'brightness(2)', 'brightness(1)'] 
+              : ['brightness(1)', 'brightness(1.1)', 'brightness(1)']
+          }}
+          transition={{
+            rotate: {
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            },
+            scale: {
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            },
+            filter: {
+              duration: strobeActive ? 0.2 : 4,
+              repeat: strobeActive ? 0 : Infinity,
+              ease: "easeInOut"
+            }
+          }}
         >
-          <Image
-            src="/logos/oficial_logo.png"
-            alt="Logo Oficial"
-            width={560}
-            height={560}
-            priority
+          <motion.div
+            animate={{
+              boxShadow: strobeActive 
+                ? [
+                    '0 0 20px rgba(236, 72, 153, 0.8)',
+                    '0 0 40px rgba(236, 72, 153, 1)',
+                    '0 0 20px rgba(236, 72, 153, 0.8)'
+                  ]
+                : [
+                    '0 0 20px rgba(236, 72, 153, 0.6)',
+                    '0 0 30px rgba(236, 72, 153, 0.8)',
+                    '0 0 20px rgba(236, 72, 153, 0.6)'
+                  ]
+            }}
+            transition={{
+              duration: strobeActive ? 0.2 : 3,
+              repeat: strobeActive ? 0 : Infinity,
+              ease: "easeInOut"
+            }}
             className="rounded-full"
-          />
-        </div>
+          >
+            <Image
+              src="/logos/oficial_logo.png"
+              alt="Logo Oficial"
+              width={560}
+              height={560}
+              priority
+              className="rounded-full"
+              style={{ width: 'auto', height: 'auto' }}
+            />
+          </motion.div>
+        </motion.div>
 
         {/* Hero Section */}
         <motion.div

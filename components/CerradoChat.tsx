@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { useChatAPI } from '@/hooks/useChatAPI';
 
 interface CerradoChatProps {
@@ -66,16 +67,22 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  🤖
+                  <Image 
+                    src="/logos/barbell.png" 
+                    alt="CERRADØ Assistant" 
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />
                 </div>
                 <div>
-                  <h3 className="font-bold">CERRADØ Assistant</h3>
-                  <p className="text-xs opacity-90">IA Especializada</p>
+                  <h3 className="font-bold">INTERBØX Assistant</h3>
+                  <p className="text-xs opacity-90">Seu guia no CERRADØ 2025</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-white/80 hover:text-white transition-colors"
+                className="text-white/80 hover:text-white transition-colors hover:scale-110"
               >
                 ✕
               </button>
@@ -148,15 +155,17 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
             <div className="px-4 pb-2">
               <div className="flex flex-wrap gap-2">
                 {[
-                  "Quando são as inscrições?",
-                  "Onde será o evento?",
-                  "Como formar um time?",
-                  "Sobre audiovisual"
+                  "Quando abrem as inscrições? 🔥",
+                  "Onde será o evento? 🏛️",
+                  "Como formar meu time? 🤝",
+                  "Sobre audiovisual 📸",
+                  "Quais as categorias? 🏆",
+                  "Valores das inscrições 💰"
                 ].map((suggestion, index) => (
                   <button
                     key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full border border-gray-700 transition-colors"
+                    onClick={() => handleSuggestionClick(suggestion.replace(/[🤖🏛️🤝📸🏆💰]/g, '').trim())}
+                    className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full border border-gray-700 transition-colors hover:border-pink-500/50"
                   >
                     {suggestion}
                   </button>
@@ -173,16 +182,16 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Digite sua mensagem..."
+                placeholder="Pergunte sobre o CERRADØ..."
                 className="flex-1 bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-pink-500"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="bg-pink-600 hover:bg-pink-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-pink-600 hover:bg-pink-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
               >
-                ➤
+                ⚡
               </button>
             </div>
           </div>

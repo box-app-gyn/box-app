@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 import GamifiedCTA from '../components/GamifiedCTA';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -131,7 +132,7 @@ const TimesPage: React.FC = () => {
 
               {/* Aviso — inscrições */}
               <div className="border-l-4 border-yellow-400 pl-4 py-4 bg-yellow-500/5 rounded-md relative overflow-hidden">
-                <img src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" />
+                <Image src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" width={128} height={128} />
                 <h3 className="text-lg font-medium text-yellow-300 mb-2">⚠️ Inscrições ainda não abertas</h3>
                 <p className="text-gray-300 mb-2">
                   Os detalhes finais estão sendo validados com atletas convidados e boxes parceiros:

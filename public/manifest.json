@@ -7,10 +7,50 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["sports", "fitness", "events"],
   "icons": [
     {
       "src": "/logos/logo_circulo.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/logo_circulo.png",
+      "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -21,7 +61,44 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["sports", "fitness", "events"],
-  "lang": "pt-BR",
-  "dir": "ltr"
+  "screenshots": [
+    {
+      "src": "/images/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/images/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Inscrições",
+      "short_name": "Inscrições",
+      "description": "Acessar inscrições do evento",
+      "url": "/audiovisual",
+      "icons": [
+        {
+          "src": "/logos/logo_circulo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Times",
+      "short_name": "Times",
+      "description": "Ver times formados",
+      "url": "/times",
+      "icons": [
+        {
+          "src": "/logos/logo_circulo.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
 } 

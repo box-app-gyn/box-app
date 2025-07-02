@@ -111,7 +111,7 @@ export default function AudiovisualFormPage() {
                 width={320}
                 height={90}
                 className="mx-auto mb-6 logo-grunge"
-                style={{ filter: 'brightness(0) invert(0)', maxWidth: '90vw', height: 'auto' }}
+                style={{ filter: 'brightness(0) invert(0)', maxWidth: '90vw', height: 'auto', width: 'auto' }}
                 priority
               />
               <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 tracking-tight glitch-text">

@@ -31,6 +31,7 @@ export default function Beneficios() {
             height={520}
             className="rounded-3xl shadow-none relative z-10"
             priority
+            style={{ width: 'auto', height: 'auto' }}
           />
         </motion.div>
         

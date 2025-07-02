@@ -121,6 +121,8 @@ export default function AdminDashboard() {
     if (userData && !loading) {
       trackPage('admin');
       trackAdmin('access', userData.email);
+      // Carregar dados admin após o usuário ser carregado
+      loadAdminData();
     }
   }, [userData, loading, trackPage, trackAdmin]);
 
