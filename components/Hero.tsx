@@ -77,7 +77,7 @@ export default function Hero() {
         {/* Logo circular com animações leves contínuas e strobo */}
         <motion.div
           ref={logoRef}
-          className="mx-auto mt-20 mb-8 w-90 h-90 flex items-center justify-center drop-shadow-neon-pink will-change-transform"
+          className="mx-auto mt-20 mb-8 w-60 h-60 md:w-80 md:h-80 lg:w-90 lg:h-90 flex items-center justify-center will-change-transform"
           style={{ transition: 'transform 0.2s cubic-bezier(.25,.46,.45,.94)' }}
           animate={{
             rotate: [0, 1, -1, 0],
@@ -128,11 +128,10 @@ export default function Hero() {
             <Image
               src="/logos/oficial_logo.png"
               alt="Logo Oficial"
-              width={560}
-              height={560}
+              width={360}
+              height={360}
               priority
-              className="rounded-full"
-              style={{ width: 'auto', height: 'auto' }}
+              className="rounded-full w-full h-full"
             />
           </motion.div>
         </motion.div>
@@ -144,7 +143,7 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.5 }}
           className="mt-20 max-w-2xl"
         >
-          <h2 className="text-3xl md:text-5xl font-bold text-white headline-glow">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white headline-glow">
             <span className="text-pink-500">O MAIOR EVENTO <span className='whitespace-nowrap'>DE TIMES</span></span><br/> DA AMÉRICA LATINA
           </h2>
           
@@ -155,7 +154,7 @@ export default function Hero() {
             transition={{ duration: 1, delay: 0.7 }}
             className="mt-6"
           >
-            <p className="text-xl md:text-2xl font-bold text-pink-400 drop-shadow-neon-pink">
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-pink-400 drop-shadow-neon-pink">
               24, 25 e 26 de OUTUBRO
             </p>
           </motion.div>

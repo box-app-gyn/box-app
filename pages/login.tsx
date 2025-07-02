@@ -59,7 +59,10 @@ export default function Login() {
             router.push('/dashboard');
           }
         };
-        checkUserDoc();
+        // Adicionar um pequeno delay para garantir que o formulário seja visível
+        setTimeout(() => {
+          checkUserDoc();
+        }, 1000);
       }
     });
     return () => unsubscribe();

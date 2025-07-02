@@ -79,7 +79,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               autoPlay
               muted
               playsInline
-              className="w-full h-full object-cover block md:hidden"
+              preload="auto"
+              className="w-full h-full object-cover"
               style={{
                 width: '100%',
                 height: '100%',
@@ -87,6 +88,21 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               }}
             >
               <source src="/videos/intro.mp4" type="video/mp4" />
+              {/* Fallback para navegadores que não suportam vídeo */}
+              <div className="flex items-center justify-center w-full h-full bg-black">
+                <div className="text-center">
+                  <Image 
+                    src="/logos/logo_circulo.png" 
+                    alt="CERRADØ INTERBOX" 
+                    width={128}
+                    height={128}
+                    className="w-32 h-32 mx-auto mb-4 animate-pulse"
+                    priority
+                  />
+                  <h1 className="text-white text-2xl font-bold mb-2">CERRADØ INTERBOX</h1>
+                  <p className="text-gray-300">2025</p>
+                </div>
+              </div>
             </video>
           ) : (
             <div className="flex items-center justify-center w-full h-full bg-black">

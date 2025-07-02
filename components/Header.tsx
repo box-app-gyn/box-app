@@ -106,8 +106,8 @@ export default function Header() {
                 <Image
                   src="/logos/nome_hrz.png"
                   alt="Interbox 2025"
-                  width={isScrolled ? 80 : 100}
-                  height={isScrolled ? 24 : 30}
+                  width={isScrolled ? 50 : 70}
+                  height={isScrolled ? 15 : 21}
                   className="transition-all duration-300"
                   style={{ width: 'auto', height: 'auto' }}
                 />

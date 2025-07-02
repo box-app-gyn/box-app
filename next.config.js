@@ -7,6 +7,9 @@ const nextConfig = {
   images: {
     domains: ['firebasestorage.googleapis.com'],
     unoptimized: true
+  },
+  experimental: {
+    esmExternals: false
   }
 }
 

@@ -6,7 +6,7 @@ import ChatButton from '../components/ChatButton';
 import SplashScreen from '../components/SplashScreen';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import UpdateNotification from '../components/UpdateNotification';
-import { auth } from '../lib/firebase';
+
 export default function App({ Component, pageProps }: AppProps) {
   const [isClient, setIsClient] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
@@ -28,16 +28,17 @@ export default function App({ Component, pageProps }: AppProps) {
       });
     }
     
-    // Detectar se deve mostrar splash (apenas iOS + Safari)
+    // Detectar se deve mostrar splash (apenas iOS + Safari mobile)
     if (typeof window !== 'undefined') {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || 
                         (window.navigator as { standalone?: boolean }).standalone === true;
       const isInstalled = localStorage.getItem('pwa-installed') === 'true';
       const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const safari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+      const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      // Mostrar splash apenas para iOS + Safari que não estão em modo standalone
-      if (iOS && safari && !standalone && !isInstalled) {
+      // Mostrar splash apenas para iOS mobile + Safari que não estão em modo standalone
+      if (iOS && safari && isMobile && !standalone && !isInstalled) {
         setShowSplash(true);
       }
     }
@@ -47,30 +48,16 @@ export default function App({ Component, pageProps }: AppProps) {
     setShowSplash(false);
     localStorage.setItem('pwa-installed', 'true');
     
-    // Redirecionar para login após o splash (apenas iOS + Safari)
-    if (typeof window !== 'undefined') {
-      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const safari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-      
-      if (iOS && safari) {
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          // Se não está logado, redirecionar para login
-          window.location.href = '/login';
-          return;
-        }
-      }
-    }
-    
-    // Mostrar prompt de instalação após 3 segundos (apenas iOS + Safari)
+    // Mostrar prompt de instalação após 3 segundos (apenas iOS mobile + Safari)
     setTimeout(() => {
       if (typeof window !== 'undefined') {
         const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const safari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+        const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const standalone = window.matchMedia('(display-mode: standalone)').matches || 
                           (window.navigator as { standalone?: boolean }).standalone === true;
         
-        if (iOS && safari && !standalone) {
+        if (iOS && safari && isMobile && !standalone) {
           setTimeout(() => {
             setShowInstallPrompt(true);
           }, 5000);

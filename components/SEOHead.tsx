@@ -232,7 +232,7 @@ export default function SEOHead({
       <link rel="dns-prefetch" href="//identitytoolkit.googleapis.com" />
       
       {/* Preload critical resources */}
-      {/* Removido preload da imagem para evitar avisos */}
+      {/* Removido preload da imagem OG para evitar avisos de recurso não utilizado */}
     </Head>
   );
 } 
