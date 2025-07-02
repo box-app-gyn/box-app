@@ -1,0 +1,73 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "18"
+
+cache:
+  paths:
+    - node_modules/
+
+# Test stage
+test:
+  stage: test
+  image: node:18-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run lint
+    - npm run type-check
+  only:
+    - merge_requests
+    - main
+
+# Build stage
+build:
+  stage: build
+  image: node:18-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run build:app-hosting
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 hour
+  only:
+    - main
+
+# Deploy to Firebase (Main branch)
+deploy:live:
+  stage: deploy
+  image: node:18-alpine
+  before_script:
+    - npm install -g firebase-tools
+    - echo $FIREBASE_SERVICE_ACCOUNT > /tmp/firebase-service-account.json
+    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
+  script:
+    - firebase deploy --only hosting --project interbox-app-8d400 --config firebase-ci.json
+  environment:
+    name: production
+    url: https://interbox-app-8d400.web.app
+  only:
+    - main
+  when: manual
+
+# Deploy to Firebase (Preview for MR)
+deploy:preview:
+  stage: deploy
+  image: node:18-alpine
+  before_script:
+    - npm install -g firebase-tools
+    - echo $FIREBASE_SERVICE_ACCOUNT > /tmp/firebase-service-account.json
+    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
+  script:
+    - firebase hosting:channel:deploy pr-$CI_MERGE_REQUEST_IID --project interbox-app-8d400 --config firebase-ci.json
+  environment:
+    name: preview
+    url: https://pr-$CI_MERGE_REQUEST_IID--interbox-app-8d400.web.app
+  only:
+    - merge_requests
+  when: manual 

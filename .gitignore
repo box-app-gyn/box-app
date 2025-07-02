@@ -377,3 +377,7 @@ firebase-debug*.log
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts 
+
+._*
+.__*
+.DS_Store

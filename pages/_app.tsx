@@ -20,7 +20,7 @@ export default function App({ Component, pageProps }: AppProps) {
     // Proteção contra ataques de clickjacking
     if (typeof window !== 'undefined') {
       // Verificar se está em um iframe
-      if (window.self !== window.top) {
+      if (window.self !== window.top && window.top) {
         // Tentativa de clickjacking detectada
         window.top.location.href = window.self.location.href;
       }

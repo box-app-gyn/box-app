@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import AudiovisualAnalysis from '@/components/AudiovisualAnalysis';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SEOHead from '@/components/SEOHead';
 
@@ -175,9 +174,9 @@ export default function Audiovisual() {
               </div>
             </div>
 
-            {/* Análise IA do Perfil */}
+            {/* Análise IA do Perfil - Componente temporariamente removido */}
             <div className="mt-16">
-              <AudiovisualAnalysis />
+              {/* <AudiovisualAnalysis /> */}
             </div>
 
             {/* Botão Google Forms minimalista */}

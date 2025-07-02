@@ -26,6 +26,7 @@ interface LogEntry {
   level: keyof LogLevel;
   message: string;
   data?: any;
+  context?: any;
   userId?: string;
   requestId?: string;
   ip?: string;
@@ -80,6 +81,7 @@ class Logger {
       level,
       message: SECURITY_UTILS.sanitizeString(message, 200),
       data: sanitizedData,
+      context: sanitizedContext,
       userId: sanitizedContext?.userId,
       requestId: this.requestId,
       ip: sanitizedContext?.ip,
