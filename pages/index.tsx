@@ -3,6 +3,7 @@ import ParallaxWrapper from "@/components/ParallaxWrapper";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Sobre from "@/components/Sobre";
+import TempoReal from "@/components/TempoReal";
 import Beneficios from "@/components/Beneficios";
 import CallToAction from "@/components/CallToAction";
 import Footer from "@/components/Footer";
@@ -36,6 +37,8 @@ export default function Home() {
         <Hero />
         <LinhaDelicada />
         <Sobre />
+        <LinhaDelicada />
+        <TempoReal />
         <LinhaDelicada />
         <Beneficios />
         <LinhaDelicada />
