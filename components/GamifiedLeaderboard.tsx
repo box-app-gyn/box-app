@@ -13,10 +13,26 @@ interface GamifiedLeaderboardProps {
   className?: string;
 }
 
+// Funções utilitárias de segurança
+function sanitizeText(text: string): string {
+  if (!text) return 'Usuário';
+  return text.replace(/[<>]/g, '').trim();
+}
+
+function sanitizeUrl(url: string): string {
+  if (!url) return '';
+  try {
+    const u = new URL(url, window.location.origin);
+    return u.href;
+  } catch {
+    return '';
+  }
+}
+
 export default function GamifiedLeaderboard({
   title = "🔥 Comunidade Ativa",
   subtitle = "Os mais engajados da tribo",
-  maxItems = 10, // eslint-disable-line @typescript-eslint/no-unused-vars
+  maxItems = 10,
   showUserPosition = true,
   className = ""
 }: GamifiedLeaderboardProps) {
@@ -40,6 +56,7 @@ export default function GamifiedLeaderboard({
 
   // 📊 FORMATAR PONTOS
   const formatPoints = (points: number) => {
+    if (!points || points < 0) return '0';
     if (points >= 1000) {
       return `${(points / 1000).toFixed(1)}k`;
     }
@@ -48,15 +65,15 @@ export default function GamifiedLeaderboard({
 
   // 🎯 POSIÇÃO DO USUÁRIO ATUAL
   const getUserPosition = () => {
-    if (!stats?.position) return null;
+    if (!stats?.position || !leaderboard.length) return null;
     const userEntry = leaderboard.find(entry => entry.position === stats.position);
     if (!userEntry) return null;
     return {
       position: stats.position,
-      points: stats.points,
-      level: stats.level,
-      userName: userEntry.userName,
-      userPhotoURL: userEntry.userPhotoURL
+      points: stats.points || 0,
+      level: stats.level || 'iniciante',
+      userName: sanitizeText(userEntry.userName),
+      userPhotoURL: sanitizeUrl(userEntry.userPhotoURL || '')
     };
   };
 
@@ -102,20 +119,29 @@ export default function GamifiedLeaderboard({
         </div>
       )}
 
+      {/* Empty State */}
+      {!loading && leaderboard.length === 0 && (
+        <div className="text-center text-gray-400 py-8">
+          <div className="text-4xl mb-4">🏆</div>
+          <p>Nenhum participante ainda.</p>
+          <p className="text-sm">Seja o primeiro a aparecer no ranking!</p>
+        </div>
+      )}
+
       {/* Leaderboard */}
-      {!loading && (
+      {!loading && leaderboard.length > 0 && (
         <div className="space-y-3">
           <AnimatePresence>
             {visibleItems.map((entry, index) => (
               <motion.div
-                key={entry.userId}
+                key={entry.userId || `entry-${index}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
                 className={`
                   flex items-center justify-between p-3 rounded-lg transition-all duration-300
-                  ${entry.position <= 3 
+                  ${(entry.position || 0) <= 3 
                     ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30' 
                     : 'bg-gray-800/50 border border-gray-700/50 hover:bg-gray-700/50'
                   }
@@ -126,22 +152,22 @@ export default function GamifiedLeaderboard({
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     <span className="text-lg font-bold text-white">
-                      {getPositionIcon(entry.position)}
+                      {getPositionIcon(entry.position || index + 1)}
                     </span>
                   </div>
                   
                   <div className="flex-shrink-0">
                     {entry.userPhotoURL ? (
                       <Image
-                        src={entry.userPhotoURL}
-                        alt={entry.userName}
+                        src={sanitizeUrl(entry.userPhotoURL)}
+                        alt={sanitizeText(entry.userName)}
                         width={40}
                         height={40}
                         className="rounded-full border-2 border-pink-500/30"
                       />
                     ) : (
                       <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                        {entry.userName.charAt(0).toUpperCase()}
+                        {sanitizeText(entry.userName).charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
@@ -149,21 +175,21 @@ export default function GamifiedLeaderboard({
                   {/* Nome e Nível */}
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium truncate">
-                      {entry.userName}
+                      {sanitizeText(entry.userName)}
                     </p>
                     <div className="flex items-center space-x-2">
                       <span 
                         className="text-xs px-2 py-1 rounded-full font-medium"
                         style={{ 
-                          backgroundColor: `${getLevelColor(entry.level)}20`,
-                          color: getLevelColor(entry.level),
-                          border: `1px solid ${getLevelColor(entry.level)}40`
+                          backgroundColor: `${getLevelColor(entry.level || 'iniciante')}20`,
+                          color: getLevelColor(entry.level || 'iniciante'),
+                          border: `1px solid ${getLevelColor(entry.level || 'iniciante')}40`
                         }}
                       >
-                        {entry.level.charAt(0).toUpperCase() + entry.level.slice(1)}
+                        {(entry.level || 'iniciante').charAt(0).toUpperCase() + (entry.level || 'iniciante').slice(1)}
                       </span>
                       <span className="text-gray-400 text-xs">
-                        {entry.totalActions} ações
+                        {(entry.totalActions || 0)} ações
                       </span>
                     </div>
                   </div>
@@ -200,7 +226,7 @@ export default function GamifiedLeaderboard({
                         alt={userPosition.userName}
                         width={40}
                         height={40}
-                        className="rounded-full border-2 border-pink-500"
+                        className="rounded-full border-2 border-pink-500/50"
                       />
                     ) : (
                       <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -209,20 +235,22 @@ export default function GamifiedLeaderboard({
                     )}
                   </div>
 
-                  <div>
-                    <p className="text-pink-400 font-medium">
-                      {userPosition.userName} (Você)
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-medium truncate">
+                      {userPosition.userName}
                     </p>
-                    <span 
-                      className="text-xs px-2 py-1 rounded-full font-medium"
-                      style={{ 
-                        backgroundColor: `${getLevelColor(userPosition.level)}20`,
-                        color: getLevelColor(userPosition.level),
-                        border: `1px solid ${getLevelColor(userPosition.level)}40`
-                      }}
-                    >
-                      {userPosition.level.charAt(0).toUpperCase() + userPosition.level.slice(1)}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span 
+                        className="text-xs px-2 py-1 rounded-full font-medium"
+                        style={{ 
+                          backgroundColor: `${getLevelColor(userPosition.level)}20`,
+                          color: getLevelColor(userPosition.level),
+                          border: `1px solid ${getLevelColor(userPosition.level)}40`
+                        }}
+                      >
+                        {userPosition.level.charAt(0).toUpperCase() + userPosition.level.slice(1)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -240,7 +268,7 @@ export default function GamifiedLeaderboard({
           {leaderboard.length > 5 && (
             <motion.button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full mt-4 py-2 px-4 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/25"
+              className="w-full mt-4 py-3 px-4 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-lg transition-all duration-300"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -249,22 +277,6 @@ export default function GamifiedLeaderboard({
           )}
         </div>
       )}
-
-      {/* Empty State */}
-      {!loading && leaderboard.length === 0 && (
-        <div className="text-center py-8">
-          <div className="text-4xl mb-4">🏆</div>
-          <p className="text-gray-400">Nenhum participante ainda</p>
-          <p className="text-gray-500 text-sm">Seja o primeiro a pontuar!</p>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-gray-700/50">
-        <p className="text-gray-500 text-xs text-center">
-          Ranking atualizado automaticamente • Pontos ganhos por ações na comunidade
-        </p>
-      </div>
     </div>
   );
 } 

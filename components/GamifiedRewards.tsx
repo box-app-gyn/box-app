@@ -11,6 +11,12 @@ interface GamifiedRewardsProps {
   className?: string;
 }
 
+// Funções utilitárias de segurança
+function sanitizeText(text: string): string {
+  if (!text) return '';
+  return text.replace(/[<>]/g, '').trim();
+}
+
 export default function GamifiedRewards({
   title = "🎁 Recompensas",
   subtitle = "Resgate seus prêmios exclusivos",
@@ -40,7 +46,7 @@ export default function GamifiedRewards({
 
   // 🎯 RESGATAR RECOMPENSA
   const handleRedeem = async (reward: FirestoreGamificationReward) => {
-    if (!stats) return;
+    if (!stats || !reward.id) return;
 
     try {
       setRedeeming(reward.id);
@@ -59,7 +65,11 @@ export default function GamifiedRewards({
 
   // 🔒 VERIFICAR SE PODE RESGATAR
   const canRedeem = (reward: FirestoreGamificationReward) => {
-    if (!stats) return false;
+    if (!stats || !reward) return false;
+    
+    // Validação robusta de tipos e existência
+    if (typeof reward.requiredPoints !== 'number' || !reward.requiredLevel) return false;
+    if (!(reward.requiredLevel in GAMIFICATION_LEVELS)) return false;
     
     // Verificar pontos
     if (stats.points < reward.requiredPoints) return false;
@@ -68,23 +78,24 @@ export default function GamifiedRewards({
     const levelIndex = Object.keys(GAMIFICATION_LEVELS).indexOf(reward.requiredLevel);
     const userLevelIndex = Object.keys(GAMIFICATION_LEVELS).indexOf(stats.level);
     
+    if (levelIndex === -1 || userLevelIndex === -1) return false;
     return levelIndex <= userLevelIndex;
   };
 
   // 📊 PROGRESSO PARA PRÓXIMA RECOMPENSA
   const getNextRewardProgress = () => {
-    if (!stats || availableRewards.length === 0) return null;
+    if (!stats || !availableRewards.length) return null;
 
-    const sortedRewards = [...availableRewards].sort((a, b) => a.requiredPoints - b.requiredPoints);
+    const sortedRewards = [...availableRewards].sort((a, b) => (a.requiredPoints || 0) - (b.requiredPoints || 0));
     const nextReward = sortedRewards.find(reward => !canRedeem(reward));
 
     if (!nextReward) return null;
 
-    const progress = (stats.points / nextReward.requiredPoints) * 100;
+    const progress = (stats.points / (nextReward.requiredPoints || 1)) * 100;
     return {
       reward: nextReward,
       progress: Math.min(progress, 100),
-      pointsNeeded: nextReward.requiredPoints - stats.points
+      pointsNeeded: (nextReward.requiredPoints || 0) - stats.points
     };
   };
 
@@ -121,7 +132,7 @@ export default function GamifiedRewards({
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-blue-400 font-medium text-sm">
-              Próxima recompensa: {nextRewardProgress.reward.title}
+              Próxima recompensa: {sanitizeText(nextRewardProgress.reward.title)}
             </span>
             <span className="text-blue-400 text-sm">
               {nextRewardProgress.pointsNeeded} pontos restantes
@@ -145,13 +156,22 @@ export default function GamifiedRewards({
         </div>
       )}
 
+      {/* Empty State */}
+      {!loading && availableRewards.length === 0 && (
+        <div className="text-center text-gray-400 py-8">
+          <div className="text-4xl mb-4">🎁</div>
+          <p>Nenhuma recompensa disponível no momento.</p>
+          <p className="text-sm">Continue participando para desbloquear recompensas!</p>
+        </div>
+      )}
+
       {/* Lista de Recompensas */}
-      {!loading && (
+      {!loading && availableRewards.length > 0 && (
         <div className="space-y-4">
           <AnimatePresence>
             {availableRewards.map((reward, index) => (
               <motion.div
-                key={reward.id}
+                key={reward.id || `reward-${index}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
@@ -168,15 +188,15 @@ export default function GamifiedRewards({
                   {/* Ícone e Informações */}
                   <div className="flex items-start space-x-3 flex-1">
                     <div className="flex-shrink-0 text-2xl">
-                      {getRewardIcon(reward.type)}
+                      {getRewardIcon(reward.type || 'default')}
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <h4 className="text-white font-medium mb-1">
-                        {reward.title}
+                        {sanitizeText(reward.title)}
                       </h4>
                       <p className="text-gray-400 text-sm mb-2">
-                        {reward.description}
+                        {sanitizeText(reward.description)}
                       </p>
                       
                       {/* Requisitos */}
@@ -184,19 +204,19 @@ export default function GamifiedRewards({
                         <span 
                           className="text-xs px-2 py-1 rounded-full font-medium"
                           style={{ 
-                            backgroundColor: `${getLevelColor(reward.requiredLevel)}20`,
-                            color: getLevelColor(reward.requiredLevel),
-                            border: `1px solid ${getLevelColor(reward.requiredLevel)}40`
+                            backgroundColor: `${getLevelColor(reward.requiredLevel || 'iniciante')}20`,
+                            color: getLevelColor(reward.requiredLevel || 'iniciante'),
+                            border: `1px solid ${getLevelColor(reward.requiredLevel || 'iniciante')}40`
                           }}
                         >
-                          {reward.requiredLevel.charAt(0).toUpperCase() + reward.requiredLevel.slice(1)}
+                          {(reward.requiredLevel || 'iniciante').charAt(0).toUpperCase() + (reward.requiredLevel || 'iniciante').slice(1)}
                         </span>
                         <span className="text-yellow-400 text-xs font-medium">
-                          {reward.requiredPoints} pontos
+                          {reward.requiredPoints || 0} pontos
                         </span>
                         {reward.maxRedemptions && (
                           <span className="text-gray-500 text-xs">
-                            {reward.currentRedemptions}/{reward.maxRedemptions} resgates
+                            {(reward.currentRedemptions || 0)}/{reward.maxRedemptions} resgates
                           </span>
                         )}
                       </div>
@@ -209,21 +229,14 @@ export default function GamifiedRewards({
                       <motion.button
                         onClick={() => handleRedeem(reward)}
                         disabled={redeeming === reward.id}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-green-500/25 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-medium rounded-lg transition-all duration-300 text-sm"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        {redeeming === reward.id ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>Resgatando...</span>
-                          </div>
-                        ) : (
-                          'Resgatar'
-                        )}
+                        {redeeming === reward.id ? 'Resgatando...' : 'Resgatar'}
                       </motion.button>
                     ) : (
-                      <div className="px-4 py-2 bg-gray-600 text-gray-400 font-medium rounded-lg cursor-not-allowed">
+                      <div className="px-4 py-2 bg-gray-600 text-gray-400 font-medium rounded-lg text-sm">
                         Bloqueado
                       </div>
                     )}
@@ -232,15 +245,6 @@ export default function GamifiedRewards({
               </motion.div>
             ))}
           </AnimatePresence>
-
-          {/* Empty State */}
-          {availableRewards.length === 0 && (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-4">🎁</div>
-              <p className="text-gray-400">Nenhuma recompensa disponível</p>
-              <p className="text-gray-500 text-sm">Continue pontuando para desbloquear recompensas!</p>
-            </div>
-          )}
         </div>
       )}
 
@@ -251,47 +255,30 @@ export default function GamifiedRewards({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
             onClick={() => setShowModal(false)}
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-gray-900 rounded-xl p-6 max-w-md w-full border border-pink-500/30"
+              className="bg-white rounded-xl p-6 mx-4 max-w-sm w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center">
-                <div className="text-6xl mb-4">🎉</div>
-                <h3 className="text-xl font-bold text-white mb-2">
+                <div className="text-4xl mb-4">🎉</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   Recompensa Resgatada!
                 </h3>
-                <p className="text-gray-400 mb-4">
-                  {selectedReward.title}
+                <p className="text-gray-600 mb-4">
+                  {sanitizeText(selectedReward.title)} foi adicionada ao seu perfil.
                 </p>
-                
-                {selectedReward.metadata?.content && (
-                  <div className="bg-gray-800 rounded-lg p-4 mb-4">
-                    <p className="text-white text-sm">
-                      {selectedReward.metadata.content}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedReward.metadata?.instructions && (
-                  <p className="text-gray-400 text-sm mb-4">
-                    {selectedReward.metadata.instructions}
-                  </p>
-                )}
-
-                <motion.button
+                <button
                   onClick={() => setShowModal(false)}
-                  className="px-6 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-lg transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
                   Fechar
-                </motion.button>
+                </button>
               </div>
             </motion.div>
           </motion.div>

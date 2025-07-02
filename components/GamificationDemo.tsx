@@ -8,6 +8,12 @@ interface GamificationDemoProps {
   className?: string;
 }
 
+// Funções utilitárias de segurança
+function sanitizeText(text: string): string {
+  if (!text) return '';
+  return text.replace(/[<>]/g, '').trim();
+}
+
 export default function GamificationDemo({ className = "" }: GamificationDemoProps) {
   const { stats, addPoints, getLevelProgress } = useGamification();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -24,11 +30,17 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
 
   // 🎨 COR DO NÍVEL
   const getLevelColor = (level: string) => {
+    if (!level || !(level in GAMIFICATION_LEVELS)) return '#6B7280';
     return GAMIFICATION_LEVELS[level as keyof typeof GAMIFICATION_LEVELS]?.color || '#6B7280';
   };
 
   // 🎯 EXECUTAR AÇÃO DE DEMO
   const handleDemoAction = async (action: GamificationAction) => {
+    if (!action || !(action in GAMIFICATION_POINTS)) {
+      console.error('Ação inválida:', action);
+      return;
+    }
+
     try {
       await addPoints(action, { demo: true });
     } catch (error) {
@@ -47,6 +59,17 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
       </div>
     );
   }
+
+  // Validação de dados do usuário
+  const safeStats = {
+    points: stats.points || 0,
+    level: stats.level || 'iniciante',
+    totalActions: stats.totalActions || 0,
+    streakDays: stats.streakDays || 0,
+    position: stats.position || null
+  };
+
+  const levelProgress = getLevelProgress();
 
   return (
     <div className={`bg-black/60 backdrop-blur rounded-xl p-6 shadow-lg border border-pink-500/20 ${className}`}>
@@ -77,19 +100,19 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
             <span 
               className="text-lg px-3 py-1 rounded-full font-bold"
               style={{ 
-                backgroundColor: `${getLevelColor(stats.level)}20`,
-                color: getLevelColor(stats.level),
-                border: `1px solid ${getLevelColor(stats.level)}40`
+                backgroundColor: `${getLevelColor(safeStats.level)}20`,
+                color: getLevelColor(safeStats.level),
+                border: `1px solid ${getLevelColor(safeStats.level)}40`
               }}
             >
-              {stats.level.charAt(0).toUpperCase() + stats.level.slice(1)}
+              {sanitizeText(safeStats.level).charAt(0).toUpperCase() + sanitizeText(safeStats.level).slice(1)}
             </span>
             <span className="text-yellow-400 font-bold text-xl">
-              {stats.points} ⭐
+              {safeStats.points} ⭐
             </span>
           </div>
           <span className="text-gray-400 text-sm">
-            #{stats.position || 'N/A'}
+            #{safeStats.position || 'N/A'}
           </span>
         </div>
 
@@ -97,21 +120,21 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
         <div className="mb-2">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <span>Progresso para próximo nível</span>
-            <span>{getLevelProgress().percentage.toFixed(1)}%</span>
+            <span>{levelProgress.percentage.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">
             <motion.div
               className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full"
               initial={{ width: 0 }}
-              animate={{ width: `${getLevelProgress().percentage}%` }}
+              animate={{ width: `${levelProgress.percentage}%` }}
               transition={{ duration: 1, delay: 0.5 }}
             />
           </div>
         </div>
 
         <div className="flex justify-between text-xs text-gray-500">
-          <span>{getLevelProgress().current} XP</span>
-          <span>{getLevelProgress().next} XP</span>
+          <span>{levelProgress.current} XP</span>
+          <span>{levelProgress.next} XP</span>
         </div>
       </div>
 
@@ -133,7 +156,7 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
               <div className="flex items-center space-x-2">
                 <span className="text-xl">{demoAction.icon}</span>
                 <div className="flex-1">
-                  <p className="text-white font-medium text-sm">{demoAction.label}</p>
+                  <p className="text-white font-medium text-sm">{sanitizeText(demoAction.label)}</p>
                   <p className="text-yellow-400 text-xs">+{demoAction.points} XP</p>
                 </div>
               </div>
@@ -157,12 +180,12 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="text-center p-3 bg-gray-800/30 rounded-lg">
           <div className="text-2xl mb-1">🔥</div>
-          <p className="text-white font-bold">{stats.streakDays}</p>
+          <p className="text-white font-bold">{safeStats.streakDays}</p>
           <p className="text-gray-400 text-xs">Dias Streak</p>
         </div>
         <div className="text-center p-3 bg-gray-800/30 rounded-lg">
           <div className="text-2xl mb-1">📊</div>
-          <p className="text-white font-bold">{stats.totalActions}</p>
+          <p className="text-white font-bold">{safeStats.totalActions}</p>
           <p className="text-gray-400 text-xs">Ações</p>
         </div>
       </div>
@@ -198,23 +221,11 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
       {/* Call to Action */}
       <div className="text-center">
         <p className="text-gray-400 text-sm mb-3">
-          Continue pontuando para desbloquear recompensas exclusivas!
+          Continue participando para desbloquear mais recompensas!
         </p>
-        <motion.button
-          onClick={() => window.location.href = '/profile'}
-          className="px-6 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Ver Perfil Completo
-        </motion.button>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-gray-700/50">
-        <p className="text-gray-500 text-xs text-center">
-          Sistema de gamificação ativo • Pontos ganhos por engajamento na comunidade
-        </p>
+        <div className="text-xs text-gray-500">
+          Sistema de gamificação em tempo real
+        </div>
       </div>
     </div>
   );

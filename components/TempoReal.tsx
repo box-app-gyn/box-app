@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import Link from 'next/link';
 
 interface TempoRealData {
   ingressos: {
@@ -79,7 +80,7 @@ const TempoReal: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [DATA_ABERTURA_LOTE1]);
 
   const isIngressosDisponiveis = () => {
     return new Date() >= DATA_ABERTURA_LOTE1;
@@ -270,12 +271,13 @@ const TempoReal: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isIngressosDisponiveis() ? (
-                <a
-                  href="/times"
-                  className="bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-8 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
-                >
-                  🎫 Comprar Ingresso
-                </a>
+                <Link href="/times" passHref legacyBehavior>
+                  <a
+                    className="bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-8 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+                  >
+                    🎫 Comprar Ingresso
+                  </a>
+                </Link>
               ) : (
                 <a
                   href="https://chat.whatsapp.com/FHTqm0l36kc7RWYWMw1Kiz"

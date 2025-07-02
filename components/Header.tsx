@@ -48,13 +48,12 @@ export default function Header() {
 
   // Prevenir scroll quando menu está aberto
   useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = prevOverflow;
     };
   }, [isMenuOpen]);
 

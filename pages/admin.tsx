@@ -103,51 +103,6 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        await loadUserData(user.uid);
-      } else {
-        router.push('/login');
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router, loadUserData]);
-
-  // Tracking de acesso ao painel admin
-  useEffect(() => {
-    if (userData && !loading) {
-      trackPage('admin');
-      trackAdmin('access', userData.email);
-      // Carregar dados admin após o usuário ser carregado
-      loadAdminData();
-    }
-  }, [userData, loading, trackPage, trackAdmin]);
-
-  const loadAdminData = async () => {
-    try {
-      // Carregar estatísticas
-      await loadStats();
-      
-      // Carregar dados baseado na aba ativa
-      switch (activeTab) {
-        case 'users':
-          await loadUsers();
-          break;
-        case 'teams':
-          await loadTeams();
-          break;
-        case 'pedidos':
-          await loadPedidos();
-          break;
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados admin:', error);
-    }
-  };
-
   const loadStats = async () => {
     try {
       // Total de usuários
@@ -216,6 +171,49 @@ export default function AdminDashboard() {
       console.error('Erro ao carregar pedidos:', error);
     }
   };
+
+  const loadAdminData = useCallback(async () => {
+    try {
+      // Carregar estatísticas
+      await loadStats();
+      // Carregar dados baseado na aba ativa
+      switch (activeTab) {
+        case 'users':
+          await loadUsers();
+          break;
+        case 'teams':
+          await loadTeams();
+          break;
+        case 'pedidos':
+          await loadPedidos();
+          break;
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados admin:', error);
+    }
+  }, [activeTab, loadStats, loadUsers, loadTeams, loadPedidos]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await loadUserData(user.uid);
+      } else {
+        router.push('/login');
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [router, loadUserData]);
+
+  // Tracking de acesso ao painel admin
+  useEffect(() => {
+    if (userData && !loading) {
+      trackPage('admin');
+      trackAdmin('access', userData.email);
+      // Carregar dados admin após o usuário ser carregado
+      loadAdminData();
+    }
+  }, [userData, loading, trackPage, trackAdmin, loadAdminData]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);

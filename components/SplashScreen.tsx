@@ -11,11 +11,14 @@ interface SplashScreenProps {
 export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    let failTimeout: NodeJS.Timeout | null = null;
 
     const handleVideoEnd = () => {
       setVideoEnded(true);
@@ -26,15 +29,21 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     };
 
     const handleVideoError = () => {
-      // Se o vídeo falhar, mostra splash estático por 3 segundos
+      setVideoFailed(true);
       setTimeout(() => {
         setVideoEnded(true);
         setTimeout(() => {
           setIsPlaying(false);
           setTimeout(onComplete, 500);
         }, 1000);
-      }, 3000);
+      }, 1000);
     };
+
+    // Timeout para conexões lentas (ex: 7s)
+    failTimeout = setTimeout(() => {
+      setVideoFailed(true);
+      handleVideoError();
+    }, 7000);
 
     video.addEventListener('ended', handleVideoEnd);
     video.addEventListener('error', handleVideoError);
@@ -42,6 +51,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     return () => {
       video.removeEventListener('ended', handleVideoEnd);
       video.removeEventListener('error', handleVideoError);
+      if (failTimeout) clearTimeout(failTimeout);
     };
   }, [onComplete]);
 
@@ -62,22 +72,24 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             zIndex: 9999
           }}
         >
-          {/* Vídeo de intro */}
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            className="w-full h-full object-cover block md:hidden"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-          >
-            <source src="/videos/intro.mp4" type="video/mp4" />
-            {/* Fallback para navegadores que não suportam vídeo */}
-            <div className="flex items-center justify-center w-full h-full">
+          {/* Vídeo de intro ou fallback */}
+          {!videoFailed ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover block md:hidden"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+            >
+              <source src="/videos/intro.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full bg-black">
               <div className="text-center">
                 <Image 
                   src="/logos/logo_circulo.png" 
@@ -91,7 +103,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                 <p className="text-gray-300">2025</p>
               </div>
             </div>
-          </video>
+          )}
 
           {/* Overlay com logo quando vídeo termina */}
           <AnimatePresence>

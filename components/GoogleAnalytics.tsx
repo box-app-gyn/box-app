@@ -29,6 +29,7 @@ export const initGA = (measurementId: string) => {
     window.gtag('config', measurementId, {
       page_title: document.title,
       page_location: window.location.href,
+      cookie_domain: 'cerradointerbox.com.br'
     });
   }
 };
@@ -105,6 +106,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
             gtag('config', '${measurementId}', {
               page_title: document.title,
               page_location: window.location.href,
+              cookie_domain: 'cerradointerbox.com.br',
               custom_map: {
                 'custom_parameter_1': 'event_category',
                 'custom_parameter_2': 'event_label'
