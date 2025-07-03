@@ -36,19 +36,16 @@ jobs:
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
         NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
         
+    - name: Setup Firebase CLI
+      uses: w9jds/firebase-action@master
+      with:
+        args: deploy --only apphosting:git-box-app
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        
     - name: Deploy to Firebase App Hosting
-      uses: FirebaseExtended/action-hosting-deploy@v0
-      with:
-        repoToken: '${{ secrets.GITHUB_TOKEN }}'
-        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-        projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-        channelId: live
-    
-    - name: Deploy to Preview Channel (PR)
-      if: github.event_name == 'pull_request'
-      uses: FirebaseExtended/action-hosting-deploy@v0
-      with:
-        repoToken: '${{ secrets.GITHUB_TOKEN }}'
-        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-        projectId: interbox-app-8d400
-        channelId: pr-${{ github.event.number }} 
+      run: |
+        firebase use ${{ secrets.FIREBASE_PROJECT_ID }}
+        firebase deploy --only apphosting:git-box-app --token ${{ secrets.FIREBASE_TOKEN }}
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} 

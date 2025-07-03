@@ -69,7 +69,7 @@ readiness_check:
 
 # Configurações de segurança
 security:
-  allow_unauthenticated: true  # PWA público
+  allow_unauthenticated: true  # PWA público - permite acesso sem login
   service_account: "firebase-app-hosting-compute@interbox-app-8d400.iam.gserviceaccount.com"
 
 # Configurações de logs
