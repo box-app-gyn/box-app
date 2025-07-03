@@ -121,6 +121,20 @@ export default function Header() {
               </motion.div>
             </Link>
 
+            {/* Indicador de usuário logado */}
+            {user && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="hidden md:flex items-center gap-2 bg-green-600/20 border border-green-500/30 rounded-full px-3 py-1"
+              >
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-xs font-medium">
+                  {user.email?.split('@')[0] || 'Logado'}
+                </span>
+              </motion.div>
+            )}
+
             {/* Menu Desktop - Links de navegação */}
             <nav className="hidden md:flex items-center space-x-8">
               <Link 
@@ -157,8 +171,11 @@ export default function Header() {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1"
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                     Sair
                   </button>
                 </>
@@ -351,8 +368,11 @@ export default function Header() {
                             handleLogout();
                             setIsMenuOpen(false);
                           }}
-                          className="text-left text-2xl font-bold text-white hover:text-pink-400 transition-all duration-300 block py-3 w-full border-b border-pink-500/10 hover:border-pink-500/30"
+                          className="text-left text-2xl font-bold text-red-400 hover:text-red-300 transition-all duration-300 block py-3 w-full border-b border-red-500/20 hover:border-red-500/40 flex items-center gap-3"
                         >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
                           Sair
                         </button>
                       </motion.div>
