@@ -1,112 +1,97 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { PWA_UTILS } from '@/lib/pwa-config';
 
 interface PWAState {
   isStandalone: boolean;
-  isIOS: boolean;
-  isSafari: boolean;
-  isInstalled: boolean;
+  platform: 'ios' | 'android' | 'desktop' | null;
   canInstall: boolean;
+  isInstalled: boolean;
   showInstallPrompt: boolean;
-  showSplash: boolean;
 }
 
-export function usePWA() {
-  const [pwaState, setPwaState] = useState<PWAState>({
+interface PWAHookReturn {
+  isStandalone: boolean;
+  platform: 'ios' | 'android' | 'desktop' | null;
+  canInstall: boolean;
+  isInstalled: boolean;
+  showInstallPrompt: boolean;
+  markAsInstalled: () => void;
+  triggerInstallPrompt: () => void;
+  hideInstallPrompt: () => void;
+}
+
+export function usePWA(): PWAHookReturn {
+  const [state, setState] = useState<PWAState>({
     isStandalone: false,
-    isIOS: false,
-    isSafari: false,
-    isInstalled: false,
+    platform: null,
     canInstall: false,
+    isInstalled: false,
     showInstallPrompt: false,
-    showSplash: false
   });
 
   useEffect(() => {
-    const detectPWA = () => {
-      // Detectar se é iOS
-      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      
-      // Detectar se é Safari
-      const safari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-      
-      // Detectar se está em modo standalone (instalado)
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        (window.navigator as any).standalone === true;
-      
-      // Detectar se pode ser instalado
-      const canInstall = !standalone && iOS && safari;
-      
-      // Verificar se já foi instalado (usando localStorage)
-      const isInstalled = localStorage.getItem('pwa-installed') === 'true';
-      
-      // Mostrar splash apenas se for iOS + Safari e não estiver instalado
-      const showSplash = iOS && safari && !standalone && !isInstalled;
-      
-      setPwaState({
-        isStandalone: standalone,
-        isIOS: iOS,
-        isSafari: safari,
-        isInstalled: isInstalled || standalone,
+    if (typeof window === 'undefined') return;
+
+    const updateState = () => {
+      const platform = PWA_UTILS.detectPlatform();
+      const isStandalone = PWA_UTILS.isStandalone();
+      const canInstall = PWA_UTILS.canInstall();
+      const isInstalled = PWA_UTILS.isInstalled();
+
+      setState({
+        isStandalone,
+        platform,
         canInstall,
+        isInstalled,
         showInstallPrompt: false,
-        showSplash
       });
     };
 
-    // Detectar imediatamente
-    detectPWA();
+    // Verificação inicial
+    updateState();
 
-    // Detectar mudanças na orientação e display mode
+    // Listener para mudanças no modo de exibição
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    mediaQuery.addEventListener('change', detectPWA);
+    const handleDisplayModeChange = () => {
+      updateState();
+    };
 
-    // Detectar mudanças na orientação
-    window.addEventListener('orientationchange', detectPWA);
+    mediaQuery.addEventListener('change', handleDisplayModeChange);
+
+    // Listener para mudanças no storage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'pwa-installed') {
+        updateState();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      mediaQuery.removeEventListener('change', detectPWA);
-      window.removeEventListener('orientationchange', detectPWA);
+      mediaQuery.removeEventListener('change', handleDisplayModeChange);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
   const markAsInstalled = () => {
-    localStorage.setItem('pwa-installed', 'true');
-    setPwaState(prev => ({
-      ...prev,
-      isInstalled: true,
-      showSplash: false,
-      showInstallPrompt: false
-    }));
+    PWA_UTILS.markAsInstalled();
+    setState(prev => ({ ...prev, isInstalled: true }));
   };
 
-  const showInstallPrompt = () => {
-    setPwaState(prev => ({
-      ...prev,
-      showInstallPrompt: true
-    }));
+  const triggerInstallPrompt = () => {
+    setState(prev => ({ ...prev, showInstallPrompt: true }));
   };
 
   const hideInstallPrompt = () => {
-    setPwaState(prev => ({
-      ...prev,
-      showInstallPrompt: false
-    }));
-  };
-
-  const hideSplash = () => {
-    setPwaState(prev => ({
-      ...prev,
-      showSplash: false
-    }));
+    setState(prev => ({ ...prev, showInstallPrompt: false }));
   };
 
   return {
-    ...pwaState,
+    ...state,
     markAsInstalled,
-    showInstallPrompt,
+    triggerInstallPrompt,
     hideInstallPrompt,
-    hideSplash
   };
 } 

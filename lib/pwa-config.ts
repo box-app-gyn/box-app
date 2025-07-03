@@ -4,139 +4,175 @@ export const PWA_CONFIG = {
   description: 'O Maior Evento de Times da América Latina - 24, 25 e 26 de outubro',
   themeColor: '#000000',
   backgroundColor: '#000000',
-  display: 'standalone' as const,
-  orientation: 'portrait-primary' as const,
+  display: 'standalone',
+  orientation: 'portrait-primary',
   scope: '/',
   startUrl: '/',
   lang: 'pt-BR',
   dir: 'ltr',
-  
-  // Configurações de cache
-  cacheName: 'cerrado-app-v1',
-  cacheUrls: [
-    '/',
-    '/manifest.json',
-    '/logos/logo_circulo.png',
-    '/df.ico',
-    '/styles/globals.css'
-  ],
-  
-  // Configurações de instalação
-  installPromptDelay: 2000, // 2 segundos
-  splashDelay: 3000, // 3 segundos
-  installInstructionsDelay: 5000, // 5 segundos
-  
-  // Configurações de detecção
-  userAgents: {
-    iOS: /iPad|iPhone|iPod/,
-    Safari: /Safari/,
-    Chrome: /Chrome/
-  },
+  categories: ['sports', 'fitness', 'events'],
+  preferRelatedApplications: false,
   
   // Configurações de ícones
   icons: {
     sizes: [72, 96, 128, 144, 152, 192, 384, 512],
     src: '/logos/logo_circulo.png',
-    type: 'image/png',
-    purpose: 'any maskable'
+    purpose: {
+      small: 'any',
+      large: 'any maskable'
+    }
   },
   
-  // Configurações de splash screens
-  splashScreens: [
-    {
-      device: 'iPhone 14 Pro Max',
-      media: 'screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)',
-      src: '/images/splash/iPhone_14_Pro_Max_landscape.png'
-    },
-    {
-      device: 'iPhone 14 Pro',
-      media: 'screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)',
-      src: '/images/splash/iPhone_14_Pro_landscape.png'
-    },
-    {
-      device: 'iPhone 14 Plus / 13 Pro Max / 12 Pro Max',
-      media: 'screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)',
-      src: '/images/splash/iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape.png'
-    },
-    {
-      device: 'iPhone 14 / 13 Pro / 13 / 12 Pro / 12',
-      media: 'screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)',
-      src: '/images/splash/iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png'
-    },
-    {
-      device: 'iPhone XS / X / 8 Plus / 7 Plus / 6s Plus / 6 Plus',
-      media: 'screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)',
-      src: '/images/splash/iPhone_XS__iPhone_X__iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png'
-    },
-    {
-      device: 'iPhone XR / 11',
-      media: 'screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)',
-      src: '/images/splash/iPhone_XR__iPhone_11_landscape.png'
-    },
-    {
-      device: 'iPhone XS Max / 11 Pro Max',
-      media: 'screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)',
-      src: '/images/splash/iPhone_XS_Max__iPhone_11_Pro_Max_landscape.png'
-    },
-    {
-      device: 'iPhone 8 / 7 / 6s / 6 / SE',
-      media: 'screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)',
-      src: '/images/splash/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png'
-    },
-    {
-      device: 'iPhone SE / iPod touch',
-      media: 'screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
-      src: '/images/splash/4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png'
-    }
-  ],
+  // Configurações de splash screen
+  splash: {
+    src: '/logos/logo_circulo.png',
+    sizes: [
+      { width: 320, height: 568, ratio: 2 },
+      { width: 375, height: 667, ratio: 2 },
+      { width: 414, height: 736, ratio: 3 },
+      { width: 375, height: 812, ratio: 3 },
+      { width: 414, height: 896, ratio: 2 },
+      { width: 414, height: 896, ratio: 3 },
+      { width: 428, height: 926, ratio: 3 },
+      { width: 390, height: 844, ratio: 3 },
+      { width: 430, height: 932, ratio: 3 }
+    ]
+  },
   
-  // Configurações de shortcuts
-  shortcuts: [
-    {
-      name: 'Inscrições',
-      shortName: 'Inscrições',
-      description: 'Acessar inscrições do evento',
-      url: '/audiovisual',
-      icons: [{ src: '/logos/logo_circulo.png', sizes: '96x96' }]
+  // Configurações de cache
+  cache: {
+    name: 'cerrado-app-v2',
+    urls: [
+      '/',
+      '/manifest.json',
+      '/logos/logo_circulo.png',
+      '/logos/nome_hrz.png',
+      '/logos/oficial_logo.png',
+      '/df.ico',
+      '/favicon.ico',
+      '/styles/globals.css',
+      '/videos/intro.mp4',
+      '/images/bg_main.png',
+      '/images/corner.png',
+      '/images/liner.png',
+      '/images/twolines.png'
+    ]
+  },
+  
+  // Configurações de instalação
+  install: {
+    promptDelay: 3000, // 3 segundos
+    toastDelay: 5000, // 5 segundos
+    bannerDelay: 5000, // 5 segundos
+    reminderInterval: 24 * 60 * 60 * 1000, // 24 horas
+    bannerInterval: 3 * 60 * 60 * 1000, // 3 horas
+  },
+  
+  // Configurações de notificações
+  notifications: {
+    enabled: true,
+    title: 'CERRADØ INTERBOX',
+    body: 'Novas atualizações disponíveis!',
+    icon: '/logos/logo_circulo.png',
+    badge: '/logos/logo_circulo.png'
+  }
+};
+
+// Configurações específicas por plataforma
+export const PLATFORM_CONFIG = {
+  ios: {
+    metaTags: {
+      'apple-mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-status-bar-style': 'black-translucent',
+      'apple-mobile-web-app-title': 'CERRADØ',
+      'apple-mobile-web-app-orientations': 'portrait',
+      'apple-touch-fullscreen': 'yes'
     },
-    {
-      name: 'Times',
-      shortName: 'Times',
-      description: 'Ver times formados',
-      url: '/times',
-      icons: [{ src: '/logos/logo_circulo.png', sizes: '96x96' }]
-    }
-  ]
+    installInstructions: [
+      'Toque no ícone Compartilhar ⎋',
+      'Selecione "Adicionar à Tela Inicial"',
+      'Toque em "Adicionar"'
+    ]
+  },
+  android: {
+    metaTags: {
+      'mobile-web-app-capable': 'yes',
+      'application-name': 'CERRADØ',
+      'theme-color': '#000000'
+    },
+    installInstructions: [
+      'Toque no menu do navegador ⋮',
+      'Selecione "Adicionar à tela inicial"',
+      'Confirme a instalação'
+    ]
+  }
 };
 
 // Funções utilitárias
-export const detectDevice = () => {
-  if (typeof window === 'undefined') return { isIOS: false, isSafari: false, isStandalone: false };
+export const PWA_UTILS = {
+  // Detectar plataforma
+  detectPlatform: (): 'ios' | 'android' | 'desktop' => {
+    if (typeof window === 'undefined') return 'desktop';
+    
+    const userAgent = navigator.userAgent;
+    const iOS = /iPad|iPhone|iPod/.test(userAgent);
+    const android = /Android/i.test(userAgent);
+    
+    if (iOS) return 'ios';
+    if (android) return 'android';
+    return 'desktop';
+  },
   
-  const userAgent = navigator.userAgent;
-  const isIOS = PWA_CONFIG.userAgents.iOS.test(userAgent);
-  const isSafari = PWA_CONFIG.userAgents.Safari.test(userAgent) && !PWA_CONFIG.userAgents.Chrome.test(userAgent);
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                      (window.navigator as { standalone?: boolean }).standalone === true;
+  // Verificar se está em modo standalone
+  isStandalone: (): boolean => {
+    if (typeof window === 'undefined') return false;
+    
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           (window.navigator as { standalone?: boolean }).standalone === true;
+  },
   
-  return { isIOS, isSafari, isStandalone };
-};
-
-export const shouldShowPWAFeatures = () => {
-  const { isIOS, isSafari, isStandalone } = detectDevice();
-  return isIOS && isSafari && !isStandalone;
-};
-
-export const getPWAStatus = () => {
-  const { isIOS, isSafari, isStandalone } = detectDevice();
-  const isInstalled = localStorage.getItem('pwa-installed') === 'true';
+  // Verificar se pode instalar
+  canInstall: (): boolean => {
+    if (typeof window === 'undefined') return false;
+    
+    return 'serviceWorker' in navigator && 
+           'PushManager' in window &&
+           !PWA_UTILS.isStandalone();
+  },
   
-  return {
-    isIOS,
-    isSafari,
-    isStandalone,
-    isInstalled: isInstalled || isStandalone,
-    canInstall: isIOS && isSafari && !isStandalone,
-    showSplash: isIOS && isSafari && !isStandalone && !isInstalled
-  };
+  // Verificar se já foi instalado
+  isInstalled: (): boolean => {
+    if (typeof window === 'undefined') return false;
+    
+    return localStorage.getItem('pwa-installed') === 'true' || PWA_UTILS.isStandalone();
+  },
+  
+  // Marcar como instalado
+  markAsInstalled: (): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('pwa-installed', 'true');
+  },
+  
+  // Verificar se deve mostrar prompt
+  shouldShowPrompt: (type: 'toast' | 'banner'): boolean => {
+    if (typeof window === 'undefined') return false;
+    
+    const platform = PWA_UTILS.detectPlatform();
+    const isStandalone = PWA_UTILS.isStandalone();
+    const canInstall = PWA_UTILS.canInstall();
+    
+    if (isStandalone || !canInstall) return false;
+    
+    const lastShown = localStorage.getItem(`install-${type}-last-shown`);
+    const now = Date.now();
+    const interval = type === 'toast' ? PWA_CONFIG.install.reminderInterval : PWA_CONFIG.install.bannerInterval;
+    
+    return !lastShown || now - parseInt(lastShown) > interval;
+  },
+  
+  // Marcar prompt como mostrado
+  markPromptShown: (type: 'toast' | 'banner'): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(`install-${type}-last-shown`, Date.now().toString());
+  }
 }; 

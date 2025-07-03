@@ -87,4 +87,4 @@ Para atualizar informações do evento, edite:
 ---
 
 **Status**: ✅ **ATIVO E FUNCIONANDO**
-**Última atualização**: Janeiro 2025 
+**Última atualização**: julho 2025 

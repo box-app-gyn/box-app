@@ -4,6 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:mobile": "next dev -H 0.0.0.0 -p 3000",
+    "dev:mobile:config": "NODE_ENV=development next dev -H 0.0.0.0 -p 3000 -c next.config.mobile.js",
+    "dev:mobile:https": "node scripts/dev-mobile-https.js",
+    "ip": "node scripts/get-local-ip.js",
+    "test:pwa": "node scripts/test-pwa.js",
+    "check:pwa": "node scripts/check-pwa.js",
+    "deploy:pwa": "node scripts/deploy-pwa.js",
     "build": "next build",
     "build:app-hosting": "next build",
     "build:analyze": "ANALYZE=true npm run build",

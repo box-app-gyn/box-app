@@ -9,12 +9,15 @@ const nextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
   swcMinify: true,
+  
   // Configuração para desenvolvimento mobile
   experimental: {
     esmExternals: true,
     serverComponentsExternalPackages: ['firebase-admin'],
-    optimizePackageImports: ['framer-motion', 'react-apexcharts']
+    optimizePackageImports: ['framer-motion', 'react-apexcharts'],
+    allowedDevOrigins: ['192.168.1.104', 'localhost', '127.0.0.1', '0.0.0.0']
   },
+  
   images: {
     domains: ['firebasestorage.googleapis.com'],
     unoptimized: false,
@@ -27,7 +30,7 @@ const nextConfig = {
       },
     ],
   },
-
+  
   async headers() {
     return [
       {
@@ -44,6 +47,19 @@ const nextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+          // Headers para desenvolvimento mobile
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
           },
         ],
       },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ParallaxWrapper from "@/components/ParallaxWrapper";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -8,6 +8,10 @@ import Beneficios from "@/components/Beneficios";
 import CallToAction from "@/components/CallToAction";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import VideoSplashScreen from "@/components/VideoSplashScreen";
+import InstallToast from "@/components/InstallToast";
+import InstallBanner from "@/components/InstallBanner";
+import { usePWA } from "@/hooks/usePWA";
 import Image from "next/image";
 
 function LinhaDelicada() {
@@ -19,6 +23,14 @@ function LinhaDelicada() {
 }
 
 export default function Home() {
+  const [showSplash, setShowSplash] = useState(true);
+  const { platform, isStandalone, markAsInstalled } = usePWA();
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+    markAsInstalled();
+  };
+
   return (
     <>
       <SEOHead 
@@ -30,6 +42,9 @@ export default function Home() {
         tags={["crossfit", "competição", "times", "fitness", "evento", "Brasil"]}
         canonical="https://cerradointerbox.com.br"
       />
+      {showSplash && (
+        <VideoSplashScreen onComplete={handleSplashComplete} />
+      )}
       <ParallaxWrapper>
         {/* Topo visual */}
         <LinhaDelicada />
@@ -45,6 +60,13 @@ export default function Home() {
         <CallToAction />
         <Footer />
       </ParallaxWrapper>
+
+      {/* Install Toasts */}
+      {platform === 'ios' && !isStandalone && <InstallToast platform="ios" />}
+      {platform === 'android' && !isStandalone && <InstallToast platform="android" />}
+      
+      {/* Install Banner */}
+      <InstallBanner />
     </>
   );
 } 

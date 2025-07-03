@@ -2,6 +2,7 @@ import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import GoogleAnalytics from '../components/GoogleAnalytics';
 import ChatButton from '../components/ChatButton';
 import SplashScreen from '../components/SplashScreen';
@@ -10,6 +11,7 @@ import UpdateNotification from '../components/UpdateNotification';
 import { SECURITY_CONSTANTS } from '../constants/security';
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -55,6 +57,45 @@ export default function App({ Component, pageProps }: AppProps) {
     }
   }, []);
 
+  // useEffect separado para redirecionamento baseado na largura da tela
+  useEffect(() => {
+    if (!isClient) return;
+
+    const checkScreenSize = () => {
+      if (typeof window !== 'undefined') {
+        const isDesktop = window.innerWidth > 768;
+        const isMobilePage = router.pathname === '/acesso-mobile-obrigatorio';
+        
+        // Se for desktop e não estiver na página de acesso mobile, redirecionar
+        if (isDesktop && !isMobilePage) {
+          router.push('/acesso-mobile-obrigatorio');
+          return;
+        }
+        
+        // Se for mobile e estiver na página de acesso mobile, redirecionar para home
+        if (!isDesktop && isMobilePage) {
+          router.push('/');
+          return;
+        }
+      }
+    };
+
+    // Verificar tamanho da tela inicialmente
+    checkScreenSize();
+
+    // Listener para redimensionamento da janela
+    const handleResize = () => {
+      checkScreenSize();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup do listener
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isClient, router.pathname, router]);
+
   const handleSplashComplete = () => {
     setShowSplash(false);
     localStorage.setItem('pwa-installed', 'true');
@@ -98,7 +139,32 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
         <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
         <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
-        
+        {/* Apple PWA Meta Tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="CERRADØ" />
+        <meta name="apple-mobile-web-app-orientations" content="portrait" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="apple-touch-icon" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="96x96" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="128x128" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="384x384" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
+        <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
         {/* Content Security Policy */}
         <meta httpEquiv="Content-Security-Policy" content={`
           default-src 'self';
