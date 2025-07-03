@@ -8,16 +8,18 @@ const nextConfig = {
   },
   trailingSlash: false,
   reactStrictMode: true,
-  swcMinify: true,
+  allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.1.104', '*.local'],
+  
   // Configuração para desenvolvimento mobile
   experimental: {
     esmExternals: true,
-    serverComponentsExternalPackages: ['firebase-admin'],
     optimizePackageImports: ['framer-motion', 'react-apexcharts']
   },
   images: {
-    domains: ['firebasestorage.googleapis.com'],
-    unoptimized: false,
+    unoptimized: true,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: 'https',

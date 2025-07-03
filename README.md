@@ -114,6 +114,40 @@ npm run dev
 4. Push para a branch
 5. Abra um Merge Request
 
+## 🚦 Pull Request e Deploy
+
+### Pull Request (GitHub)
+
+- Faça push da sua branch para o repositório remoto:
+  ```bash
+  git push github nome-da-sua-branch
+  ```
+- Acesse o link sugerido pelo GitHub para abrir o Pull Request (PR).
+- Preencha o título e a descrição do PR de forma objetiva, por exemplo:
+  - Primeira versão do projeto migrada para o repositório oficial.
+  - Inclui configuração do PWA, scripts de desenvolvimento mobile e documentação.
+  - Correções de tipagem TypeScript e melhorias de segurança.
+- Clique em **Create pull request**.
+- Aguarde revisão e merge.
+
+### Checklist de Deploy Firebase
+
+- Certifique-se de que as variáveis de ambiente e secrets **NÃO** estão versionadas.
+- O deploy é feito via GitHub Actions ou manualmente com:
+  ```bash
+  npm run build
+  firebase deploy --only hosting
+  ```
+- Após o merge na `main`, o deploy será disparado automaticamente se o CI/CD estiver configurado.
+
+### Observação sobre tokens/secrets
+
+- Nunca deixe tokens ou arquivos de credenciais no repositório.
+- Após o deploy, remova o token do remote para maior segurança:
+  ```bash
+  git remote set-url github https://github.com/box-app-gyn/box-app.git
+  ```
+
 ## 📊 Status do Projeto
 
 - **Produção**: https://interbox-app-8d400.web.app

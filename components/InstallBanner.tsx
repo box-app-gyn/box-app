@@ -54,13 +54,12 @@ export default function InstallBanner() {
       >
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center space-x-3">
-            <Image 
-              src="/logos/logo_circulo.png" 
+            <Image src="/logos/logo_circulo.png" 
               alt="CERRADØ" 
               width={32}
               height={32}
               className="w-8 h-8"
-            />
+             priority/>
             <div>
               <p className="text-sm font-medium">Instalar CERRADØ</p>
               <p className="text-xs opacity-90">Acesso rápido à tela inicial</p>

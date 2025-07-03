@@ -104,14 +104,13 @@ export default function Header() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="relative overflow-hidden rounded-lg"
               >
-                <Image
-                  src="/logos/nome_hrz.png"
+                <Image src="/logos/nome_hrz.png"
                   alt="Interbox 2025"
                   width={isScrolled ? 40 : 60}
                   height={isScrolled ? 12 : 18}
                   className="transition-all duration-300"
                   style={{ width: 'auto', height: 'auto' }}
-                />
+                 priority/>
                 {/* Efeito de brilho no hover */}
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-400/20 to-transparent"
@@ -245,14 +244,13 @@ export default function Header() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Image
-                      src="/logos/nome_hrz.png"
+                    <Image src="/logos/nome_hrz.png"
                       alt="Interbox 2025"
                       width={100}
                       height={30}
                       className="filter brightness-110"
                       style={{ width: 'auto', height: 'auto' }}
-                    />
+                     priority/>
                   </motion.div>
                   
                   {/* Separador tribal */}
@@ -262,13 +260,12 @@ export default function Header() {
                     transition={{ delay: 0.4 }}
                     className="flex-1 mx-6"
                   >
-                    <Image
-                      src="/images/twolines.png"
+                    <Image src="/images/twolines.png"
                       alt=""
                       width={60}
                       height={20}
                       className="opacity-60"
-                    />
+                     style={{ height: 'auto' }}/>
                   </motion.div>
                 </div>
 
@@ -370,13 +367,12 @@ export default function Header() {
                   transition={{ delay: 1 }}
                   className="mt-8 flex justify-center"
                 >
-                  <Image
-                    src="/images/twolines.png"
+                  <Image src="/images/twolines.png"
                     alt=""
                     width={80}
                     height={25}
                     className="opacity-40"
-                  />
+                   style={{ height: 'auto' }}/>
                 </motion.div>
               </div>
             </motion.div>

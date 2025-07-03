@@ -41,7 +41,7 @@ export default function AcessoMobileObrigatorio() {
             width={120}
             height={40}
             className="absolute top-0 left-0 z-10"
-            style={{ pointerEvents: 'none' }}
+            style={{ pointerEvents: 'none', height: 'auto' }}
             priority
           />
           {/* Logo */}
