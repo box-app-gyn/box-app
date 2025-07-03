@@ -28,6 +28,9 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.production
+.env.development
+.env.local
 
 # vercel
 .vercel
@@ -38,257 +41,24 @@ next-env.d.ts
 
 # Firebase
 .firebase/
-firebase-debug*.log
 firebase-debug.log
-firebase-debug-*.log
-firebase-debug 2.log
-firebase-debug 3.log
-firebase-debug 4.log
-firebase-debug 5.log
-
-# Firebase Admin SDK Credentials (CRITICAL - NEVER COMMIT!)
+firebase-debug.*.log
+firebase-service-account.json
 firebase-admin-key.json
-**/firebase-admin-key.json
-*-admin-key.json
-service-account*.json
+vertex-ai-sa-key.json
+docs/VARIABLES-REAIS.md
 
 # IDE
 .vscode/
 .idea/
 
-# Vertex AI Service Account Key (CRITICAL - NEVER COMMIT!)
-/caminho/para/vertex-ai-sa-key.json
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# OS
+Thumbs.db
+.DS_Store
 
 # Logs
-logs/
+logs
 *.log
-pglite-debug.log
-pglite-debug*.log
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# macOS
-.DS_Store
-._*
-.AppleDouble
-.LSOverride
-
-# Windows
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.tmp
-*.temp
-Desktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
-
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-*.old
-*.orig
-*.rej
-
-# Test files
-test-*.js
-test-*.html
-test-*.ts
-test-*.tsx
-
-# Backup files
-*.bak
-*.backup
-middleware.ts.bak
-
-# Firebase service account keys (security)
-*-sa-key.json
-service-account-*.json
-
-# Build artifacts
-*.map
-*.js.map
-*.ts.map
-
-# Cache directories
-.cache/
-.temp/
-.tmp/
-
-# Local development
-.local/
-local/
-
-# Debug files
-debug/
-*.debug
-
-# Performance monitoring
-.perf/
-
-# TypeScript
-*.tsbuildinfo
-
-# PWA
-sw.js
-workbox-*.js
-
-# Sentry
-.sentryclirc
-
-# Vercel
-.vercel
-
-# Netlify
-.netlify
-
-# Railway
-.railway
-
-# Render
-.render
-
-# Local SSL certificates
-*.pem
-*.key
-*.crt
-*.csr
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Backup databases
-*.db.backup
-*.sqlite.backup
-
-# Local storage
-localStorage/
-sessionStorage/
-
-# Browser cache
-.cache/
-browser-cache/
-
-# Package manager caches
-.npm/
-.yarn/
-.pnpm-store/
-
-# OS generated files
-.DS_Store?
-ehthumbs.db
-Icon?
-Thumbs.db
-
-# Temporary files created by macOS
-._*
-
-# Temporary files created by Windows
-~$*
-*.tmp
-*.temp
-
-# Logs from various tools
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
 
 # Runtime data
 pids
@@ -297,15 +67,13 @@ pids
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
-coverage
-*.lcov
+coverage/
 
 # nyc test coverage
 .nyc_output
 
 # Dependency directories
 node_modules/
-jspm_packages/
 
 # Optional npm cache directory
 .npm
@@ -356,28 +124,6 @@ jspm_packages/
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
-
-# Firebase
-.firebase/
-firebase-debug*.log
-.firebaserc
-
-# Local env files
-.env*.local
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts 
-
-._*
-.__*
-.DS_Store
+# Temporary folders
+tmp/
+temp/

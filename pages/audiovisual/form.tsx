@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SEOHead from '@/components/SEOHead';
+import PIXQRCode from '@/components/PIXQRCode';
 
 interface AudiovisualForm {
   nome: string;
@@ -21,7 +23,29 @@ interface AudiovisualForm {
   motivacao: string;
 }
 
+type FormStep = 'category' | 'summary' | 'form' | 'payment' | 'confirmation';
+
+const CATEGORIES = [
+  { id: 'fotografia', name: '📸 Fotografia', description: 'Cobertura fotográfica do evento' },
+  { id: 'video', name: '🎥 Vídeo', description: 'Produção de vídeos e conteúdo audiovisual' },
+  { id: 'drone', name: '🚁 Drone', description: 'Imagens aéreas e cinematografia' },
+  { id: 'social', name: '📱 Social Media', description: 'Gestão de redes sociais e conteúdo' },
+  { id: 'podcast', name: '🎙️ Podcast', description: 'Criação de conteúdo em áudio' },
+  { id: 'midia', name: '📰 Mídia', description: 'Cobertura jornalística e editorial' }
+];
+
+const LOTES = {
+  fotografia: { nome: 'Fotógrafo', valor: 150, vagas: 8 },
+  video: { nome: 'Videomaker', valor: 200, vagas: 6 },
+  drone: { nome: 'Piloto de Drone', valor: 250, vagas: 4 },
+  social: { nome: 'Social Media', valor: 180, vagas: 5 },
+  podcast: { nome: 'Podcaster', valor: 120, vagas: 10 },
+  midia: { nome: 'Mídia', valor: 100, vagas: 12 }
+};
+
 export default function AudiovisualFormPage() {
+  const [currentStep, setCurrentStep] = useState<FormStep>('category');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [formData, setFormData] = useState<AudiovisualForm>({
     nome: '',
     email: '',
@@ -35,18 +59,46 @@ export default function AudiovisualFormPage() {
     disponibilidade: '',
     motivacao: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const { trackPage, trackFormSubmit, trackAudiovisual } = useAnalytics();
 
-  // Tracking de visualização da página do formulário
   useEffect(() => {
     trackPage('audiovisual_form');
     trackAudiovisual('view_form', 'candidatura_audiovisual');
   }, [trackPage, trackAudiovisual]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setFormData(prev => ({ ...prev, areaAtuacao: categoryId }));
+    setCurrentStep('summary');
+  };
+
+  const handleNextStep = () => {
+    switch (currentStep) {
+      case 'summary':
+        setCurrentStep('form');
+        break;
+      case 'form':
+        setCurrentStep('payment');
+        break;
+    }
+  };
+
+  const handlePrevStep = () => {
+    switch (currentStep) {
+      case 'summary':
+        setCurrentStep('category');
+        break;
+      case 'form':
+        setCurrentStep('summary');
+        break;
+      case 'payment':
+        setCurrentStep('form');
+        break;
+    }
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -54,11 +106,7 @@ export default function AudiovisualFormPage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    
+  const handlePaymentSuccess = async () => {
     try {
       const audiovisualData = {
         ...formData,
@@ -69,22 +117,325 @@ export default function AudiovisualFormPage() {
       
       await setDoc(doc(db, 'audiovisual', `${Date.now()}-${formData.email}`), audiovisualData);
       
-      // Tracking de sucesso no envio
       trackFormSubmit('formulario_audiovisual');
       trackAudiovisual('submit_form', `${formData.areaAtuacao}_${formData.cidade}`);
       
-      setSuccess(true);
       setTimeout(() => {
-        window.close();
-      }, 3000);
-    } catch (error: unknown) {
-      setError('Erro ao enviar formulário. Tente novamente.');
-      console.error('Erro:', error);
-      
-      // Tracking de erro no envio
-      trackAudiovisual('form_error', 'erro_envio');
-    } finally {
-      setLoading(false);
+        setCurrentStep('confirmation');
+      }, 2000);
+    } catch (error) {
+      setError('Erro ao processar inscrição. Tente novamente.');
+    }
+  };
+
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage);
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 'category':
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Escolha sua área</h2>
+              <p className="text-gray-600">Selecione a categoria que melhor representa sua atuação</p>
+            </div>
+            
+            <div className="grid gap-4">
+              {CATEGORIES.map((category) => (
+                <motion.button
+                  key={category.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleCategorySelect(category.id)}
+                  className="w-full p-4 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-pink-500 hover:shadow-lg transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                      <p className="text-sm text-gray-600">{category.description}</p>
+                    </div>
+                    <div className="text-pink-500">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        );
+
+      case 'summary':
+        const lote = LOTES[selectedCategory as keyof typeof LOTES];
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Resumo da inscrição</h2>
+              <p className="text-gray-600">Confirme os detalhes antes de continuar</p>
+            </div>
+            
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">{lote.nome}</h3>
+                <span className="text-2xl font-bold text-pink-600">R$ {lote.valor}</span>
+              </div>
+              
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>Vagas disponíveis:</span>
+                  <span className="font-semibold">{lote.vagas} vagas</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Inclui:</span>
+                  <span className="font-semibold">Acesso VIP + Kit oficial</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="text-green-600 font-semibold">Disponível</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4">
+              <button
+                onClick={handlePrevStep}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="flex-1 px-6 py-3 bg-pink-600 text-white rounded-xl hover:bg-pink-700 transition-colors font-semibold"
+              >
+                Continuar
+              </button>
+            </div>
+          </motion.div>
+        );
+
+      case 'form':
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Seus dados</h2>
+              <p className="text-gray-600">Preencha suas informações para completar a inscrição</p>
+            </div>
+            
+            <form className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                  <input
+                    type="text"
+                    name="nome"
+                    value={formData.nome}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                    placeholder="Seu nome completo"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                    placeholder="seu@email.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Telefone *</label>
+                  <input
+                    type="tel"
+                    name="telefone"
+                    value={formData.telefone}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                    placeholder="(11) 99999-9999"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
+                  <input
+                    type="text"
+                    name="cidade"
+                    value={formData.cidade}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                    placeholder="Sua cidade"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Experiência *</label>
+                <textarea
+                  name="experiencia"
+                  value={formData.experiencia}
+                  onChange={handleFormChange}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                  placeholder="Conte sobre sua experiência na área..."
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Portfólio/Link *</label>
+                <input
+                  type="url"
+                  name="portfolio"
+                  value={formData.portfolio}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                  placeholder="https://seu-portfolio.com"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Motivação *</label>
+                <textarea
+                  name="motivacao"
+                  value={formData.motivacao}
+                  onChange={handleFormChange}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                  placeholder="Por que você quer participar do CERRADØ INTERBOX?"
+                  required
+                />
+              </div>
+            </form>
+            
+            <div className="flex space-x-4">
+              <button
+                onClick={handlePrevStep}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={handleNextStep}
+                disabled={!formData.nome || !formData.email || !formData.telefone}
+                className="flex-1 px-6 py-3 bg-pink-600 text-white rounded-xl hover:bg-pink-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continuar
+              </button>
+            </div>
+          </motion.div>
+        );
+
+             case 'payment':
+         const lotePayment = LOTES[selectedCategory as keyof typeof LOTES];
+         return (
+           <motion.div
+             initial={{ opacity: 0, x: 20 }}
+             animate={{ opacity: 1, x: 0 }}
+             exit={{ opacity: 0, x: -20 }}
+             className="space-y-6"
+           >
+             <div className="text-center mb-8">
+               <h2 className="text-2xl font-bold text-gray-900 mb-2">Pagamento</h2>
+               <p className="text-gray-600">Escaneie o QR Code para finalizar sua inscrição</p>
+             </div>
+             
+             <PIXQRCode
+               valor={lotePayment.valor}
+               categoria={lotePayment.nome}
+               onPaymentSuccess={handlePaymentSuccess}
+               onPaymentError={handlePaymentError}
+             />
+             
+             <button
+               onClick={handlePrevStep}
+               className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+             >
+               Voltar
+             </button>
+           </motion.div>
+         );
+
+      case 'confirmation':
+        return (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center space-y-6"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto"
+            >
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Inscrição Confirmada!</h2>
+              <p className="text-gray-600 mb-6">
+                Sua candidatura foi enviada com sucesso. Entraremos em contato em breve.
+              </p>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-green-50 border border-green-200 rounded-xl p-4"
+            >
+              <p className="text-sm text-green-800">
+                <strong>Próximos passos:</strong><br/>
+                • Aguarde nosso contato por email<br/>
+                • Prepare seu portfólio<br/>
+                • Fique atento às atualizações
+              </p>
+            </motion.div>
+            
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              onClick={() => window.close()}
+              className="w-full px-6 py-3 bg-pink-600 text-white rounded-xl hover:bg-pink-700 transition-colors font-semibold"
+            >
+              Fechar
+            </motion.button>
+          </motion.div>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -96,309 +447,103 @@ export default function AudiovisualFormPage() {
         image="/images/og-interbox.png"
         type="website"
       />
-      <div className="min-h-screen bg-white relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
         <Header />
-        {/* BG grunge com textura de ruído */}
-        <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
-          <div className="w-full h-full bg-[url('/images/bg_grunge.png')], bg-repeat opacity-20 mix-blend-multiply"></div>
-        </div>
+        
         <main className="pt-24 pb-16 px-4">
-          <div className="max-w-2xl mx-auto relative z-10">
-            <div className="text-center mb-8">
-              <Image
-                src="/logos/nome_hrz.png"
-                alt="CERRADØ 𝗜𝗡𝗧𝗘𝗥𝗕𝗢𝗫 Logo"
-                width={320}
-                height={90}
-                className="mx-auto mb-6 logo-grunge"
-                style={{ filter: 'brightness(0) invert(0)', maxWidth: '90vw', height: 'auto', width: 'auto' }}
-                priority
-              />
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 tracking-tight glitch-text">
-                Formulário de Candidatura
-              </h2>
-              <p className="text-gray-600 mb-2">Preencha seus dados para participar do time audiovisual da CERRADØ 𝗜𝗡𝗧𝗘𝗥𝗕��𝗫.</p>
+          <div className="max-w-md mx-auto relative z-10">
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Etapa {['category', 'summary', 'form', 'payment', 'confirmation'].indexOf(currentStep) + 1} de 5</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {currentStep === 'category' && 'Categoria'}
+                  {currentStep === 'summary' && 'Resumo'}
+                  {currentStep === 'form' && 'Dados'}
+                  {currentStep === 'payment' && 'Pagamento'}
+                  {currentStep === 'confirmation' && 'Concluído'}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <motion.div
+                  className="bg-pink-600 h-2 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((['category', 'summary', 'form', 'payment', 'confirmation'].indexOf(currentStep) + 1) / 5) * 100}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
             </div>
-            <div className="bg-gray-50 border border-pink-300 rounded-2xl shadow-[0_8px_32px_0_rgba(236,72,153,0.25)] p-8 text-left relative grunge-card">
-              {success ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🎬</div>
-                  <h2 className="text-2xl font-bold text-green-400 mb-4">
-                    Candidatura Enviada!
-                  </h2>
-                  <p className="text-gray-700 mb-6">
-                    Obrigado por se candidatar! Esta janela será fechada automaticamente.
-                  </p>
-                  <div className="animate-pulse text-pink-400">
-                    Fechando...
-                  </div>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="nome" className="block text-sm font-medium text-gray-900 mb-2">
-                        Nome Completo *
-                      </label>
-                      <input
-                        type="text"
-                        id="nome"
-                        name="nome"
-                        value={formData.nome}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="Seu nome completo"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="seu@email.com"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="telefone" className="block text-sm font-medium text-gray-900 mb-2">
-                        Telefone *
-                      </label>
-                      <input
-                        type="tel"
-                        id="telefone"
-                        name="telefone"
-                        value={formData.telefone}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="(11) 99999-9999"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="cidade" className="block text-sm font-medium text-gray-900 mb-2">
-                        Cidade *
-                      </label>
-                      <input
-                        type="text"
-                        id="cidade"
-                        name="cidade"
-                        value={formData.cidade}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="Sua cidade"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="estado" className="block text-sm font-medium text-gray-900 mb-2">
-                        Estado *
-                      </label>
-                      <select
-                        id="estado"
-                        name="estado"
-                        value={formData.estado}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        required
-                      >
-                        <option value="">Selecione seu estado</option>
-                        <option value="AC">Acre</option>
-                        <option value="AL">Alagoas</option>
-                        <option value="AP">Amapá</option>
-                        <option value="AM">Amazonas</option>
-                        <option value="BA">Bahia</option>
-                        <option value="CE">Ceará</option>
-                        <option value="DF">Distrito Federal</option>
-                        <option value="ES">Espírito Santo</option>
-                        <option value="GO">Goiás</option>
-                        <option value="MA">Maranhão</option>
-                        <option value="MT">Mato Grosso</option>
-                        <option value="MS">Mato Grosso do Sul</option>
-                        <option value="MG">Minas Gerais</option>
-                        <option value="PA">Pará</option>
-                        <option value="PB">Paraíba</option>
-                        <option value="PR">Paraná</option>
-                        <option value="PE">Pernambuco</option>
-                        <option value="PI">Piauí</option>
-                        <option value="RJ">Rio de Janeiro</option>
-                        <option value="RN">Rio Grande do Norte</option>
-                        <option value="RS">Rio Grande do Sul</option>
-                        <option value="RO">Rondônia</option>
-                        <option value="RR">Roraima</option>
-                        <option value="SC">Santa Catarina</option>
-                        <option value="SP">São Paulo</option>
-                        <option value="SE">Sergipe</option>
-                        <option value="TO">Tocantins</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="areaAtuacao" className="block text-sm font-medium text-gray-900 mb-2">
-                        Área de Atuação *
-                      </label>
-                      <select
-                        id="areaAtuacao"
-                        name="areaAtuacao"
-                        value={formData.areaAtuacao}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        required
-                      >
-                        <option value="">Selecione sua área</option>
-                        <option value="fotografia">Fotografia</option>
-                        <option value="video">Vídeo</option>
-                        <option value="drone">Drone</option>
-                        <option value="edicao">Edição</option>
-                        <option value="iluminacao">Iluminação</option>
-                        <option value="som">Som</option>
-                        <option value="direcao">Direção</option>
-                        <option value="producao">Produção</option>
-                        <option value="outros">Outros</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="experiencia" className="block text-sm font-medium text-gray-900 mb-2">
-                        Anos de Experiência *
-                      </label>
-                      <select
-                        id="experiencia"
-                        name="experiencia"
-                        value={formData.experiencia}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        required
-                      >
-                        <option value="">Selecione sua experiência</option>
-                        <option value="0-1">0-1 ano</option>
-                        <option value="1-3">1-3 anos</option>
-                        <option value="3-5">3-5 anos</option>
-                        <option value="5-10">5-10 anos</option>
-                        <option value="10+">10+ anos</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="portfolio" className="block text-sm font-medium text-gray-900 mb-2">
-                        Portfólio/Links
-                      </label>
-                      <textarea
-                        id="portfolio"
-                        name="portfolio"
-                        value={formData.portfolio}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="Links do seu portfólio, Instagram, YouTube, etc."
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="equipamentos" className="block text-sm font-medium text-gray-900 mb-2">
-                        Equipamentos
-                      </label>
-                      <textarea
-                        id="equipamentos"
-                        name="equipamentos"
-                        value={formData.equipamentos}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="Descreva os equipamentos que você possui"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="disponibilidade" className="block text-sm font-medium text-gray-900 mb-2">
-                        Disponibilidade *
-                      </label>
-                      <select
-                        id="disponibilidade"
-                        name="disponibilidade"
-                        value={formData.disponibilidade}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        required
-                      >
-                        <option value="">Selecione sua disponibilidade</option>
-                        <option value="integral">Tempo integral</option>
-                        <option value="parcial">Tempo parcial</option>
-                        <option value="finais-semana">Finais de semana</option>
-                        <option value="flexivel">Horário flexível</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label htmlFor="motivacao" className="block text-sm font-medium text-gray-900 mb-2">
-                        Por que você quer participar? *
-                      </label>
-                      <textarea
-                        id="motivacao"
-                        name="motivacao"
-                        value={formData.motivacao}
-                        onChange={handleChange}
-                        rows={4}
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                        placeholder="Conte-nos sua motivação para participar do CERRADØ 𝗜𝗡𝗧𝗘𝗥𝗕𝗢𝗫"
-                        required
-                      />
-                    </div>
-                  </div>
-                  {error && (
-                    <div className="bg-red-500/10 border border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4">
-                      {error}
-                    </div>
-                  )}
-                  <div className="text-center">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="bg-gradient-to-r from-pink-600 to-black text-white font-bold py-4 px-8 rounded-lg hover:from-pink-700 hover:to-black transition-all duration-200 shadow-[0_0_20px_#E50914] hover:shadow-[0_0_40px_#E50914] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Enviando...
-                        </div>
-                      ) : (
-                        'Enviar Candidatura'
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
+            
+            {/* Step Content */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 min-h-[500px]">
+              <AnimatePresence mode="wait">
+                {renderStep()}
+              </AnimatePresence>
             </div>
           </div>
         </main>
-        <Footer />
-        <style jsx>{`
-          .glitch-text {
-            position: relative;
-            color: #111;
-            letter-spacing: 0.04em;
-          }
-          .glitch-text:after {
-            content: attr(data-text);
-            position: absolute;
-            left: 2px;
-            top: 2px;
-            color: #ec4899;
-            opacity: 0.4;
-            z-index: -1;
-            filter: blur(1px);
-          }
-          .grunge-card {
-            border-radius: 1.25rem 2.5rem 1.5rem 2.25rem/2rem 1.25rem 2.5rem 1.5rem;
-            border-width: 2.5px;
-          }
-          .logo-grunge {
-            transition: transform 0.3s;
-          }
-          @media (min-width: 768px) {
-            .logo-grunge {
-              transform: translateX(26%);
+        
+        <style jsx global>{`
+          /* Forçar orientação vertical */
+          @media screen and (orientation: landscape) and (max-height: 600px) {
+            body {
+              transform: rotate(90deg);
+              transform-origin: left top;
+              width: 100vh;
+              height: 100vw;
+              overflow-x: hidden;
+              position: absolute;
+              top: 100%;
+              left: 0;
             }
+          }
+          
+          /* Layout mobile-first */
+          @media (max-width: 768px) {
+            body {
+              overflow-x: hidden;
+            }
+            
+            main {
+              padding-left: 1rem;
+              padding-right: 1rem;
+            }
+            
+            .max-w-md {
+              max-width: 100%;
+            }
+          }
+          
+          /* Prevenir scroll horizontal */
+          html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+          }
+          
+          /* Animações suaves */
+          .step-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          
+          /* Estados de loading */
+          .loading-spinner {
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          
+          /* Checkmark animation */
+          .checkmark-animation {
+            animation: checkmark 0.5s ease-in-out;
+          }
+          
+          @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
           }
         `}</style>
       </div>
