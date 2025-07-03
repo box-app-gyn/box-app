@@ -47,7 +47,7 @@ deploy:live:
     - echo $FIREBASE_SERVICE_ACCOUNT > /tmp/firebase-service-account.json
     - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
   script:
-    - firebase deploy --only hosting --project interbox-app-8d400 --config firebase-ci.json
+    - firebase deploy --only apphosting --project interbox-app-8d400
   environment:
     name: production
     url: https://interbox-app-8d400.web.app

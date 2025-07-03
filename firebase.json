@@ -24,5 +24,13 @@
     "frameworksBackend": {
       "region": "us-central1"
     }
+  },
+  "apphosting": {
+    "backends": [
+      {
+        "backendId": "default",
+        "source": "."
+      }
+    ]
   }
 } 
