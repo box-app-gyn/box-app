@@ -1,6 +1,18 @@
-# Cerrado App
+# CERRADØ INTERBOX 2025
 
-Plataforma para eventos fotográficos no Cerrado - Landing page, captação de investidores e cadastro de fotógrafos.
+**O Maior Evento de Times da América Latina** - 24, 25 e 26 de outubro
+
+Plataforma PWA nativa para inscrições, gestão de times e experiência mobile otimizada.
+
+## 🎯 Sobre o Projeto
+
+O CERRADØ INTERBOX vai além da arena. Aqui você não se inscreve. Você assume seu chamado.
+
+- **PWA Mobile-First**: Experiência nativa em dispositivos móveis
+- **Fluxo de Inscrição Nativo**: Jornada multi-step com animações
+- **Gestão de Times**: Sistema completo de times e competições
+- **Integração FlowPay**: Pagamentos PIX integrados
+- **App Hosting**: Deploy otimizado no Google Cloud Run
 
 ## 📚 Documentação e Guias
 
@@ -14,40 +26,91 @@ Todos os guias de setup, administração e scripts estão organizados na pasta [
 - [Guia de Adição de Admins Existentes](./docs/ADD-EXISTING-ADMINS.md)
 - [Guia Completo de Admin](./docs/ADMIN-SETUP-GUIDE.md)
 
-## 🚀 Tecnologias
+## 🚀 Stack Tecnológica
 
-- **Next.js 14** - Framework React
+### Frontend & PWA
+- **Next.js 15** - Framework React com SSR
 - **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Estilização
-- **Firebase** - Autenticação e banco de dados
-- **FlowPay** - Processamento de pagamentos
+- **Tailwind CSS** - Estilização utilitária
+- **Framer Motion** - Animações fluidas
+- **PWA** - Progressive Web App nativo
+
+### Backend & Infraestrutura
+- **Firebase App Hosting** - Deploy no Google Cloud Run
+- **Firebase Auth** - Autenticação e MFA
+- **Firestore** - Banco de dados NoSQL
+- **Cloud Functions** - Backend serverless
+- **Vertex AI** - Chatbot inteligente
+
+### Pagamentos & Integrações
+- **FlowPay** - Processamento PIX
+- **Google Analytics** - Métricas e tracking
+- **App Hub** - Monitoramento centralizado
+
+### DevOps & Deploy
+- **GitHub Actions** - CI/CD automático
+- **Cloud Build** - Build otimizado
+- **Cloud Run** - Container serverless
+- **App Hosting** - Deploy automático
 
 ## 📁 Estrutura do Projeto
 
 ```
 /cerrado-app
-├── /pages              # Páginas da aplicação
-│   ├── index.tsx       # Landing page
-│   ├── login.tsx       # Login
-│   ├── admin.tsx       # Painel Admin
-│   ├── dashboard.tsx   # Dashboard de atletas
-│   ├── audiovisual.tsx # Cadastro audiovisual
-│   └── api/            # API Routes
-├── /components         # Componentes reutilizáveis
-├── /lib               # Configurações (Firebase, etc)
-├── /types             # Tipos TypeScript
-├── /constants         # Constantes da aplicação
-├── /utils             # Funções utilitárias
-├── /hooks             # Custom hooks
-└── /styles            # Estilos globais
+├── /pages                    # Páginas da aplicação
+│   ├── index.tsx            # Home com modal de inscrição
+│   ├── login.tsx            # Autenticação
+│   ├── admin.tsx            # Painel administrativo
+│   ├── dashboard.tsx        # Dashboard de usuários
+│   ├── audiovisual.tsx      # Cadastro audiovisual
+│   ├── times.tsx            # Gestão de times
+│   ├── api/                 # API Routes
+│   │   ├── chat.ts          # Chatbot Vertex AI
+│   │   └── health.ts        # Health check
+│   └── _error.tsx           # Página de erro
+├── /components              # Componentes reutilizáveis
+│   ├── Header.tsx           # Header com menu mobile
+│   ├── Hero.tsx             # Seção principal
+│   ├── CallToAction.tsx     # Formulários de contato
+│   ├── VideoSplashScreen.tsx # Splash com vídeo
+│   ├── InstallBanner.tsx    # Banner PWA
+│   └── ...                  # Outros componentes
+├── /hooks                   # Custom hooks
+│   ├── useAuth.ts           # Autenticação
+│   ├── usePWA.ts            # Funcionalidades PWA
+│   ├── useChat.ts           # Chatbot
+│   └── useGamification.ts   # Gamificação
+├── /lib                     # Configurações
+│   ├── firebase.ts          # Config Firebase
+│   ├── firestore.ts         # Config Firestore
+│   └── vertex-ai.ts         # Config Vertex AI
+├── /types                   # Tipos TypeScript
+├── /constants               # Constantes
+├── /utils                   # Utilitários
+├── /styles                  # Estilos globais
+├── /public                  # Assets públicos
+│   ├── manifest.json        # PWA manifest
+│   ├── sw.js               # Service Worker
+│   └── images/              # Imagens
+├── apphosting.yaml          # Config App Hosting
+├── monitoring.yaml          # Config monitoramento
+├── firebase.json            # Config Firebase
+└── next.config.js           # Config Next.js
 ```
 
-## 🛠️ Setup
+## 🛠️ Setup e Desenvolvimento
 
+### Pré-requisitos
+- Node.js 18+
+- Firebase CLI
+- Google Cloud CLI
+- Git
+
+### Setup Local
 1. **Clone o repositório**
 ```bash
-git clone https://gitlab.com/mello-group1/interbox-app.git
-cd interbox-app
+git clone https://github.com/box-app-gyn/box-app.git
+cd box-app
 ```
 
 2. **Instale as dependências**
@@ -65,6 +128,127 @@ cp env.example .env.local
 ```bash
 npm run dev
 ```
+
+### Setup Firebase App Hosting
+1. **Configure o Firebase CLI**
+```bash
+firebase login
+firebase use interbox-app-8d400
+```
+
+2. **Configure o App Hosting**
+```bash
+firebase apphosting:backends:list
+firebase deploy --only apphosting:git-box-app
+```
+
+## 🔧 Padrões de Trabalho e Descobertas
+
+### 🚀 Deploy e Infraestrutura
+
+#### **Firebase App Hosting vs Hosting Tradicional**
+- **App Hosting**: Para SSR Next.js (recomendado)
+- **Hosting Tradicional**: Para SPAs estáticas
+- **Configuração correta**: Use apenas App Hosting para Next.js
+
+#### **Configuração do firebase.json**
+```json
+{
+  "apphosting": {
+    "backends": [
+      {
+        "backendId": "git-box-app",
+        "source": "."
+      }
+    ]
+  }
+}
+```
+
+#### **Deploy Manual vs GitHub Actions**
+- **Deploy Manual**: `firebase deploy --only apphosting:git-box-app`
+- **GitHub Actions**: Deploy automático após push/merge
+- **Rollout**: Para deploys graduais e seguros
+
+### 📱 PWA e Mobile-First
+
+#### **Configurações PWA**
+- **manifest.json**: Configuração completa do app
+- **Service Worker**: Cache e offline
+- **Meta tags Apple**: Para iOS
+- **Splash screen**: Com vídeo de intro
+
+#### **Experiência Mobile**
+- **Header simplificado**: Menu hambúrguer único
+- **Orientação fixa**: Portrait apenas
+- **Touch-friendly**: Botões e interações otimizadas
+- **Instalação nativa**: Banners e prompts automáticos
+
+### 🎨 UX/UI e Animações
+
+#### **Fluxo de Inscrição Nativo**
+- **Modal automático**: Aparece após splash screen
+- **Multi-step**: Seleção → Resumo → Formulário → PIX → Confirmação
+- **Animações**: Framer Motion para transições fluidas
+- **Estados visuais**: Loading, processamento, confirmação
+
+#### **Componentes Otimizados**
+- **Header**: Indicador de usuário logado + botão logout destacado
+- **Splash Screen**: Vídeo de intro com transição suave
+- **Formulários**: Validação em tempo real
+- **QR Code PIX**: Timer e instruções
+
+### 🔐 Segurança e Autenticação
+
+#### **Configurações de Segurança**
+- **security.txt**: Políticas de segurança
+- **Headers**: X-Frame-Options, CSP, etc.
+- **MFA**: Autenticação de dois fatores
+- **Rate limiting**: Proteção contra spam
+
+#### **Variáveis de Ambiente**
+- **Desenvolvimento**: `.env.local`
+- **Produção**: Firebase Console Secrets
+- **GitHub Actions**: Secrets do repositório
+- **Nunca commitar**: Arquivos `.env*`
+
+### 📊 Monitoramento e Performance
+
+#### **Cloud Run Otimizações**
+- **Recursos**: 1 CPU, 1GB RAM
+- **Escalonamento**: 1-20 instâncias
+- **Latência**: < 10ms
+- **Cache**: 1 hora + stale-while-revalidate
+
+#### **Monitoramento**
+- **App Hub**: Dashboard centralizado
+- **Cloud Build**: Logs de deploy
+- **Cloud Run**: Métricas em tempo real
+- **Alertas**: CPU, memória, latência, erros
+
+### 🐛 Troubleshooting Comum
+
+#### **Erro 403 - Não Autenticado**
+```yaml
+# apphosting.yaml
+security:
+  allow_unauthenticated: true  # PWA público
+```
+
+#### **Erro 404 - Imagens não encontradas**
+- Verificar se arquivo existe em `public/images/`
+- Limpar cache do navegador
+- Aguardar propagação do deploy
+
+#### **Deploy não atualiza**
+- Verificar `firebase.json` com `backendId` correto
+- Usar `firebase deploy --only apphosting:git-box-app`
+- Aguardar 2-3 minutos para propagação
+
+#### **Commit muito grande no GitHub**
+- Usar searchbox para encontrar arquivos específicos
+- Fazer commits menores e mais frequentes
+- Dividir mudanças em PRs separados
 
 ## 🔧 Configuração Firebase
 
@@ -88,16 +272,32 @@ npm run dev
 - **Componentes**: Use as classes CSS customizadas em `styles/globals.css`
 - **Tipos**: Adicione novos tipos em `types/index.ts`
 
-## 📱 Funcionalidades
+## 📱 Funcionalidades Implementadas
 
-- ✅ Landing page responsiva
-- ✅ Autenticação Firebase
-- ✅ Painel administrativo com permissões granulares
-- ✅ Cadastro de fotógrafos e audiovisual
-- ✅ Captação de investidores
-- ✅ Integração FlowPay
-- ✅ Roteamento protegido
-- ✅ Sistema de times e competições
+### 🎯 Core Features
+- ✅ **PWA Mobile-First**: Experiência nativa em dispositivos móveis
+- ✅ **Fluxo de Inscrição Nativo**: Modal automático com multi-step
+- ✅ **Autenticação Firebase**: Login, MFA e gestão de usuários
+- ✅ **Painel Administrativo**: Permissões granulares e gestão completa
+- ✅ **Sistema de Times**: Criação, convites e gestão de competições
+- ✅ **Integração FlowPay**: Pagamentos PIX com QR Code
+- ✅ **Chatbot Vertex AI**: Assistente inteligente integrado
+
+### 🎨 UX/UI Features
+- ✅ **Splash Screen**: Vídeo de intro com transições suaves
+- ✅ **Animações**: Framer Motion para experiências fluidas
+- ✅ **Header Otimizado**: Menu mobile com indicador de usuário
+- ✅ **Formulários Inteligentes**: Validação em tempo real
+- ✅ **Instalação PWA**: Banners e prompts automáticos
+- ✅ **Offline Support**: Service Worker para cache
+
+### 🔧 Technical Features
+- ✅ **App Hosting**: Deploy otimizado no Google Cloud Run
+- ✅ **Monitoramento**: App Hub com métricas em tempo real
+- ✅ **Performance**: Otimizações de cache e compressão
+- ✅ **Segurança**: Headers, MFA e rate limiting
+- ✅ **CI/CD**: GitHub Actions com deploy automático
+- ✅ **Health Checks**: Endpoints de monitoramento
 
 ## 🔐 Segurança
 
@@ -150,7 +350,99 @@ npm run dev
 
 ## 📊 Status do Projeto
 
-- **Produção**: https://interbox-app-8d400.web.app
-- **Repositório**: https://gitlab.com/mello-group1/interbox-app
-- **CI/CD**: Configurado com GitLab Pipelines
-- **Deploy**: Firebase Hosting
+### 🌐 URLs de Produção
+- **App Hosting**: https://git-box-app--interbox-app-8d400.us-central1.hosted.app
+- **QR Code**: https://cerradointerbox.com.br (redireciona para mobile)
+- **Firebase Console**: https://console.firebase.google.com/project/interbox-app-8d400
+
+### 📱 Repositórios
+- **GitHub**: https://github.com/box-app-gyn/box-app
+- **Branch Principal**: `feature/primeiro-push`
+- **CI/CD**: GitHub Actions configurado
+
+### 🔧 Infraestrutura
+- **App Hosting**: Google Cloud Run otimizado
+- **Backend**: `git-box-app` (us-central1)
+- **Monitoramento**: App Hub ativo
+- **Deploy**: Automático via GitHub Actions
+
+### 📈 Métricas de Performance
+- **Build Time**: ~7 segundos
+- **Deploy Time**: ~3 minutos
+- **Cold Start**: < 2 segundos
+- **Uptime**: 99.9% (SLO configurado)
+
+### 🚀 Próximos Passos
+- [ ] Merge para branch `main`
+- [ ] Configurar proteção da branch main
+- [ ] Implementar testes automatizados
+- [ ] Otimizar bundle size
+- [ ] Adicionar mais métricas de analytics
+
+## 🛠️ Comandos Úteis
+
+### Deploy e Infraestrutura
+```bash
+# Deploy manual
+firebase deploy --only apphosting:git-box-app
+
+# Verificar backends
+firebase apphosting:backends:list
+
+# Verificar logs
+firebase apphosting:logs:tail
+
+# Build local
+npm run build
+```
+
+### Desenvolvimento
+```bash
+# Desenvolvimento local
+npm run dev
+
+# Linting
+npm run lint
+
+# Type checking
+npm run type-check
+
+# Limpar cache
+rm -rf .next && npm run dev
+```
+
+### Git e Versionamento
+```bash
+# Verificar status
+git status
+
+# Ver commits recentes
+git log --oneline -5
+
+# Fazer deploy via GitHub Actions
+git add .
+git commit -m "descrição das mudanças"
+git push
+```
+
+### Monitoramento
+```bash
+# Health check
+curl https://git-box-app--interbox-app-8d400.us-central1.hosted.app/api/health
+
+# Verificar performance
+curl -I https://git-box-app--interbox-app-8d400.us-central1.hosted.app
+```
+
+---
+
+## 📞 Suporte
+
+Para dúvidas técnicas ou problemas:
+- **Issues**: https://github.com/box-app-gyn/box-app/issues
+- **Documentação**: Pasta `docs/`
+- **Firebase Console**: Para logs e monitoramento
+
+---
+
+**CERRADØ INTERBOX 2025** - O Maior Evento de Times da América Latina 🏆

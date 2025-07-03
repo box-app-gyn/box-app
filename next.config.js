@@ -10,47 +10,63 @@ const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.1.104', '*.local'],
   
-  // Configuração para desenvolvimento mobile
+  // Configurações para produção
+  output: 'standalone',
   experimental: {
-    esmExternals: true,
-    optimizePackageImports: ['framer-motion', 'react-apexcharts']
+    // Otimizações para Cloud Run
+    serverComponentsExternalPackages: ['@google-cloud/storage'],
+    optimizeCss: true,
+    optimizePackageImports: ['framer-motion', 'lucide-react'],
   },
+  
+  // Configurações de compressão
+  compress: true,
+  
+  // Configurações de cache
+  generateEtags: true,
+  
+  // Configurações de imagens
   images: {
-    unoptimized: true,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias
   },
-
+  
+  // Configurações de headers para PWA
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
             key: 'X-Frame-Options',
             value: 'DENY',
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
           },
         ],
       },
       {
-        source: '/static/(.*)',
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/(.*)',
         headers: [
           {
             key: 'Cache-Control',
@@ -58,13 +74,47 @@ const nextConfig = {
           },
         ],
       },
-    ]
+    ];
   },
-  compress: true,
-  poweredByHeader: false,
-  generateEtags: true,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+  
+  // Configurações de redirecionamento
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
+  
+  // Configurações de webpack para otimização
+  webpack: (config, { dev, isServer }) => {
+    // Otimizações para produção
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    
+    return config;
+  },
+  
+  // Configurações de PWA
+  async rewrites() {
+    return [
+      {
+        source: '/sw.js',
+        destination: '/_next/static/sw.js',
+      },
+    ];
   },
 }
 
