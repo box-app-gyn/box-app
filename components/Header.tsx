@@ -126,7 +126,7 @@ export default function Header() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="hidden md:flex items-center gap-2 bg-green-600/20 border border-green-500/30 rounded-full px-3 py-1"
+                className="flex items-center gap-2 bg-green-600/20 border border-green-500/30 rounded-full px-3 py-1 mr-4"
               >
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-green-400 text-xs font-medium">
@@ -135,65 +135,10 @@ export default function Header() {
               </motion.div>
             )}
 
-            {/* Menu Desktop - Links de navegação */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link 
-                href="/#sobre" 
-                className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
-              >
-                Sobre
-              </Link>
-              <Link 
-                href="/times" 
-                className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
-              >
-                Times
-              </Link>
-              <Link 
-                href="/audiovisual" 
-                className="text-pink-400 hover:text-pink-300 transition-all duration-300 font-medium text-sm"
-              >
-                Audiovisual
-              </Link>
-              {user && (
-                <>
-                  <Link 
-                    href="/dashboard" 
-                    className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link 
-                    href="/profile" 
-                    className="text-white hover:text-pink-400 transition-all duration-300 font-medium text-sm"
-                  >
-                    Perfil
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Sair
-                  </button>
-                </>
-              )}
-              {!user && (
-                <Link 
-                  href="/login" 
-                  className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200 font-medium text-sm"
-                >
-                  Entrar
-                </Link>
-              )}
-            </nav>
-
-            {/* Menu Hambúrguer - Apenas Mobile */}
+            {/* Menu Mobile - Botão hambúrguer sempre visível */}
             <motion.button
               onClick={toggleMenu}
-              className="md:hidden relative z-50 flex flex-col justify-center items-center w-8 h-8 text-white hover:text-pink-400 transition-colors duration-300"
+              className="relative z-50 flex flex-col justify-center items-center w-8 h-8 text-white hover:text-pink-400 transition-colors duration-300"
               whileTap={{ scale: 0.95 }}
             >
               {/* Linha superior */}
@@ -221,37 +166,39 @@ export default function Header() {
                 }}
               />
             </motion.button>
+
+
           </div>
         </motion.div>
       </motion.header>
 
-      {/* Menu Lateral Fullscreen - Apenas Mobile */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            {/* Overlay de fundo */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="md:hidden fixed inset-0 bg-black/95 backdrop-blur-lg z-40"
-              onClick={() => setIsMenuOpen(false)}
-            />
+                  {/* Menu Lateral Fullscreen */}
+            <AnimatePresence>
+              {isMenuOpen && (
+                <>
+                  {/* Overlay de fundo */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed inset-0 bg-black/95 backdrop-blur-lg z-40"
+                    onClick={() => setIsMenuOpen(false)}
+                  />
 
-            {/* Menu lateral */}
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ 
-                type: "spring", 
-                damping: 25, 
-                stiffness: 200,
-                duration: 0.5
-              }}
-              className="md:hidden fixed top-0 right-0 h-full w-80 bg-black/98 backdrop-blur-xl z-50 border-l border-pink-500/20 shadow-2xl"
-            >
+                  {/* Menu lateral */}
+                  <motion.div
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
+                    transition={{ 
+                      type: "spring", 
+                      damping: 25, 
+                      stiffness: 200,
+                      duration: 0.5
+                    }}
+                    className="fixed top-0 right-0 h-full w-80 bg-black/98 backdrop-blur-xl z-50 border-l border-pink-500/20 shadow-2xl"
+                  >
               {/* Conteúdo do menu */}
               <div className="flex flex-col h-full p-8">
                 {/* Header do menu */}
