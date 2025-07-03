@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Nova seção pequena para convite audiovisual
 export function AudiovisualInvite() {
@@ -98,7 +99,7 @@ export default function CallToAction() {
             viewport={{ once: true }}
             className="bg-neutral-900 p-8 rounded-2xl border border-neutral-800 relative overflow-hidden"
           >
-            <img src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" />
+                         <Image src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" width={128} height={128} />
             <h3 className="text-2xl font-bold text-white mb-6 text-center">
               Seja um Patrocinador
             </h3>

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onUserCreated = exports.flowpayWebhook = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.validaAudiovisualFunction = exports.criarPedidoPIXFunction = void 0;
+exports.onUserCreated = exports.flowpayWebhook = exports.pollMessagesFunction = exports.createSessionFunction = exports.saveFeedbackFunction = exports.getChatHistoryFunction = exports.sendMessageFunction = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.criarInscricaoAudiovisualFunction = exports.validaAudiovisualFunction = exports.criarInscricaoTimeFunction = void 0;
 // /functions/src/index.ts
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
@@ -45,15 +45,24 @@ const audiovisual_1 = require("./audiovisual");
 const emails_1 = require("./emails");
 const teams_1 = require("./teams");
 const logger_1 = require("./utils/logger");
+// Chat Functions
+const chat_1 = require("./chat");
 // Cloud Functions exportadas
-exports.criarPedidoPIXFunction = pedidos_1.criarPedidoPIX;
+exports.criarInscricaoTimeFunction = pedidos_1.criarInscricaoTime;
 exports.validaAudiovisualFunction = audiovisual_1.validaAudiovisual;
+exports.criarInscricaoAudiovisualFunction = audiovisual_1.criarInscricaoAudiovisual;
 exports.enviaEmailConfirmacaoFunction = emails_1.enviaEmailConfirmacao;
 // Funções de Times
 exports.enviarConviteTimeFunction = teams_1.enviarConviteTime;
 exports.responderConviteTimeFunction = teams_1.responderConviteTime;
 exports.listarConvitesUsuarioFunction = teams_1.listarConvitesUsuario;
 exports.cancelarConviteTimeFunction = teams_1.cancelarConviteTime;
+// Chat Functions
+exports.sendMessageFunction = chat_1.sendMessage;
+exports.getChatHistoryFunction = chat_1.getChatHistory;
+exports.saveFeedbackFunction = chat_1.saveFeedback;
+exports.createSessionFunction = chat_1.createSession;
+exports.pollMessagesFunction = chat_1.pollMessages;
 // Rate limiting para webhooks
 const RATE_LIMIT_WINDOW = 60000; // 1 minuto
 const MAX_REQUESTS_PER_WINDOW = 10;
@@ -73,6 +82,7 @@ function checkRateLimit(ip) {
 }
 // Webhook para FlowPay
 exports.flowpayWebhook = functions.https.onRequest(async (req, res) => {
+    var _a;
     const context = (0, logger_1.createRequestContext)(req);
     try {
         // Rate limiting
@@ -142,8 +152,38 @@ exports.flowpayWebhook = functions.https.onRequest(async (req, res) => {
             return;
         }
         // Processar webhook do FlowPay
-        // TODO: Implementar lógica de atualização do pedido no Firestore
-        logger_1.logger.business('Webhook processado com sucesso', { orderId, status }, context);
+        const { tipo, categoria, lote } = body.metadata || {};
+        if (tipo === 'inscricao_time') {
+            // Atualizar inscrição de time
+            const inscricaoRef = admin.firestore().collection('inscricoes_times').doc(orderId);
+            await inscricaoRef.update({
+                status: 'confirmed',
+                paidAt: new Date(),
+                updatedAt: new Date(),
+                flowpayStatus: status
+            });
+            logger_1.logger.business('Inscrição de time confirmada', {
+                orderId,
+                status,
+                categoria,
+                lote
+            }, context);
+        }
+        else if (tipo === 'audiovisual') {
+            // Atualizar inscrição de audiovisual
+            const audiovisualRef = admin.firestore().collection('audiovisual').doc(orderId);
+            await audiovisualRef.update({
+                status: 'confirmed',
+                paidAt: new Date(),
+                updatedAt: new Date(),
+                flowpayStatus: status
+            });
+            logger_1.logger.business('Inscrição audiovisual confirmada', {
+                orderId,
+                status,
+                area: (_a = body.metadata) === null || _a === void 0 ? void 0 : _a.area
+            }, context);
+        }
         res.status(200).json({ success: true, orderId, status });
     }
     catch (error) {
@@ -167,6 +207,20 @@ exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
             isActive: true,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            // 🎯 GAMIFICAÇÃO CAMADA 1
+            gamification: {
+                points: 10, // Pontos iniciais por cadastro
+                level: 'iniciante',
+                totalActions: 1,
+                lastActionAt: admin.firestore.FieldValue.serverTimestamp(),
+                achievements: ['first_blood'], // Primeira conquista
+                rewards: [],
+                streakDays: 1,
+                lastLoginStreak: admin.firestore.FieldValue.serverTimestamp(),
+                referralCode: `REF${uid.substring(0, 8).toUpperCase()}`,
+                referrals: [],
+                referralPoints: 0
+            }
         };
         await admin.firestore().collection('users').doc(uid).set(userData);
         logger_1.logger.business('Novo usuário criado', { email, displayName }, Object.assign(Object.assign({}, context), { userId: uid }));

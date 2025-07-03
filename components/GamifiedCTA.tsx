@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import { useState, useCallback } from 'react';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface GamifiedCTAProps {
   children: React.ReactNode;
   href: string;
   className?: string;
   tooltipText?: string;
+  onClick?: () => void;
 }
 
 // Função para validar e sanitizar URLs
@@ -61,10 +63,11 @@ export default function GamifiedCTA({
   children, 
   href, 
   className = "", 
-  tooltipText = "VOCÊ FOI ESCOLHIDO" 
+  tooltipText = "VOCÊ FOI ESCOLHIDO",
+  onClick 
 }: GamifiedCTAProps) {
+  const { trackCTA } = useAnalytics();
   const [showTooltip, setShowTooltip] = useState(false);
-  const [isValidUrl, setIsValidUrl] = useState(true);
 
   // Validar e sanitizar props
   const sanitizedHref = validateAndSanitizeUrl(href);
@@ -72,19 +75,17 @@ export default function GamifiedCTA({
   const sanitizedClassName = sanitizeText(className, 200);
 
   // Verificar se a URL é válida
-  const checkUrlValidity = useCallback(() => {
-    const isValid = sanitizedHref !== '#';
-    setIsValidUrl(isValid);
-    return isValid;
-  }, [sanitizedHref]);
+  const isValid = sanitizedHref !== '#';
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    if (!checkUrlValidity()) {
-      e.preventDefault();
-      console.warn('Tentativa de navegação para URL inválida:', href);
-      return;
+  const handleClick = useCallback(() => {
+    // Rastrear clique no CTA
+    trackCTA(children as string, window.location.pathname);
+    
+    // Executar onClick customizado se fornecido
+    if (onClick) {
+      onClick();
     }
-  }, [href, checkUrlValidity]);
+  }, [children, onClick, trackCTA]);
 
   const handleHoverStart = useCallback(() => {
     if (sanitizedTooltipText) {
@@ -101,14 +102,14 @@ export default function GamifiedCTA({
       className="relative inline-block"
       onHoverStart={handleHoverStart}
       onHoverEnd={handleHoverEnd}
-      whileHover={{ scale: isValidUrl ? 1.05 : 1 }}
+      whileHover={{ scale: isValid ? 1.05 : 1 }}
       transition={{ duration: 0.33, ease: "easeOut" }}
     >
       <a 
         href={sanitizedHref}
         onClick={handleClick}
         className={`relative overflow-hidden ${sanitizedClassName} ${
-          !isValidUrl ? 'cursor-not-allowed opacity-50' : ''
+          !isValid ? 'cursor-not-allowed opacity-50' : ''
         }`}
         aria-label={sanitizedTooltipText}
         rel={sanitizedHref.startsWith('https://') ? 'noopener noreferrer' : undefined}

@@ -142,7 +142,7 @@ export const responderConviteTime = functions.https.onCall(async (data: Resposta
       throw new functions.https.HttpsError('failed-precondition', 'Convite já foi respondido');
     }
 
-    if (conviteData.expiresAt && conviteData.expiresAt.toDate() < new Date()) {
+    if (conviteData.expiresAt && (conviteData.expiresAt?.toDate ? conviteData.expiresAt.toDate() : new Date(conviteData.expiresAt)) < new Date()) {
       throw new functions.https.HttpsError('failed-precondition', 'Convite expirado');
     }
 

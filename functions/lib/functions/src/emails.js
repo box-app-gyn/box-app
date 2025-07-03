@@ -35,40 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.enviaEmailBoasVindas = exports.enviaEmailConfirmacao = void 0;
 const functions = __importStar(require("firebase-functions"));
-const nodemailer = __importStar(require("nodemailer"));
-const logger_1 = require("../utils/logger");
-// Função de sanitização para prevenir XSS
-function sanitizeHtml(text) {
-    if (typeof text !== 'string')
-        return '';
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/\//g, '&#x2F;');
-}
-// Função para validar e sanitizar dados
-function validateAndSanitizeData(data) {
-    return {
-        userEmail: sanitizeHtml(data.userEmail || ''),
-        userName: sanitizeHtml(data.userName || ''),
-        tipo: data.tipo,
-        dadosAdicionais: data.dadosAdicionais ? Object.fromEntries(Object.entries(data.dadosAdicionais).map(([key, value]) => [
-            key,
-            typeof value === 'string' ? sanitizeHtml(value) : value
-        ])) : undefined
-    };
-}
-// Configurar transporter de email
-const transporter = nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-        user: functions.config().email.user,
-        pass: functions.config().email.password,
-    },
-});
+const logger_1 = require("./utils/logger");
 // Templates de email
 const emailTemplates = {
     pedido: {
@@ -197,7 +164,7 @@ const emailTemplates = {
 // Função para enviar email de confirmação
 exports.enviaEmailConfirmacao = functions.https.onCall(async (data, context) => {
     var _a;
-    const contextData = { functionName: 'enviaEmailConfirmacao', userId: (_a = context.auth) === null || _a === void 0 ? void 0 : _a.uid };
+    const contextData = { userId: (_a = context.auth) === null || _a === void 0 ? void 0 : _a.uid };
     try {
         // Validar dados
         if (!data.userEmail || !data.userName || !data.tipo) {
@@ -208,7 +175,6 @@ exports.enviaEmailConfirmacao = functions.https.onCall(async (data, context) => 
             throw new functions.https.HttpsError('invalid-argument', 'Tipo de email inválido');
         }
         const template = emailTemplates[data.tipo];
-        const html = template.html(data);
         // TODO: Implementar envio real de email
         // Por enquanto, apenas log
         logger_1.logger.business('Email de confirmação gerado', {
@@ -223,20 +189,20 @@ exports.enviaEmailConfirmacao = functions.https.onCall(async (data, context) => 
         };
     }
     catch (error) {
-        logger_1.logger.error('Erro ao enviar email de confirmação', { error: error.message }, contextData);
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        logger_1.logger.error('Erro ao enviar email de confirmação', { error: errorMessage }, contextData);
         throw error;
     }
 });
 // Função para enviar email de boas-vindas
 const enviaEmailBoasVindas = async (data) => {
-    const contextData = { functionName: 'enviaEmailBoasVindas' };
+    const contextData = { userId: undefined };
     try {
         if (!data.userEmail) {
             logger_1.logger.warn('Email não fornecido para boas-vindas', {}, contextData);
             return;
         }
         const template = emailTemplates.admin;
-        const html = template.html(data);
         // TODO: Implementar envio real de email
         logger_1.logger.business('Email de boas-vindas gerado', {
             userEmail: data.userEmail,
@@ -244,7 +210,8 @@ const enviaEmailBoasVindas = async (data) => {
         }, contextData);
     }
     catch (error) {
-        logger_1.logger.error('Erro ao enviar email de boas-vindas', { error: error.message }, contextData);
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        logger_1.logger.error('Erro ao enviar email de boas-vindas', { error: errorMessage }, contextData);
     }
 };
 exports.enviaEmailBoasVindas = enviaEmailBoasVindas;

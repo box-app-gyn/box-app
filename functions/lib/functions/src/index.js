@@ -33,27 +33,70 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onUserCreated = exports.flowpayWebhook = exports.enviaEmailConfirmacaoFunction = exports.validaAudiovisualFunction = exports.criarPedidoPIXFunction = void 0;
+exports.onUserCreated = exports.flowpayWebhook = exports.pollMessagesFunction = exports.createSessionFunction = exports.saveFeedbackFunction = exports.getChatHistoryFunction = exports.sendMessageFunction = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.criarInscricaoAudiovisualFunction = exports.validaAudiovisualFunction = exports.criarInscricaoTimeFunction = void 0;
 // /functions/src/index.ts
 const functions = __importStar(require("firebase-functions"));
-const crypto = __importStar(require("crypto"));
+const admin = __importStar(require("firebase-admin"));
+if (!admin.apps.length) {
+    admin.initializeApp();
+}
 const pedidos_1 = require("./pedidos");
 const audiovisual_1 = require("./audiovisual");
 const emails_1 = require("./emails");
-const logger_1 = require("../../utils/logger");
-const admin = __importStar(require("firebase-admin"));
+const teams_1 = require("./teams");
+const logger_1 = require("./utils/logger");
+// Chat Functions
+const chat_1 = require("./chat");
 // Cloud Functions exportadas
-exports.criarPedidoPIXFunction = functions.https.onCall(pedidos_1.criarPedidoPIX);
-exports.validaAudiovisualFunction = functions.https.onCall(audiovisual_1.validaAudiovisual);
-exports.enviaEmailConfirmacaoFunction = functions.https.onCall(emails_1.enviaEmailConfirmacao);
+exports.criarInscricaoTimeFunction = pedidos_1.criarInscricaoTime;
+exports.validaAudiovisualFunction = audiovisual_1.validaAudiovisual;
+exports.criarInscricaoAudiovisualFunction = audiovisual_1.criarInscricaoAudiovisual;
+exports.enviaEmailConfirmacaoFunction = emails_1.enviaEmailConfirmacao;
+// Funções de Times
+exports.enviarConviteTimeFunction = teams_1.enviarConviteTime;
+exports.responderConviteTimeFunction = teams_1.responderConviteTime;
+exports.listarConvitesUsuarioFunction = teams_1.listarConvitesUsuario;
+exports.cancelarConviteTimeFunction = teams_1.cancelarConviteTime;
+// Chat Functions
+exports.sendMessageFunction = chat_1.sendMessage;
+exports.getChatHistoryFunction = chat_1.getChatHistory;
+exports.saveFeedbackFunction = chat_1.saveFeedback;
+exports.createSessionFunction = chat_1.createSession;
+exports.pollMessagesFunction = chat_1.pollMessages;
 // Rate limiting para webhooks
 const RATE_LIMIT_WINDOW = 60000; // 1 minuto
 const MAX_REQUESTS_PER_WINDOW = 10;
+const MAX_RATE_LIMIT_ENTRIES = 1000; // Limite máximo de IPs em cache
+const CLEANUP_INTERVAL = 300000; // Limpeza a cada 5 minutos
 const webhookRateLimit = new Map();
+// Função para limpar entradas expiradas
+function cleanupExpiredEntries() {
+    const now = Date.now();
+    const expiredKeys = [];
+    for (const [key, value] of webhookRateLimit.entries()) {
+        if (now > value.resetTime) {
+            expiredKeys.push(key);
+        }
+    }
+    expiredKeys.forEach(key => webhookRateLimit.delete(key));
+    // Se ainda estiver muito grande, remover entradas mais antigas
+    if (webhookRateLimit.size > MAX_RATE_LIMIT_ENTRIES) {
+        const entries = Array.from(webhookRateLimit.entries());
+        entries.sort((a, b) => a[1].resetTime - b[1].resetTime);
+        const toRemove = entries.slice(0, webhookRateLimit.size - MAX_RATE_LIMIT_ENTRIES);
+        toRemove.forEach(([key]) => webhookRateLimit.delete(key));
+    }
+}
+// Configurar limpeza automática
+setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL);
 function checkRateLimit(ip) {
     const now = Date.now();
     const clientData = webhookRateLimit.get(ip);
     if (!clientData || now > clientData.resetTime) {
+        // Limpar entradas expiradas antes de adicionar nova
+        if (webhookRateLimit.size >= MAX_RATE_LIMIT_ENTRIES) {
+            cleanupExpiredEntries();
+        }
         webhookRateLimit.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
         return true;
     }
@@ -63,27 +106,15 @@ function checkRateLimit(ip) {
     clientData.count++;
     return true;
 }
-// Função para verificar assinatura do webhook
-function verifyWebhookSignature(payload, signature, secret) {
-    try {
-        const expectedSignature = crypto
-            .createHmac('sha256', secret)
-            .update(payload, 'utf8')
-            .digest('hex');
-        return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expectedSignature, 'hex'));
-    }
-    catch (error) {
-        logger_1.logger.error('Erro ao verificar assinatura do webhook', error);
-        return false;
-    }
-}
 // Webhook para FlowPay
 exports.flowpayWebhook = functions.https.onRequest(async (req, res) => {
+    var _a;
     const context = (0, logger_1.createRequestContext)(req);
     try {
         // Rate limiting
-        if (!checkRateLimit(req.ip)) {
-            logger_1.logger.security('Rate limit excedido no webhook', { ip: req.ip }, context);
+        const clientIp = req.ip || 'unknown';
+        if (!checkRateLimit(clientIp)) {
+            logger_1.logger.security('Rate limit excedido no webhook', { ip: clientIp }, context);
             res.status(429).json({ error: 'Too many requests' });
             return;
         }
@@ -113,15 +144,16 @@ exports.flowpayWebhook = functions.https.onRequest(async (req, res) => {
         }
         // Verificar assinatura (implementar conforme documentação do FlowPay)
         try {
-            const webhookSecret = functions.config().flowpay.webhook_secret;
             // TODO: Implementar verificação de assinatura
+            // const webhookSecret = functions.config().flowpay.webhook_secret;
             // const isValidSignature = verifySignature(req.body, signature, webhookSecret);
             // if (!isValidSignature) {
             //   throw new Error('Invalid signature');
             // }
         }
         catch (signatureError) {
-            logger_1.logger.security('Assinatura inválida no webhook', { error: signatureError.message }, context);
+            const errorMessage = signatureError instanceof Error ? signatureError.message : 'Erro desconhecido';
+            logger_1.logger.security('Assinatura inválida no webhook', { error: errorMessage }, context);
             res.status(401).json({ error: 'Invalid signature' });
             return;
         }
@@ -146,12 +178,43 @@ exports.flowpayWebhook = functions.https.onRequest(async (req, res) => {
             return;
         }
         // Processar webhook do FlowPay
-        // TODO: Implementar lógica de atualização do pedido no Firestore
-        logger_1.logger.business('Webhook processado com sucesso', { orderId, status }, context);
+        const { tipo, categoria, lote } = body.metadata || {};
+        if (tipo === 'inscricao_time') {
+            // Atualizar inscrição de time
+            const inscricaoRef = admin.firestore().collection('inscricoes_times').doc(orderId);
+            await inscricaoRef.update({
+                status: 'confirmed',
+                paidAt: new Date(),
+                updatedAt: new Date(),
+                flowpayStatus: status
+            });
+            logger_1.logger.business('Inscrição de time confirmada', {
+                orderId,
+                status,
+                categoria,
+                lote
+            }, context);
+        }
+        else if (tipo === 'audiovisual') {
+            // Atualizar inscrição de audiovisual
+            const audiovisualRef = admin.firestore().collection('audiovisual').doc(orderId);
+            await audiovisualRef.update({
+                status: 'confirmed',
+                paidAt: new Date(),
+                updatedAt: new Date(),
+                flowpayStatus: status
+            });
+            logger_1.logger.business('Inscrição audiovisual confirmada', {
+                orderId,
+                status,
+                area: (_a = body.metadata) === null || _a === void 0 ? void 0 : _a.area
+            }, context);
+        }
         res.status(200).json({ success: true, orderId, status });
     }
     catch (error) {
-        logger_1.logger.error('Erro ao processar webhook', { error: error.message }, context);
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        logger_1.logger.error('Erro ao processar webhook', { error: errorMessage }, context);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -170,6 +233,20 @@ exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
             isActive: true,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            // 🎯 GAMIFICAÇÃO CAMADA 1
+            gamification: {
+                points: 10, // Pontos iniciais por cadastro
+                level: 'iniciante',
+                totalActions: 1,
+                lastActionAt: admin.firestore.FieldValue.serverTimestamp(),
+                achievements: ['first_blood'], // Primeira conquista
+                rewards: [],
+                streakDays: 1,
+                lastLoginStreak: admin.firestore.FieldValue.serverTimestamp(),
+                referralCode: `REF${uid.substring(0, 8).toUpperCase()}`,
+                referrals: [],
+                referralPoints: 0
+            }
         };
         await admin.firestore().collection('users').doc(uid).set(userData);
         logger_1.logger.business('Novo usuário criado', { email, displayName }, Object.assign(Object.assign({}, context), { userId: uid }));
@@ -184,7 +261,8 @@ exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
         }
     }
     catch (error) {
-        logger_1.logger.error('Erro ao criar usuário', { error: error.message, userId: user.uid }, context);
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        logger_1.logger.error('Erro ao criar usuário', { error: errorMessage, userId: user.uid }, context);
     }
 });
 //# sourceMappingURL=index.js.map

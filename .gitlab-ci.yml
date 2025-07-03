@@ -1,64 +1,73 @@
-Primary navigation
-Homepage
- 1
-Project
-I
-Interbox App
-
-Pinned
-Issues
-0
-Merge requests
-0
-Repository
-
-Manage
-
-Plan
-
-Code
-
-Build
-
-Secure
-
-Deploy
-
-Operate
-
-Monitor
-
-Analyze
-
-Settings
-mello-group
-Interbox App
-Project 'Interbox App' was successfully created.
-interbox-app
-.gitlab-ci.yml
-.gitlab-ci.yml
-mello's avatar
-Configure SAST and Secret Detection in `.gitlab-ci.yml`, creating this file if...
-mello authored 1 minute ago
-59ed6a60
-.gitlab-ci.yml
-996 B
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- test
-- secret-detection
-sast:
-  stage: test
-include:
-- template: Security/SAST.gitlab-ci.yml
-- template: Security/Secret-Detection.gitlab-ci.yml
+  - test
+  - build
+  - deploy
+
 variables:
-  SECRET_DETECTION_ENABLED: 'true'
-secret_detection:
-  stage: secret-detection
+  NODE_VERSION: "18"
+
+cache:
+  paths:
+    - node_modules/
+
+# Test stage
+test:
+  stage: test
+  image: node:18-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run lint
+    - npm run type-check
+  only:
+    - merge_requests
+    - main
+
+# Build stage
+build:
+  stage: build
+  image: node:18-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run build:app-hosting
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 hour
+  only:
+    - main
+
+# Deploy to Firebase (Main branch)
+deploy:live:
+  stage: deploy
+  image: node:18-alpine
+  before_script:
+    - npm install -g firebase-tools
+    - echo $FIREBASE_SERVICE_ACCOUNT > /tmp/firebase-service-account.json
+    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
+  script:
+    - firebase deploy --only apphosting --project interbox-app-8d400
+  environment:
+    name: production
+    url: https://interbox-app-8d400.web.app
+  only:
+    - main
+  when: manual
+
+# Deploy to Firebase (Preview for MR)
+deploy:preview:
+  stage: deploy
+  image: node:18-alpine
+  before_script:
+    - npm install -g firebase-tools
+    - echo $FIREBASE_SERVICE_ACCOUNT > /tmp/firebase-service-account.json
+    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
+  script:
+    - firebase hosting:channel:deploy pr-$CI_MERGE_REQUEST_IID --project interbox-app-8d400 --config firebase-ci.json
+  environment:
+    name: preview
+    url: https://pr-$CI_MERGE_REQUEST_IID--interbox-app-8d400.web.app
+  only:
+    - merge_requests
+  when: manual 

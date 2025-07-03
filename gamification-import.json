@@ -1,0 +1,227 @@
+{
+  "gamification_rewards": {
+    "spoiler_workout": {
+      "title": "Spoiler do Workout",
+      "description": "Acesso antecipado ao primeiro workout do evento",
+      "type": "spoiler",
+      "requiredPoints": 50,
+      "requiredLevel": "iniciante",
+      "maxRedemptions": null,
+      "currentRedemptions": 0,
+      "isActive": true,
+      "metadata": {
+        "content": "Workout \"Cerrado Spirit\" - Prepare-se para o desafio que definirá os verdadeiros guerreiros.",
+        "instructions": "O spoiler será enviado por email 24h antes do evento."
+      },
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      },
+      "updatedAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "enquete_categoria": {
+      "title": "Voto na Categoria",
+      "description": "Participe da enquete para definir uma categoria especial",
+      "type": "enquete",
+      "requiredPoints": 100,
+      "requiredLevel": "bronze",
+      "maxRedemptions": null,
+      "currentRedemptions": 0,
+      "isActive": true,
+      "metadata": {
+        "content": "Ajude a definir a próxima categoria do Interbox 2026!",
+        "externalLink": "/enquete-categoria"
+      },
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      },
+      "updatedAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "destaque_perfil": {
+      "title": "Destaque no Perfil",
+      "description": "Seu nome aparecerá em destaque na comunidade por 24h",
+      "type": "destaque",
+      "requiredPoints": 200,
+      "requiredLevel": "bronze",
+      "maxRedemptions": null,
+      "currentRedemptions": 0,
+      "isActive": true,
+      "metadata": {
+        "content": "Seu perfil será destacado na seção \"Comunidade Ativa\"",
+        "instructions": "O destaque será ativado automaticamente após o resgate."
+      },
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      },
+      "updatedAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "acesso_vip_preview": {
+      "title": "Acesso VIP Preview",
+      "description": "Acesso exclusivo ao preview do evento",
+      "type": "acesso_vip",
+      "requiredPoints": 500,
+      "requiredLevel": "prata",
+      "maxRedemptions": null,
+      "currentRedemptions": 0,
+      "isActive": true,
+      "metadata": {
+        "content": "Acesso exclusivo ao preview do evento com 48h de antecedência",
+        "instructions": "Link exclusivo será enviado por email."
+      },
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      },
+      "updatedAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    }
+  },
+  "gamification_achievements": {
+    "first_blood": {
+      "title": "Primeiro Sangue",
+      "description": "Primeira ação realizada",
+      "icon": "🩸",
+      "requiredActions": [
+        {
+          "action": "cadastro",
+          "count": 1
+        }
+      ],
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "social_butterfly": {
+      "title": "Borboleta Social",
+      "description": "Indicou 5 pessoas para a comunidade",
+      "icon": "🦋",
+      "requiredActions": [
+        {
+          "action": "indicacao_confirmada",
+          "count": 5
+        }
+      ],
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "content_creator": {
+      "title": "Criador de Conteúdo",
+      "description": "Enviou 3 conteúdos",
+      "icon": "📸",
+      "requiredActions": [
+        {
+          "action": "envio_conteudo",
+          "count": 3
+        }
+      ],
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "early_bird": {
+      "title": "Madrugador",
+      "description": "Comprou ingresso no primeiro lote",
+      "icon": "🐦",
+      "requiredActions": [
+        {
+          "action": "compra_ingresso",
+          "count": 1
+        }
+      ],
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "streak_master": {
+      "title": "Mestre da Sequência",
+      "description": "7 dias consecutivos de login",
+      "icon": "🔥",
+      "requiredPoints": 50,
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "bronze_warrior": {
+      "title": "Guerreiro Bronze",
+      "description": "Atingiu nível Bronze",
+      "icon": "🥉",
+      "requiredLevel": "bronze",
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "silver_champion": {
+      "title": "Campeão Prata",
+      "description": "Atingiu nível Prata",
+      "icon": "🥈",
+      "requiredLevel": "prata",
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    },
+    "gold_legend": {
+      "title": "Lenda Dourada",
+      "description": "Atingiu nível Ouro",
+      "icon": "🥇",
+      "requiredLevel": "ouro",
+      "isSecret": false,
+      "isActive": true,
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    }
+  },
+  "gamification_community_highlights": {
+    "welcome_highlight": {
+      "title": "Bem-vindo ao CERRADØ!",
+      "subtitle": "Nova comunidade se forma",
+      "type": "community_event",
+      "users": [],
+      "isActive": true,
+      "expiresAt": {
+        "__type__": "timestamp",
+        "value": "2025-02-02T00:00:00.000Z"
+      },
+      "createdAt": {
+        "__type__": "timestamp",
+        "value": "2025-01-02T00:00:00.000Z"
+      }
+    }
+  }
+} 

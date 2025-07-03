@@ -30,6 +30,33 @@ export type CategoriaPatrocinador = 'Ouro' | 'Prata' | 'Bronze' | 'Apoio' | 'Tec
 // Status de patrocinador
 export type StatusPatrocinador = 'ativo' | 'pendente' | 'inativo' | 'cancelado';
 
+// 🎯 GAMIFICAÇÃO CAMADA 1 - Tipos de ação que geram pontos
+export type GamificationAction = 
+  | 'cadastro'           // +10 XP
+  | 'indicacao_confirmada' // +50 XP
+  | 'compra_ingresso'    // +100 XP
+  | 'envio_conteudo'     // +75 XP
+  | 'qr_scan_evento'     // +25 XP (variável)
+  | 'prova_extra'        // +50 XP (variável)
+  | 'participacao_enquete' // +15 XP
+  | 'acesso_spoiler'     // +20 XP
+  | 'checkin_evento'     // +30 XP
+  | 'compartilhamento'   // +10 XP
+  | 'login_diario'       // +5 XP
+  | 'completar_perfil'   // +25 XP;
+
+// Níveis de gamificação
+export type GamificationLevel = 
+  | 'iniciante'    // 0-99 XP
+  | 'bronze'       // 100-299 XP
+  | 'prata'        // 300-599 XP
+  | 'ouro'         // 600-999 XP
+  | 'platina'      // 1000-1999 XP
+  | 'diamante'     // 2000+ XP;
+
+// Status de recompensa
+export type RewardStatus = 'disponivel' | 'resgatada' | 'expirada';
+
 // Coleção: users
 export interface FirestoreUser {
   uid: string;
@@ -45,6 +72,21 @@ export interface FirestoreUser {
     lastLogin?: Timestamp;
     loginCount?: number;
     preferences?: Record<string, any>;
+  };
+  // 🎯 GAMIFICAÇÃO CAMADA 1
+  gamification?: {
+    points: number;                    // Pontos totais (XP)
+    level: GamificationLevel;          // Nível atual
+    totalActions: number;              // Total de ações realizadas
+    lastActionAt?: Timestamp;          // Última ação realizada
+    achievements: string[];            // Conquistas desbloqueadas
+    rewards: string[];                 // Recompensas resgatadas
+    streakDays: number;                // Dias consecutivos de login
+    lastLoginStreak?: Timestamp;       // Último login para streak
+    referralCode?: string;             // Código de referência único
+    referredBy?: string;               // Quem indicou este usuário
+    referrals: string[];               // Usuários indicados
+    referralPoints: number;            // Pontos ganhos por indicações
   };
 }
 
@@ -274,4 +316,111 @@ export interface RespostaConviteData {
   resposta: 'aceito' | 'recusado';
   userId: string;
   userName: string;
+}
+
+// Coleção: gamification_actions (histórico de ações)
+export interface FirestoreGamificationAction {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  action: GamificationAction;
+  points: number;
+  description: string;
+  metadata?: Record<string, any>;
+  createdAt: Timestamp;
+  processed: boolean;
+  processedAt?: Timestamp;
+}
+
+// Coleção: gamification_leaderboard (ranking)
+export interface FirestoreGamificationLeaderboard {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  userPhotoURL?: string;
+  userRole: UserRole;
+  points: number;
+  level: GamificationLevel;
+  totalActions: number;
+  streakDays: number;
+  lastActionAt: Timestamp;
+  position: number;                    // Posição no ranking
+  previousPosition?: number;           // Posição anterior
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Coleção: gamification_rewards (recompensas disponíveis)
+export interface FirestoreGamificationReward {
+  id: string;
+  title: string;
+  description: string;
+  type: 'spoiler' | 'enquete' | 'destaque' | 'acesso_vip' | 'conteudo_exclusivo';
+  requiredPoints: number;
+  requiredLevel: GamificationLevel;
+  maxRedemptions?: number;             // Máximo de resgates (null = ilimitado)
+  currentRedemptions: number;          // Resgates atuais
+  isActive: boolean;
+  expiresAt?: Timestamp;
+  metadata?: {
+    content?: string;                  // Conteúdo da recompensa
+    imageURL?: string;                 // Imagem da recompensa
+    externalLink?: string;             // Link externo
+    instructions?: string;             // Instruções para resgate
+  };
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Coleção: gamification_user_rewards (recompensas resgatadas pelos usuários)
+export interface FirestoreGamificationUserReward {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  rewardId: string;
+  rewardTitle: string;
+  rewardType: string;
+  status: RewardStatus;
+  redeemedAt: Timestamp;
+  expiresAt?: Timestamp;
+  usedAt?: Timestamp;
+  metadata?: Record<string, any>;
+}
+
+// Coleção: gamification_achievements (conquistas)
+export interface FirestoreGamificationAchievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;                        // Emoji ou ícone
+  requiredPoints?: number;
+  requiredActions?: {
+    action: GamificationAction;
+    count: number;
+  }[];
+  requiredLevel?: GamificationLevel;
+  isSecret: boolean;                   // Conquista secreta
+  isActive: boolean;
+  createdAt: Timestamp;
+}
+
+// Coleção: gamification_community_highlights (destaques da comunidade)
+export interface FirestoreGamificationCommunityHighlight {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: 'top_scorers' | 'new_achievements' | 'milestone_reached' | 'community_event';
+  users: Array<{
+    userId: string;
+    userName: string;
+    userPhotoURL?: string;
+    points: number;
+    achievement?: string;
+  }>;
+  isActive: boolean;
+  expiresAt: Timestamp;
+  createdAt: Timestamp;
 } 
