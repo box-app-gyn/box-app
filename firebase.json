@@ -7,11 +7,6 @@
     "rules": "storage.rules"
   },
   "apphosting": {
-    "backends": [
-      {
-        "backendId": "default",
-        "source": "."
-      }
-    ]
+    "source": "."
   }
 } 
