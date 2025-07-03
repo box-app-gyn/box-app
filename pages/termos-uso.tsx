@@ -2,11 +2,23 @@ import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
+import SEOHead from '@/components/SEOHead';
 
 export default function TermosUso() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a1a] to-[#0038d0]">
-      <Header />
+    <>
+      <SEOHead 
+        title="Termos de Uso - CERRADØ INTERBOX 2025"
+        description="Termos de uso do CERRADØ INTERBOX 2025. Conheça as condições para utilização da plataforma e participação no evento."
+        image="/images/og-interbox.png"
+        type="website"
+        keywords="termos de uso, condições, CERRADØ INTERBOX, regulamento"
+        tags={["termos", "condições", "regulamento"]}
+        canonical="https://cerradointerbox.com.br/termos-uso"
+        noIndex={true}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a1a] to-[#0038d0]">
+        <Header />
       
       <main className="pt-24 pb-16 px-4">
         <div className="max-w-4xl mx-auto">
@@ -142,5 +154,6 @@ export default function TermosUso() {
 
       <Footer />
     </div>
+    </>
   );
 } 

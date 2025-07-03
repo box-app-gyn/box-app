@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#1A1A1A"/>
+  <path d="M200 150m-50 0a50 50 0 1 0 100 0a50 50 0 1 0 -100 0" fill="#333333"/>
+  <path d="M175 150L225 150M200 125L200 175" stroke="#666666" stroke-width="4"/>
+  <text x="200" y="220" text-anchor="middle" fill="#666666" font-family="system-ui, -apple-system, sans-serif" font-size="14">
+    Imagem indisponível offline
+  </text>
+</svg> 

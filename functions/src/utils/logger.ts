@@ -1,5 +1,7 @@
 // Sistema de logging para Cloud Functions
 
+import * as functions from 'firebase-functions';
+
 interface LogLevel {
   DEBUG: 0;
   INFO: 1;
@@ -145,4 +147,22 @@ export function createRequestContext(req?: any): { userId?: string; requestId?: 
     requestId: req?.headers?.['x-request-id'] || Math.random().toString(36).substr(2, 9),
     ip: req?.ip || req?.connection?.remoteAddress,
   };
-} 
+}
+
+export const firebaseLogger = {
+  info: (message: string, data?: any) => {
+    functions.logger.info(message, data);
+  },
+  
+  warn: (message: string, data?: any) => {
+    functions.logger.warn(message, data);
+  },
+  
+  error: (message: string, data?: any) => {
+    functions.logger.error(message, data);
+  },
+  
+  debug: (message: string, data?: any) => {
+    functions.logger.debug(message, data);
+  }
+}; 

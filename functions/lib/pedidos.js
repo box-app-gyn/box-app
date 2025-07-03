@@ -36,158 +36,243 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.criarPedidoPIX = void 0;
+exports.criarInscricaoTime = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
 const db = admin.firestore();
-// Constantes de validação
-const VALIDATION_LIMITS = {
-    MAX_QUANTIDADE: 10,
-    MAX_VALOR_UNITARIO: 1000,
-    MAX_VALOR_TOTAL: 5000,
-    MIN_VALOR_UNITARIO: 1,
-    MAX_USERNAME_LENGTH: 100,
-    MAX_EMAIL_LENGTH: 254
+// Constantes de valores e lotes
+const VALORES_INSCRICAO = {
+    lote1: {
+        rx: 494.95,
+        master145: 394.95,
+        amador: 394.95,
+        scale: 394.95,
+        iniciante: 394.95
+    },
+    lote2: {
+        rx: 544.95,
+        master145: 444.95,
+        amador: 444.95,
+        scale: 444.95,
+        iniciante: 444.95
+    },
+    lote3: {
+        rx: 594.95,
+        master145: 494.95,
+        amador: 494.95,
+        scale: 494.95,
+        iniciante: 494.95
+    }
 };
-// Função para validar email
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email) && email.length <= VALIDATION_LIMITS.MAX_EMAIL_LENGTH;
+const VAGAS_CATEGORIAS = {
+    rx: 20,
+    master145: 20,
+    amador: 40,
+    scale: 80,
+    iniciante: 40
+};
+const LIMITES_LOTES = {
+    lote1: 120,
+    lote2: 180,
+    lote3: 220
+};
+// Função para determinar o lote atual
+function getLoteAtual() {
+    const hoje = new Date();
+    const inicioLote1 = new Date('2025-07-13');
+    const fimLote1 = new Date('2025-07-24');
+    const inicioLote2 = new Date('2025-07-25');
+    const fimLote2 = new Date('2025-08-16');
+    const inicioLote3 = new Date('2025-08-08');
+    const fimLote3 = new Date('2025-09-08');
+    if (hoje >= inicioLote1 && hoje <= fimLote1)
+        return 1;
+    if (hoje >= inicioLote2 && hoje <= fimLote2)
+        return 2;
+    if (hoje >= inicioLote3 && hoje <= fimLote3)
+        return 3;
+    // Se não está em nenhum período, retorna lote 1 (pré-inscrição)
+    return 1;
 }
-// Função para sanitizar string
-function sanitizeString(str, maxLength) {
-    if (typeof str !== 'string')
-        return '';
-    return str.trim().slice(0, maxLength).replace(/[<>]/g, '');
+// Função para verificar vagas disponíveis
+async function verificarVagasDisponiveis(categoria) {
+    try {
+        const inscricoesConfirmadas = await db.collection('inscricoes_times')
+            .where('categoria', '==', categoria)
+            .where('status', '==', 'confirmed')
+            .get();
+        const vagasOcupadas = inscricoesConfirmadas.size;
+        const vagasTotal = VAGAS_CATEGORIAS[categoria];
+        const vagasRestantes = vagasTotal - vagasOcupadas;
+        return {
+            disponivel: vagasRestantes > 0,
+            vagasRestantes
+        };
+    }
+    catch (error) {
+        console.error('Erro ao verificar vagas:', error);
+        return { disponivel: false, vagasRestantes: 0 };
+    }
 }
-// Função para validar dados do pedido
-function validatePedidoData(data) {
+// Função para verificar limite do lote
+async function verificarLimiteLote(lote) {
+    try {
+        const inscricoesConfirmadas = await db.collection('inscricoes_times')
+            .where('lote', '==', lote)
+            .where('status', '==', 'confirmed')
+            .get();
+        const limite = LIMITES_LOTES[`lote${lote}`];
+        const inscricoesRestantes = limite - inscricoesConfirmadas.size;
+        return {
+            disponivel: inscricoesRestantes > 0,
+            inscricoesRestantes
+        };
+    }
+    catch (error) {
+        console.error('Erro ao verificar limite do lote:', error);
+        return { disponivel: false, inscricoesRestantes: 0 };
+    }
+}
+// Função para validar dados da inscrição
+function validateInscricaoData(data) {
     const errors = [];
-    // Validar userId
-    if (!data.userId || typeof data.userId !== 'string' || data.userId.length < 3) {
-        errors.push('userId inválido');
+    // Validar timeId
+    if (!data.timeId || typeof data.timeId !== 'string' || data.timeId.length < 3) {
+        errors.push('timeId inválido');
     }
-    // Validar userEmail
-    if (!data.userEmail || !isValidEmail(data.userEmail)) {
-        errors.push('userEmail inválido');
+    // Validar timeName
+    if (!data.timeName || typeof data.timeName !== 'string' || data.timeName.length < 2) {
+        errors.push('timeName inválido');
     }
-    // Validar userName
-    if (!data.userName || typeof data.userName !== 'string') {
-        errors.push('userName inválido');
+    // Validar categoria
+    const validCategories = ['rx', 'master145', 'amador', 'scale', 'iniciante'];
+    if (!data.categoria || !validCategories.includes(data.categoria)) {
+        errors.push('categoria inválida');
+    }
+    // Validar atletas (deve ter exatamente 4)
+    if (!Array.isArray(data.atletas) || data.atletas.length !== 4) {
+        errors.push('deve ter exatamente 4 atletas');
     }
     else {
-        const sanitizedUserName = sanitizeString(data.userName, VALIDATION_LIMITS.MAX_USERNAME_LENGTH);
-        if (sanitizedUserName.length < 2) {
-            errors.push('userName muito curto');
+        // Validar cada atleta
+        data.atletas.forEach((atleta, index) => {
+            if (!atleta.nome || !atleta.email || !atleta.telefone || !atleta.genero) {
+                errors.push(`atleta ${index + 1} com dados incompletos`);
+            }
+            if (!['masculino', 'feminino'].includes(atleta.genero)) {
+                errors.push(`atleta ${index + 1} com gênero inválido`);
+            }
+        });
+        // Verificar se tem 2 homens e 2 mulheres
+        const homens = data.atletas.filter(a => a.genero === 'masculino').length;
+        const mulheres = data.atletas.filter(a => a.genero === 'feminino').length;
+        if (homens !== 2 || mulheres !== 2) {
+            errors.push('deve ter exatamente 2 homens e 2 mulheres');
         }
     }
-    // Validar tipo
-    const validTypes = ['ingresso', 'kit', 'premium'];
-    if (!data.tipo || !validTypes.includes(data.tipo)) {
-        errors.push('tipo inválido');
-    }
-    // Validar quantidade
-    if (!Number.isInteger(data.quantidade) || data.quantidade <= 0 || data.quantidade > VALIDATION_LIMITS.MAX_QUANTIDADE) {
-        errors.push(`quantidade deve ser entre 1 e ${VALIDATION_LIMITS.MAX_QUANTIDADE}`);
-    }
-    // Validar valorUnitario
-    if (typeof data.valorUnitario !== 'number' ||
-        data.valorUnitario < VALIDATION_LIMITS.MIN_VALOR_UNITARIO ||
-        data.valorUnitario > VALIDATION_LIMITS.MAX_VALOR_UNITARIO) {
-        errors.push(`valorUnitario deve ser entre R$ ${VALIDATION_LIMITS.MIN_VALOR_UNITARIO} e R$ ${VALIDATION_LIMITS.MAX_VALOR_UNITARIO}`);
-    }
-    // Validar valor total
-    const valorTotal = data.quantidade * data.valorUnitario;
-    if (valorTotal > VALIDATION_LIMITS.MAX_VALOR_TOTAL) {
-        errors.push(`valor total não pode exceder R$ ${VALIDATION_LIMITS.MAX_VALOR_TOTAL}`);
+    // Validar box
+    if (!data.box || typeof data.box !== 'string' || data.box.length < 2) {
+        errors.push('box inválida');
     }
     return { isValid: errors.length === 0, errors };
 }
-// Função para verificar se usuário já tem pedido pendente
-async function checkPendingOrder(userId) {
+// Função para verificar se time já tem inscrição pendente
+async function checkPendingInscricao(timeId) {
     try {
-        const pendingOrders = await db.collection('pedidos')
-            .where('userId', '==', userId)
-            .where('status', '==', 'pending')
+        const pendingInscricoes = await db.collection('inscricoes_times')
+            .where('timeId', '==', timeId)
+            .where('status', 'in', ['pending', 'paid'])
             .limit(1)
             .get();
-        return !pendingOrders.empty;
+        return !pendingInscricoes.empty;
     }
     catch (error) {
-        console.error('Erro ao verificar pedidos pendentes:', error);
+        console.error('Erro ao verificar inscrições pendentes:', error);
         return false;
     }
 }
-exports.criarPedidoPIX = functions.https.onCall(async (data, context) => {
+exports.criarInscricaoTime = functions.https.onCall(async (data, context) => {
     var _a;
     try {
         // Verificar autenticação
         if (!context.auth) {
             throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
         }
-        // Verificar se o usuário está criando pedido para si mesmo
-        if (data.userId !== context.auth.uid) {
-            throw new functions.https.HttpsError('permission-denied', 'Não autorizado a criar pedido para outro usuário');
+        // Verificar se o usuário é o capitão
+        if (data.captainId !== context.auth.uid) {
+            throw new functions.https.HttpsError('permission-denied', 'Apenas o capitão pode criar inscrição');
         }
-        // Sanitizar dados
-        const sanitizedData = {
-            userId: data.userId,
-            userEmail: data.userEmail.toLowerCase().trim(),
-            userName: sanitizeString(data.userName, VALIDATION_LIMITS.MAX_USERNAME_LENGTH),
-            tipo: data.tipo,
-            quantidade: Math.floor(data.quantidade),
-            valorUnitario: Math.round(data.valorUnitario * 100) / 100 // Arredondar para 2 casas decimais
-        };
         // Validar dados
-        const validation = validatePedidoData(sanitizedData);
+        const validation = validateInscricaoData(data);
         if (!validation.isValid) {
             throw new functions.https.HttpsError('invalid-argument', `Dados inválidos: ${validation.errors.join(', ')}`);
         }
-        // Verificar se usuário já tem pedido pendente
-        const hasPendingOrder = await checkPendingOrder(sanitizedData.userId);
-        if (hasPendingOrder) {
-            throw new functions.https.HttpsError('already-exists', 'Usuário já possui pedido pendente');
+        // Verificar se time já tem inscrição pendente
+        const hasPendingInscricao = await checkPendingInscricao(data.timeId);
+        if (hasPendingInscricao) {
+            throw new functions.https.HttpsError('already-exists', 'Time já possui inscrição pendente');
         }
-        const valorTotal = sanitizedData.quantidade * sanitizedData.valorUnitario;
-        // Criar pedido no Firestore com transação
+        // Determinar lote atual
+        const loteAtual = getLoteAtual();
+        // Verificar vagas disponíveis na categoria
+        const vagasDisponiveis = await verificarVagasDisponiveis(data.categoria);
+        if (!vagasDisponiveis.disponivel) {
+            throw new functions.https.HttpsError('resource-exhausted', `Vagas esgotadas para categoria ${data.categoria}`);
+        }
+        // Verificar limite do lote
+        const limiteLote = await verificarLimiteLote(loteAtual);
+        if (!limiteLote.disponivel) {
+            throw new functions.https.HttpsError('resource-exhausted', `Lote ${loteAtual} esgotado`);
+        }
+        // Calcular valor
+        const valor = VALORES_INSCRICAO[`lote${loteAtual}`][data.categoria];
+        // Criar inscrição no Firestore com transação
         const result = await db.runTransaction(async (transaction) => {
             var _a;
-            const pedidoRef = db.collection('pedidos').doc();
-            const pedidoData = {
-                userId: sanitizedData.userId,
-                userEmail: sanitizedData.userEmail,
-                userName: sanitizedData.userName,
-                tipo: sanitizedData.tipo,
-                quantidade: sanitizedData.quantidade,
-                valorUnitario: sanitizedData.valorUnitario,
-                valorTotal,
+            const inscricaoRef = db.collection('inscricoes_times').doc();
+            const inscricaoData = {
+                timeId: data.timeId,
+                timeName: data.timeName,
+                categoria: data.categoria,
+                lote: loteAtual,
+                valor,
                 status: 'pending',
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                atletas: data.atletas,
+                box: data.box,
+                captainId: data.captainId,
+                captainEmail: data.captainEmail,
+                createdAt: new Date(),
+                updatedAt: new Date(),
                 createdBy: context.auth.uid,
                 ipAddress: ((_a = context.rawRequest) === null || _a === void 0 ? void 0 : _a.ip) || 'unknown'
             };
-            transaction.set(pedidoRef, pedidoData);
-            return { pedidoRef, pedidoData };
+            transaction.set(inscricaoRef, inscricaoData);
+            return { inscricaoRef, inscricaoData };
         });
         // Integração com FlowPay
         const flowpayData = {
-            externalId: result.pedidoRef.id,
-            amount: Math.round(valorTotal * 100), // FlowPay usa centavos
+            externalId: result.inscricaoRef.id,
+            amount: Math.round(valor * 100), // FlowPay usa centavos
             customer: {
-                name: sanitizedData.userName,
-                email: sanitizedData.userEmail,
+                name: data.timeName,
+                email: data.captainEmail,
             },
             items: [
                 {
-                    name: `${sanitizedData.tipo.toUpperCase()} - Interbox 2025`,
-                    quantity: sanitizedData.quantidade,
-                    unitAmount: Math.round(sanitizedData.valorUnitario * 100),
+                    name: `Inscrição ${data.categoria.toUpperCase()} - CERRADØ INTERBOX 2025`,
+                    quantity: 1,
+                    unitAmount: Math.round(valor * 100),
                 }
             ],
             paymentMethod: 'PIX',
             expiresIn: 3600, // 1 hora
+            metadata: {
+                tipo: 'inscricao_time',
+                categoria: data.categoria,
+                lote: loteAtual,
+                timeId: data.timeId
+            }
         };
         // Chamar API do FlowPay com timeout
         const flowpayResponse = await axios_1.default.post('https://api.flowpay.com.br/v1/orders', flowpayData, {
@@ -198,41 +283,44 @@ exports.criarPedidoPIX = functions.https.onCall(async (data, context) => {
             timeout: 10000 // 10 segundos timeout
         });
         const { id: flowpayOrderId, pixQrCode, pixQrCodeText } = flowpayResponse.data;
-        // Atualizar pedido com dados do FlowPay
-        await result.pedidoRef.update({
+        // Atualizar inscrição com dados do FlowPay
+        await result.inscricaoRef.update({
             flowpayOrderId,
             pixCode: pixQrCodeText,
-            pixExpiration: admin.firestore.Timestamp.fromDate(new Date(Date.now() + 3600 * 1000)),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            pixExpiration: new Date(Date.now() + 3600 * 1000),
+            updatedAt: new Date(),
         });
         // Log administrativo
         await db.collection('adminLogs').add({
             adminId: context.auth.uid,
             adminEmail: context.auth.token.email || '',
-            acao: 'criacao_pedido',
-            targetId: result.pedidoRef.id,
-            targetType: 'pedido',
+            acao: 'criacao_inscricao_time',
+            targetId: result.inscricaoRef.id,
+            targetType: 'inscricao_time',
             detalhes: {
-                tipo: sanitizedData.tipo,
-                quantidade: sanitizedData.quantidade,
-                valorTotal,
-                flowpayOrderId,
+                timeName: data.timeName,
+                categoria: data.categoria,
+                lote: loteAtual,
+                valor,
+                vagasRestantes: vagasDisponiveis.vagasRestantes,
                 ipAddress: ((_a = context.rawRequest) === null || _a === void 0 ? void 0 : _a.ip) || 'unknown'
             },
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: new Date(),
         });
         return {
             success: true,
-            pedidoId: result.pedidoRef.id,
+            inscricaoId: result.inscricaoRef.id,
             flowpayOrderId,
             pixQrCode,
             pixQrCodeText,
-            valorTotal,
+            valor,
+            lote: loteAtual,
+            vagasRestantes: vagasDisponiveis.vagasRestantes,
             expiresIn: 3600,
         };
     }
     catch (error) {
-        console.error('Erro ao criar pedido PIX:', error);
+        console.error('Erro ao criar inscrição de time:', error);
         if (error instanceof functions.https.HttpsError) {
             throw error;
         }
@@ -241,8 +329,8 @@ exports.criarPedidoPIX = functions.https.onCall(async (data, context) => {
             console.error('Erro detalhado:', {
                 message: error.message,
                 stack: error.stack,
-                userId: data === null || data === void 0 ? void 0 : data.userId,
-                tipo: data === null || data === void 0 ? void 0 : data.tipo
+                timeId: data === null || data === void 0 ? void 0 : data.timeId,
+                categoria: data === null || data === void 0 ? void 0 : data.categoria
             });
         }
         throw new functions.https.HttpsError('internal', 'Erro interno do servidor');

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, getDocs, where, orderBy, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import Image from 'next/image';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface UserData {
   id: string;
@@ -76,67 +77,9 @@ export default function AdminDashboard() {
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const router = useRouter();
+  const { trackPage, trackAdmin } = useAnalytics();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        await loadUserData(user.uid);
-      } else {
-        router.push('/login');
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  const loadUserData = async (userId: string) => {
-    try {
-      const userQuery = query(collection(db, 'users'), where('uid', '==', userId));
-      const userSnapshot = await getDocs(userQuery);
-      
-      if (!userSnapshot.empty) {
-        const userDoc = userSnapshot.docs[0];
-        const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
-        setUserData(userData);
-        
-        // Verificar se é admin ou marketing
-        if (userData.role !== 'admin' && userData.role !== 'marketing') {
-          router.push('/dashboard');
-          return;
-        }
-        
-        // Carregar dados baseado no role
-        await loadAdminData();
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados do usuário:', error);
-    }
-  };
-
-  const loadAdminData = async () => {
-    try {
-      // Carregar estatísticas
-      await loadStats();
-      
-      // Carregar dados baseado na aba ativa
-      switch (activeTab) {
-        case 'users':
-          await loadUsers();
-          break;
-        case 'teams':
-          await loadTeams();
-          break;
-        case 'pedidos':
-          await loadPedidos();
-          break;
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados admin:', error);
-    }
-  };
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       // Total de usuários
       const usersSnapshot = await getDocs(collection(db, 'users'));
@@ -170,9 +113,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     }
-  };
+  }, []);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
       const usersSnapshot = await getDocs(usersQuery);
@@ -181,9 +124,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
     }
-  };
+  }, []);
 
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
       const teamsQuery = query(collection(db, 'teams'), orderBy('createdAt', 'desc'));
       const teamsSnapshot = await getDocs(teamsQuery);
@@ -192,9 +135,9 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar times:', error);
     }
-  };
+  }, []);
 
-  const loadPedidos = async () => {
+  const loadPedidos = useCallback(async () => {
     try {
       const pedidosQuery = query(collection(db, 'pedidos'), orderBy('createdAt', 'desc'));
       const pedidosSnapshot = await getDocs(pedidosQuery);
@@ -203,10 +146,78 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error);
     }
-  };
+  }, []);
+
+  const loadAdminData = useCallback(async () => {
+    try {
+      // Carregar estatísticas
+      await loadStats();
+      // Carregar dados baseado na aba ativa
+      switch (activeTab) {
+        case 'users':
+          await loadUsers();
+          break;
+        case 'teams':
+          await loadTeams();
+          break;
+        case 'pedidos':
+          await loadPedidos();
+          break;
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados admin:', error);
+    }
+  }, [activeTab, loadStats, loadUsers, loadTeams, loadPedidos]);
+
+  const loadUserData = useCallback(async (userId: string) => {
+    try {
+      const userQuery = query(collection(db, 'users'), where('uid', '==', userId));
+      const userSnapshot = await getDocs(userQuery);
+      
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0];
+        const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
+        setUserData(userData);
+        
+        // Verificar se é admin ou marketing
+        if (userData.role !== 'admin' && userData.role !== 'marketing') {
+          router.push('/dashboard');
+          return;
+        }
+        
+        // Carregar dados baseado no role
+        await loadAdminData();
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
+  }, [router, loadAdminData]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await loadUserData(user.uid);
+      } else {
+        router.push('/login');
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [router, loadUserData]);
+
+  // Tracking de acesso ao painel admin
+  useEffect(() => {
+    if (userData && !loading) {
+      trackPage('admin');
+      trackAdmin('access', userData.email);
+      // Carregar dados admin após o usuário ser carregado
+      loadAdminData();
+    }
+  }, [userData, loading, trackPage, trackAdmin, loadAdminData]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+    trackAdmin('tab_change', `${userData?.email}_${tab}`);
     if (tab !== 'overview') {
       loadAdminData();
     }
@@ -215,6 +226,7 @@ export default function AdminDashboard() {
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       await updateDoc(doc(db, 'users', userId), { role: newRole });
+      trackAdmin('update_user_role', `${userData?.email}_${newRole}`);
       await loadUsers();
       await loadStats();
     } catch (error) {
@@ -225,6 +237,7 @@ export default function AdminDashboard() {
   const updateTeamStatus = async (teamId: string, newStatus: string) => {
     try {
       await updateDoc(doc(db, 'teams', teamId), { status: newStatus });
+      trackAdmin('update_team_status', `${userData?.email}_${newStatus}`);
       await loadTeams();
       await loadStats();
     } catch (error) {
@@ -235,6 +248,7 @@ export default function AdminDashboard() {
   const updatePedidoStatus = async (pedidoId: string, newStatus: string) => {
     try {
       await updateDoc(doc(db, 'pedidos', pedidoId), { status: newStatus });
+      trackAdmin('update_pedido_status', `${userData?.email}_${newStatus}`);
       await loadPedidos();
       await loadStats();
     } catch (error) {
@@ -244,6 +258,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
+      trackAdmin('logout', userData?.email || 'unknown');
       await signOut(auth);
       router.push('/');
     } catch (error) {

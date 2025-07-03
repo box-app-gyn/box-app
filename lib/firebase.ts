@@ -27,8 +27,8 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 
-// Connect to auth emulator in development
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+// Connect to auth emulator in development (only if explicitly enabled)
+if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_AUTH_EMULATOR === 'true' && typeof window !== 'undefined') {
   try {
     connectAuthEmulator(auth, 'http://localhost:9099');
   } catch {

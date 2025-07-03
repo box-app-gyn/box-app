@@ -2,11 +2,23 @@ import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
+import SEOHead from '@/components/SEOHead';
 
 export default function PoliticaPrivacidade() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a1a] to-[#0038d0]">
-      <Header />
+    <>
+      <SEOHead 
+        title="Política de Privacidade - CERRADØ INTERBOX 2025"
+        description="Política de privacidade do CERRADØ INTERBOX 2025. Saiba como coletamos, usamos e protegemos seus dados pessoais."
+        image="/images/og-interbox.png"
+        type="website"
+        keywords="política de privacidade, LGPD, proteção de dados, CERRADØ INTERBOX"
+        tags={["privacidade", "LGPD", "proteção de dados"]}
+        canonical="https://cerradointerbox.com.br/politica-privacidade"
+        noIndex={true}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a1a] to-[#0038d0]">
+        <Header />
       
       <main className="pt-24 pb-16 px-4">
         <div className="max-w-4xl mx-auto">
@@ -156,5 +168,6 @@ export default function PoliticaPrivacidade() {
 
       <Footer />
     </div>
+    </>
   );
 } 

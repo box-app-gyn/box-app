@@ -1,35 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { 
   onAuthStateChanged,
   RecaptchaVerifier,
-  PhoneAuthProvider,
-  multiFactor,
-  PhoneMultiFactorGenerator,
-  updateProfile,
   User
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { auth, db } from '../lib/firebase';
 import Image from 'next/image';
+import { sanitizeInput } from '../utils/sanitize';
+import { handleAuthError } from '../utils/errorHandler';
+import { getValidatedUserType } from '../utils/storage';
+import { useRateLimit } from '../hooks/useRateLimit';
+import ConfettiExplosion from '../components/ConfettiExplosion';
 
 export default function SetupMFA() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [verificationId, setVerificationId] = useState('');
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const router = useRouter();
+  const { checkRateLimit, attempts, maxAttempts } = useRateLimit();
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setDisplayName(user.displayName || '');
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setDisplayName(currentUser.displayName || '');
       } else {
         router.push('/login');
       }
@@ -39,115 +39,80 @@ export default function SetupMFA() {
   }, [router]);
 
   useEffect(() => {
-    // Inicializar reCAPTCHA
+    // Inicializar reCAPTCHA apenas se necessário
     if (typeof window !== 'undefined' && !recaptchaVerifier) {
-      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': () => {
-          console.log('reCAPTCHA solved');
-        }
-      });
-      setRecaptchaVerifier(verifier);
+      try {
+        const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': () => {
+            console.log('reCAPTCHA solved');
+          }
+        });
+        setRecaptchaVerifier(verifier);
+      } catch (error) {
+        console.error('Erro ao inicializar reCAPTCHA:', error);
+        setError('Erro ao inicializar verificação. Tente novamente.');
+      }
     }
   }, [recaptchaVerifier]);
 
-  const handleSendCode = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      if (!recaptchaVerifier) throw new Error('reCAPTCHA não inicializado');
-      const phoneProvider = new PhoneAuthProvider(auth);
-      const verificationId = await phoneProvider.verifyPhoneNumber(
-        phoneNumber,
-        recaptchaVerifier
-      );
-      setVerificationId(verificationId);
-      setSuccess('Código enviado! Verifique seu SMS.');
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Erro desconhecido');
-    } finally {
-      setLoading(false);
+    
+    if (loading) return;
+    
+    if (!checkRateLimit()) {
+      setError('Muitas tentativas. Aguarde um momento.');
+      return;
     }
-  };
 
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const sanitizedPhone = sanitizeInput(phoneNumber);
+
+    if (!sanitizedPhone) {
+      setError('Preencha o campo de telefone');
+      return;
+    }
+
+    if (!/^\d{10,11}$/.test(sanitizedPhone.replace(/\D/g, ''))) {
+      setError('Telefone inválido');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      if (!user) throw new Error('Usuário não autenticado');
+      const userType = getValidatedUserType();
       
-      // Verificar código
-      const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
-      const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(credential);
-      
-      // Enrolar o usuário no MFA
-      const mfaUser = multiFactor(user);
-      await mfaUser.getSession();
-      await mfaUser.enroll(multiFactorAssertion, 'Telefone');
-
-      // Atualizar perfil do usuário
-      if (displayName) {
-        await updateProfile(user, { displayName });
-      }
-
-      // Criar documento do usuário no Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName || user.displayName,
-        role: 'atleta',
-        isActive: true,
-        phoneNumber: phoneNumber,
-        mfaEnabled: true,
+      await setDoc(doc(db, 'users', user!.uid), {
+        name: displayName,
+        phone: sanitizedPhone,
+        userType,
+        email: user!.email,
         createdAt: new Date(),
         updatedAt: new Date()
       });
-
-      setSuccess('Configuração concluída! Redirecionando...');
+      setShowConfetti(true);
       setTimeout(() => {
         router.push('/dashboard');
-      }, 2000);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Erro desconhecido');
+      }, 1800);
+    } catch (err) {
+      setError(handleAuthError(err));
     } finally {
       setLoading(false);
     }
-  };
+  }, [phoneNumber, displayName, user, router, checkRateLimit, loading]);
 
-  const handleSkipMFA = async () => {
-    try {
-      setLoading(true);
-      
-      if (!user) throw new Error('Usuário não autenticado');
-      
-      // Atualizar perfil do usuário
-      if (displayName) {
-        await updateProfile(user, { displayName });
-      }
+  const handleSkip = useCallback(() => {
+    router.push('/dashboard');
+  }, [router]);
 
-      // Criar documento do usuário no Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName || user.displayName,
-        role: 'atleta',
-        isActive: true,
-        mfaEnabled: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      router.push('/dashboard');
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Erro desconhecido');
-    } finally {
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
       setLoading(false);
-    }
-  };
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -162,6 +127,7 @@ export default function SetupMFA() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a1a] to-[#0038d0] flex items-center justify-center p-4">
+      <ConfettiExplosion trigger={showConfetti} />
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -181,6 +147,10 @@ export default function SetupMFA() {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Configurar Conta
           </h2>
+          
+          <p className="text-gray-400 text-center mb-6">
+            Configure seu perfil e ative a verificação em duas etapas (opcional)
+          </p>
 
           {error && (
             <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
@@ -188,13 +158,13 @@ export default function SetupMFA() {
             </div>
           )}
 
-          {success && (
-            <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-lg mb-6">
-              {success}
+          {attempts > 0 && (
+            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-4 text-yellow-200">
+              Tentativas: {attempts}/{maxAttempts}
             </div>
           )}
 
-          <form onSubmit={verificationId ? handleVerifyCode : handleSendCode} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="displayName" className="block text-sm font-medium text-white mb-2">
                 Nome Completo
@@ -207,90 +177,48 @@ export default function SetupMFA() {
                 className="w-full px-4 py-3 bg-black/40 border border-pink-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
                 placeholder="Seu nome completo"
                 required
+                disabled={loading}
+                maxLength={100}
               />
             </div>
 
-            {!verificationId ? (
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-white mb-2">
-                  Número de Telefone (Opcional)
-                </label>
-                <p className="text-gray-400 text-sm mb-3">
-                  Adicione seu telefone para ativar a verificação em duas etapas
-                </p>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-4 py-3 bg-black/40 border border-pink-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                  placeholder="+55 11 99999-9999"
-                />
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="code" className="block text-sm font-medium text-white mb-2">
-                  Código de Verificação
-                </label>
-                <input
-                  type="text"
-                  id="code"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  className="w-full px-4 py-3 bg-black/40 border border-pink-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
-                  placeholder="123456"
-                  required
-                />
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              {!verificationId && phoneNumber && (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200 shadow-[0_0_20px_#E50914] hover:shadow-[0_0_40px_#E50914] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Enviando...
-                    </div>
-                  ) : (
-                    'Enviar Código'
-                  )}
-                </button>
-              )}
-
-              {verificationId && (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200 shadow-[0_0_20px_#E50914] hover:shadow-[0_0_40px_#E50914] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Verificando...
-                    </div>
-                  ) : (
-                    'Verificar Código'
-                  )}
-                </button>
-              )}
-
-              {!verificationId && (
-                <button
-                  type="button"
-                  onClick={handleSkipMFA}
-                  disabled={loading}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Pular MFA
-                </button>
-              )}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-white mb-2">
+                Número de Telefone (Opcional)
+              </label>
+              <p className="text-gray-400 text-sm mb-3">
+                Adicione seu telefone para ativar a verificação em duas etapas
+              </p>
+              <input
+                type="tel"
+                id="phone"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full px-4 py-3 bg-black/40 border border-pink-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+                placeholder="(11) 99999-9999"
+                disabled={loading}
+                maxLength={15}
+              />
             </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            >
+              {loading ? 'Salvando...' : 'Salvar Perfil'}
+            </button>
           </form>
+
+          <div className="mt-4">
+            <button
+              onClick={handleSkip}
+              disabled={loading}
+              className="w-full bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            >
+              Pular por enquanto
+            </button>
+          </div>
 
           <div className="mt-8 text-center">
             <button

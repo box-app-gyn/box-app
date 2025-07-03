@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CERRADØ - Offline</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        .button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/logos/logo_circulo.png" alt="CERRADØ" class="logo pulse">
+        <h1>Você está offline</h1>
+        <p>
+            Parece que você perdeu a conexão com a internet.
+            Não se preocupe, você ainda pode acessar algumas funcionalidades do CERRADØ INTERBOX.
+        </p>
+        <a href="/" class="button" onclick="checkOnline(event)">Tentar novamente</a>
+        <p class="status">
+            Verificando conexão...
+            <span id="connectionStatus">offline</span>
+        </p>
+    </div>
+
+    <script>
+        function checkOnline(e) {
+            if (!navigator.onLine) {
+                e.preventDefault();
+                alert('Você ainda está offline. Por favor, verifique sua conexão.');
+            }
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('connectionStatus');
+            status.textContent = navigator.onLine ? 'online' : 'offline';
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
+    </script>
+</body>
+</html> 

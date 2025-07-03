@@ -13,16 +13,23 @@
     "rules": "storage.rules"
   },
   "hosting": {
-    "public": "out",
+    "source": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/out/**",
+      "**/.next/**"
     ],
-    "rewrites": [
+    "frameworksBackend": {
+      "region": "us-central1"
+    }
+  },
+  "apphosting": {
+    "backends": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "backendId": "default",
+        "source": "."
       }
     ]
   }
