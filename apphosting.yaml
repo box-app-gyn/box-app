@@ -1,0 +1,66 @@
+# Firebase App Hosting Configuration
+# Configuração de variáveis de ambiente para o backend
+
+env_variables:
+  # Firebase Config
+  NEXT_PUBLIC_FIREBASE_API_KEY: "${NEXT_PUBLIC_FIREBASE_API_KEY}"
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}"
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: "${NEXT_PUBLIC_FIREBASE_PROJECT_ID}"
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}"
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}"
+  NEXT_PUBLIC_FIREBASE_APP_ID: "${NEXT_PUBLIC_FIREBASE_APP_ID}"
+  
+  # Vertex AI Config
+  VERTEX_AI_PROJECT_ID: "${VERTEX_AI_PROJECT_ID}"
+  VERTEX_AI_LOCATION: "${VERTEX_AI_LOCATION}"
+  
+  # Google Analytics
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: "${NEXT_PUBLIC_GA_MEASUREMENT_ID}"
+  
+  # App Config
+  NODE_ENV: "production"
+  
+  # Secrets (serão configurados via Firebase Console)
+  FIREBASE_SERVICE_ACCOUNT_KEY: "${FIREBASE_SERVICE_ACCOUNT_KEY}"
+  VERTEX_AI_SA_KEY: "${VERTEX_AI_SA_KEY}"
+
+# Configurações do App Hosting
+runtime: nodejs18
+instance_class: F1
+
+# Configurações de rede
+network:
+  session_affinity: true
+
+# Configurações de recursos
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+# Configurações de escalonamento
+automatic_scaling:
+  target_cpu_utilization: 0.6
+  min_instances: 0
+  max_instances: 10
+  min_idle_instances: 0
+  max_idle_instances: 1
+  min_pending_latency: 30ms
+  max_pending_latency: 10s
+  max_concurrent_requests: 50
+
+# Configurações de health check
+liveness_check:
+  path: "/api/health"
+  check_interval: 30s
+  timeout: 4s
+  failure_threshold: 2
+  success_threshold: 2
+
+readiness_check:
+  path: "/api/health"
+  check_interval: 5s
+  timeout: 4s
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout: 300s 
