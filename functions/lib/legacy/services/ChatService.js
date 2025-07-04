@@ -1,181 +1,76 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
-const logger_1 = require("../utils/logger");
 const uuid_1 = require("uuid");
 class ChatService {
-    constructor(chatRepository, vertexAIService) {
+    constructor(chatRepository) {
         this.chatRepository = chatRepository;
-        this.vertexAIService = vertexAIService;
     }
-    async processMessage({ message, context, userId, sessionId }) {
+    async sendMessage(sessionId, message, userId) {
         try {
-            // Buscar ou criar sessão
-            let session = await this.getOrCreateSession(sessionId, userId, context);
             // Salvar mensagem do usuário
             await this.chatRepository.saveMessage({
                 id: (0, uuid_1.v4)(),
-                sessionId: session.id,
-                userId,
+                sessionId,
+                userId: userId || 'anonymous',
                 content: message,
                 role: 'user',
                 timestamp: new Date()
             });
-            // Preparar contexto para IA
-            const conversationContext = await this.buildContext(session, message);
-            // Processar com Vertex AI
-            const aiResponse = await this.vertexAIService.generateResponse({
-                message,
-                context: conversationContext,
-                temperature: 0.7,
-                maxTokens: 1000
-            });
-            // Salvar resposta da IA
-            const aiMessage = await this.chatRepository.saveMessage({
+            // Gerar resposta fake (sem Vertex AI)
+            const fakeResponse = this.generateFakeResponse(message);
+            // Salvar resposta do assistente
+            await this.chatRepository.saveMessage({
                 id: (0, uuid_1.v4)(),
-                sessionId: session.id,
-                userId: 'ai',
-                content: aiResponse.content,
+                sessionId,
+                userId: 'assistant',
+                content: fakeResponse,
                 role: 'assistant',
-                timestamp: new Date(),
-                metadata: {
-                    model: aiResponse.model,
-                    tokens: aiResponse.tokens,
-                    processingTime: aiResponse.processingTime
-                }
-            });
-            // Atualizar sessão
-            await this.chatRepository.updateSession(session.id, {
-                lastActivity: new Date(),
-                messageCount: session.messageCount + 2
-            });
-            logger_1.logger.info('Mensagem processada com sucesso', {
-                sessionId: session.id,
-                userId,
-                messageLength: message.length,
-                responseLength: aiResponse.content.length,
-                processingTime: aiResponse.processingTime
+                timestamp: new Date()
             });
             return {
                 success: true,
-                response: aiResponse.content,
-                sessionId: session.id,
-                messageId: aiMessage.id,
-                metadata: {
-                    model: aiResponse.model,
-                    tokens: aiResponse.tokens,
-                    processingTime: aiResponse.processingTime
-                }
+                message: fakeResponse,
+                sessionId
             };
         }
         catch (error) {
-            logger_1.logger.error('Erro ao processar mensagem:', error);
-            throw error;
+            console.error('Erro no ChatService:', error);
+            throw new Error('Erro ao processar mensagem');
         }
     }
-    async getChatHistory(sessionId, userId) {
-        try {
-            const messages = await this.chatRepository.getMessages(sessionId, userId);
-            return messages;
+    generateFakeResponse(message) {
+        const userMessage = message.toLowerCase();
+        if (userMessage.includes('inscriç')) {
+            return "As inscrições ainda não abriram, mas você pode se preparar! 🔥 Forme seu time de 4 atletas (2 homens + 2 mulheres) da mesma box e comece a treinar junto. O link da comunidade do WhatsApp será divulgado em breve - fique atento às nossas redes sociais (@cerradointerbox) para receber as novidades em primeira mão! Aqui você não se inscreve, você assume seu chamado! 💪";
         }
-        catch (error) {
-            logger_1.logger.error('Erro ao buscar histórico:', error);
-            throw error;
+        else if (userMessage.includes('data') || userMessage.includes('quando')) {
+            return "O CERRADØ INTERBOX 2025 acontece nos dias 24, 25 e 26 de outubro na Praça Cívica, Goiânia! 📅 Marque na agenda - será o maior evento de times da América Latina! É onde você escreve sua história e assume seu chamado! ⚡";
         }
-    }
-    async createSession(userId, context) {
-        try {
-            const session = await this.chatRepository.createSession({
-                id: (0, uuid_1.v4)(),
-                userId,
-                context: context || 'general',
-                status: 'active',
-                createdAt: new Date(),
-                lastActivity: new Date(),
-                messageCount: 0
-            });
-            logger_1.logger.info('Sessão criada', { sessionId: session.id, userId, context });
-            return session;
+        else if (userMessage.includes('local') || userMessage.includes('onde')) {
+            return "O evento será na Praça Cívica, Goiânia - GO! 🏛️ Temos alcance de 200km, cobrindo Goiânia, DF, MG, TO e BA. É uma competição presencial com ativações digitais - o melhor dos dois mundos! 🌟";
         }
-        catch (error) {
-            logger_1.logger.error('Erro ao criar sessão:', error);
-            throw error;
+        else if (userMessage.includes('audiovisual') || userMessage.includes('criador')) {
+            return "Estamos reunindo criadores para cobrir o evento! 📸 Se você trabalha com fotografia, vídeo, drone, podcast ou mídia, pode se inscrever na página de audiovisual do site. É uma oportunidade única de fazer parte da história do CERRADØ e capturar momentos épicos! 🎥";
         }
-    }
-    async saveFeedback(feedbackData) {
-        try {
-            await this.chatRepository.saveFeedback(feedbackData);
-            logger_1.logger.info('Feedback salvo', feedbackData);
+        else if (userMessage.includes('comunidade') || userMessage.includes('whatsapp') || userMessage.includes('link')) {
+            return "O link da comunidade oficial do WhatsApp será divulgado em breve! 📱 Fique atento às nossas redes sociais (@cerradointerbox) para receber o convite em primeira mão. Lá você receberá todas as novidades sobre inscrições, treinos e preparação para o evento. É onde a comunidade CERRADØ se conecta! 🤝";
         }
-        catch (error) {
-            logger_1.logger.error('Erro ao salvar feedback:', error);
-            throw error;
+        else if (userMessage.includes('categoria') || userMessage.includes('nível')) {
+            return "Temos categorias para todos os níveis: Iniciante, Scale, Amador, Master 145+ e Rx! 🏆 Cada categoria tem suas especificidades e movimentos. A definição completa será divulgada junto com as inscrições. Aqui não há limites, apenas superação! 💪";
         }
-    }
-    async pollNewMessages(sessionId, userId, lastMessageId) {
-        try {
-            const newMessages = await this.chatRepository.getNewMessages(sessionId, userId, lastMessageId);
-            return newMessages;
+        else if (userMessage.includes('time') || userMessage.includes('formar')) {
+            return "Para participar, você precisa formar seu time de 4 atletas (2 homens + 2 mulheres) da mesma box! 🤝 Comece a treinar junto, fortaleça os laços e prepare-se para assumir seu chamado no CERRADØ INTERBOX 2025! É sobre união, superação e história! 🔥";
         }
-        catch (error) {
-            logger_1.logger.error('Erro no polling:', error);
-            throw error;
+        else if (userMessage.includes('valor') || userMessage.includes('preço') || userMessage.includes('custo')) {
+            return "Os valores das inscrições serão divulgados junto com a abertura das inscrições! 💰 Fique atento às nossas redes sociais e comunidade para receber as informações em primeira mão. O investimento vale cada centavo para fazer parte da maior história do CrossFit! ⚡";
         }
-    }
-    async endSession(sessionId, userId) {
-        try {
-            await this.chatRepository.updateSession(sessionId, {
-                status: 'ended',
-                lastActivity: new Date()
-            });
-            logger_1.logger.info('Sessão encerrada', { sessionId, userId });
+        else if (userMessage.includes('treino') || userMessage.includes('preparação')) {
+            return "A preparação para o CERRADØ já começou! 💪 Foque em treinos em equipe, melhore sua comunicação e fortaleça os laços com sua box. O evento vai testar não só sua força física, mas também sua união como time! 🔥";
         }
-        catch (error) {
-            logger_1.logger.error('Erro ao encerrar sessão:', error);
-            throw error;
+        else {
+            return "Olá! Sou o CERRADØ Assistant 🤖, seu guia oficial para o maior evento de times da América Latina! Como posso te ajudar a assumir seu chamado?";
         }
-    }
-    async getOrCreateSession(sessionId, userId, context) {
-        if (sessionId) {
-            const session = await this.chatRepository.getSession(sessionId, userId);
-            if (session) {
-                return session;
-            }
-        }
-        return await this.createSession(userId, context);
-    }
-    async buildContext(session, currentMessage) {
-        // Buscar últimas mensagens da conversa
-        const recentMessages = await this.chatRepository.getMessages(session.id, session.userId, 10);
-        // Construir contexto do CERRADØ INTERBOX
-        const baseContext = `
-      Você é o assistente virtual do CERRADØ INTERBOX 2025, o maior evento de times da América Latina.
-      
-      Informações do evento:
-      - Data: 24, 25 e 26 de outubro de 2025
-      - Local: Praça Cívica, Goiânia - GO
-      - Alcance: Raio de 200km (Goiânia, DF, MG, TO, BA)
-      - Formato: Competição de times (4 atletas por time)
-      - Categorias: Iniciante, Scale, Amador, Master 145+, Rx
-      
-      Você pode ajudar com:
-      - Informações sobre inscrições e times
-      - Dúvidas sobre o evento e localização
-      - Informações sobre audiovisual e creators
-      - Suporte geral sobre o CERRADØ INTERBOX
-      
-      Sempre seja cordial, informativo e mantenha o tom da marca.
-    `;
-        // Histórico da conversa
-        const conversationHistory = recentMessages
-            .map(msg => `${msg.role}: ${msg.content}`)
-            .join('\n');
-        return {
-            baseContext,
-            conversationHistory,
-            currentMessage,
-            sessionContext: session.context
-        };
     }
 }
 exports.ChatService = ChatService;

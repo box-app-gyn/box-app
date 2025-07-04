@@ -111,6 +111,16 @@ export default function Home() {
   const { platform, isStandalone, markAsInstalled } = usePWA();
   const router = useRouter();
 
+  // Verificar se deve mostrar página "Em Breve"
+  useEffect(() => {
+    const showComingSoon = process.env.NEXT_PUBLIC_SHOW_COMING_SOON === 'true';
+    
+    if (showComingSoon) {
+      router.push('/em-breve');
+      return;
+    }
+  }, [router]);
+
   // Verificar autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

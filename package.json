@@ -31,7 +31,13 @@
     "setup-github-deploy": "node scripts/setup-github-deploy.js",
     "deploy": "npm run build && firebase deploy --only apphosting",
     "deploy:functions": "firebase deploy --only functions",
-    "deploy:all": "firebase deploy"
+    "deploy:all": "firebase deploy",
+    "clean:macos": "node scripts/clean-macos-files.js clean",
+    "prevent:macos": "node scripts/clean-macos-files.js prevent",
+    "setup:macos": "node scripts/clean-macos-files.js all",
+    "deploy:direct": "node scripts/deploy-direct.js",
+    "deploy:rollout": "node scripts/deploy-direct.js --rollout",
+    "deploy:full": "node scripts/deploy-direct.js --functions"
   },
   "dependencies": {
     "@google-cloud/vertexai": "^0.2.0",

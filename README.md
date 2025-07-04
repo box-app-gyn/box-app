@@ -151,6 +151,27 @@ firebase deploy --only apphosting:git-box-app
 - **Hosting Tradicional**: Para SPAs estáticas
 - **Configuração correta**: Use apenas App Hosting para Next.js
 
+#### **Deploy Direto (Recomendado)**
+Para evitar dependência do GitHub Actions e ter controle total:
+
+```bash
+# Deploy direto (sem GitHub)
+npm run deploy:direct
+
+# Deploy com rollout gradual (10% tráfego)
+npm run deploy:rollout
+
+# Deploy completo (app + funções)
+npm run deploy:full
+```
+
+#### **Vantagens do Deploy Direto**
+- ✅ **Independência**: Não depende do GitHub Actions
+- ✅ **Controle total**: Você decide quando e como
+- ✅ **Rollback fácil**: Volta para versão anterior se necessário
+- ✅ **Deploy gradual**: Testa com poucos usuários primeiro
+- ✅ **Limpeza automática**: Remove arquivos macOS automaticamente
+
 #### **Configuração do firebase.json**
 ```json
 {
@@ -166,9 +187,31 @@ firebase deploy --only apphosting:git-box-app
 ```
 
 #### **Deploy Manual vs GitHub Actions**
-- **Deploy Manual**: `firebase deploy --only apphosting:git-box-app`
-- **GitHub Actions**: Deploy automático após push/merge
+- **Deploy Direto**: `npm run deploy:direct` (recomendado)
+- **GitHub Actions**: Deploy automático após push/merge (opcional)
 - **Rollout**: Para deploys graduais e seguros
+
+### 🛡️ Sistema de Proteção macOS
+
+#### **Problema dos Arquivos Ocultos**
+O macOS cria automaticamente arquivos ocultos (`._*`, `.DS_Store`) que podem quebrar o build do Next.js.
+
+#### **Soluções Implementadas**
+```bash
+# Limpar arquivos existentes
+npm run clean:macos
+
+# Configurar proteção
+npm run prevent:macos
+
+# Setup completo
+npm run setup:macos
+```
+
+#### **Proteção Automática**
+- **Git Hook**: Limpeza automática antes de cada commit
+- **.gitignore**: Configurado para ignorar arquivos macOS
+- **.gitattributes**: Configurações de linha e metadados
 
 ### 📱 PWA e Mobile-First
 
@@ -383,7 +426,16 @@ security:
 
 ### Deploy e Infraestrutura
 ```bash
-# Deploy manual
+# Deploy direto (recomendado)
+npm run deploy:direct
+
+# Deploy com rollout gradual
+npm run deploy:rollout
+
+# Deploy completo (app + funções)
+npm run deploy:full
+
+# Deploy manual (legado)
 firebase deploy --only apphosting:git-box-app
 
 # Verificar backends
@@ -409,6 +461,18 @@ npm run type-check
 
 # Limpar cache
 rm -rf .next && npm run dev
+```
+
+### 🛡️ Proteção macOS
+```bash
+# Limpar arquivos ocultos
+npm run clean:macos
+
+# Configurar proteção
+npm run prevent:macos
+
+# Setup completo
+npm run setup:macos
 ```
 
 ### Git e Versionamento
