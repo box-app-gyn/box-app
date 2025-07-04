@@ -10,7 +10,6 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import VideoSplashScreen from "@/components/VideoSplashScreen";
 import InstallToast from "@/components/InstallToast";
-import InstallBanner from "@/components/InstallBanner";
 import { usePWA } from "@/hooks/usePWA";
 import Image from "next/image";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -172,12 +171,9 @@ export default function Home() {
         onClose={() => setShowInscricao(false)} 
       />
 
-      {/* Install Toasts */}
+      {/* Install Toast - Apenas um componente de instalação */}
       {platform === 'ios' && !isStandalone && <InstallToast platform="ios" />}
       {platform === 'android' && !isStandalone && <InstallToast platform="android" />}
-      
-      {/* Install Banner */}
-      <InstallBanner />
     </>
   );
 } 
