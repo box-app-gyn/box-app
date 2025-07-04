@@ -8,6 +8,12 @@ interface ConfettiExplosionProps {
 
 export default function ConfettiExplosion({ trigger, onComplete }: ConfettiExplosionProps) {
   const hasExploded = useRef(false);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   useEffect(() => {
     if (trigger && !hasExploded.current) {
@@ -27,7 +33,7 @@ export default function ConfettiExplosion({ trigger, onComplete }: ConfettiExplo
         zIndex: 9999,
       });
       setTimeout(() => {
-        if (onComplete) onComplete();
+        if (onComplete && isMounted.current) onComplete();
       }, 1800);
     }
   }, [trigger, onComplete]);

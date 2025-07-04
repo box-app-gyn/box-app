@@ -73,7 +73,21 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
   useEffect(() => {
     // Inicializar GA apenas em produção
     if (process.env.NODE_ENV === 'production') {
+      // Suprimir warnings do Firebase Analytics
+      const originalConsoleWarn = console.warn;
+      console.warn = (...args) => {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('Failed to fetch this Firebase app')) {
+          return; // Ignorar este warning específico
+        }
+        originalConsoleWarn.apply(console, args);
+      };
+      
       initGA(sanitizedId);
+      
+      // Restaurar console.warn após inicialização
+      setTimeout(() => {
+        console.warn = originalConsoleWarn;
+      }, 1000);
     }
   }, [sanitizedId]);
 
