@@ -36,21 +36,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.testFunction = exports.pollMessagesFunction = exports.createSessionFunction = exports.saveFeedbackFunction = exports.getChatHistoryFunction = exports.sendMessageFunction = void 0;
+exports.testFunction = exports.sendMessageFunction = void 0;
 // Firebase Functions - CERRADØ INTERBOX 2025
 const functions = __importStar(require("firebase-functions"));
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
-// Importar functions do chat
 const chat_1 = require("./legacy/chat");
+Object.defineProperty(exports, "sendMessageFunction", { enumerable: true, get: function () { return chat_1.sendMessageFunction; } });
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp();
 }
-// Exportar functions do chat com nomes corretos para o frontend
-exports.sendMessageFunction = chat_1.sendMessage;
-exports.getChatHistoryFunction = chat_1.getChatHistory;
-exports.saveFeedbackFunction = chat_1.saveFeedback;
-exports.createSessionFunction = chat_1.createSession;
-exports.pollMessagesFunction = chat_1.pollMessages;
 // Função temporária para testar deploy
 exports.testFunction = functions.https.onRequest((req, res) => {
     res.json({ message: 'Função temporária funcionando!' });

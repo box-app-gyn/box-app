@@ -104,10 +104,10 @@ export default function Header() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="relative overflow-hidden rounded-lg"
               >
-                <Image src="/logos/nome_hrz.png"
-                  alt="Interbox 2025"
-                  width={isScrolled ? 30 : 40}
-                  height={isScrolled ? 10 : 12}
+                <Image src="/logos/logo_circulo.png"
+                  alt="CERRADØ"
+                  width={isScrolled ? 32 : 40}
+                  height={isScrolled ? 32 : 40}
                   className="transition-all duration-300"
                   style={{ width: 'auto', height: 'auto' }}
                  priority/>
