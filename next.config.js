@@ -26,6 +26,7 @@ const nextConfig = {
   
   // Configurações de imagens
   images: {
+    unoptimized: true, // Desabilita otimização para App Hosting
     domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias

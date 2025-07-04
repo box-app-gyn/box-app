@@ -48,7 +48,8 @@
     "react-apexcharts": "^1.7.0",
     "react-dom": "^18.0.0",
     "react-google-recaptcha": "^3.1.0",
-    "react-scroll-parallax": "^3.4.5"
+    "react-scroll-parallax": "^3.4.5",
+    "sharp": "^0.34.2"
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
