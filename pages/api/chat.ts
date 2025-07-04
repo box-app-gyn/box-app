@@ -1,15 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  // API de Chat DESABILITADA TEMPORARIAMENTE
-  return res.status(503).json({
-    success: false,
-    error: 'Chat temporariamente indisponível',
-    message: 'Por favor, entre em contato via WhatsApp: https://chat.whatsapp.com/FHTqm0l36kc7RWYWMw1Kiz'
-  });
+export default function handler(req, res) {
+  res.status(501).json({ error: 'Chat desativado. Vertex AI não está mais disponível.' });
 }
 
 /*

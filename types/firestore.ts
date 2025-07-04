@@ -77,7 +77,7 @@ export interface FirestoreUser {
   box?: string;
   whatsapp?: string;
   telefone?: string;
-  categoria?: 'atleta' | 'coach' | 'espectador' | 'midia';
+  categoria?: 'atleta' | 'judge' | 'espectador' | 'midia';
   mensagem?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;

@@ -15,44 +15,19 @@ import { usePWA } from "@/hooks/usePWA";
 import Image from "next/image";
 import { motion, AnimatePresence } from 'framer-motion';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/router';
 
 function LinhaDelicada() {
   return (
     <div className="flex justify-center">
-              <Image src="/images/liner.png" alt="" className="h-0.5 w-full max-w-[400px] object-cover select-none pointer-events-none" draggable="false" width={400} height={1} style={{ width: 'auto', height: 'auto' }} />
+              <Image src="/images/liner.png" alt="" className="h-0.5 w-full max-w-[400px] object-cover select-none pointer-events-none" draggable="false" width={400} height={1} style={{ width: 'auto', height: 'auto' }} priority />
     </div>
   );
 }
 
 // Componente de Modal de Inscrição
 function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    telefone: '',
-    cidade: '',
-    box: '',
-    whatsapp: '',
-    categoria: 'atleta',
-    mensagem: ''
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Inscrição realizada:', formData);
-    // Redirecionar para página de cadastro
-    window.location.href = '/cadastro';
-  };
 
   return (
     <AnimatePresence>
@@ -78,7 +53,7 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               className="absolute top-0 left-0 w-24 h-auto z-10" 
               width={96} 
               height={96} 
-              style={{ height: 'auto' }} 
+              style={{ width: 'auto', height: 'auto' }} 
             />
             
             <div className="text-center mb-6">
@@ -90,152 +65,38 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="nome" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Nome Completo *
-                </label>
-                <input
-                  type="text"
-                  id="nome"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="Seu nome completo"
-                />
+            <div className="space-y-6">
+              <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4">
+                <p className="text-pink-300 text-sm">
+                  🎯 <strong>Bônus:</strong> Você ganhará <strong>10 XP</strong> por criar sua conta!
+                </p>
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="seu@email.com"
-                />
-              </div>
+              {/* Botão Google */}
+              <button
+                type="button"
+                onClick={() => window.location.href = '/cadastro'}
+                className="w-full bg-white text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition-all duration-200 flex items-center justify-center space-x-2 mb-4"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>Continuar com Google</span>
+              </button>
 
-              <div>
-                <label htmlFor="cidade" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Cidade *
-                </label>
-                <input
-                  type="text"
-                  id="cidade"
-                  name="cidade"
-                  value={formData.cidade}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="Sua cidade"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="box" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Box/Academia *
-                </label>
-                <input
-                  type="text"
-                  id="box"
-                  name="box"
-                  value={formData.box}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="Nome do seu box/academia"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="whatsapp" className="block text-sm font-medium text-neutral-300 mb-2">
-                  WhatsApp *
-                </label>
-                <input
-                  type="tel"
-                  id="whatsapp"
-                  name="whatsapp"
-                  value={formData.whatsapp}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="telefone" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Telefone (opcional)
-                </label>
-                <input
-                  type="tel"
-                  id="telefone"
-                  name="telefone"
-                  value={formData.telefone}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="categoria" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Categoria *
-                </label>
-                <select
-                  id="categoria"
-                  name="categoria"
-                  value={formData.categoria}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                >
-                  <option value="atleta">🏋️‍♀️ Atleta - Quero competir</option>
-                  <option value="coach">👨‍🏫 Coach - Quero treinar</option>
-                  <option value="espectador">👥 Espectador - Quero assistir</option>
-                  <option value="midia">📹 Mídia - Quero cobrir</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="mensagem" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Mensagem (opcional)
-                </label>
-                <textarea
-                  id="mensagem"
-                  name="mensagem"
-                  value={formData.mensagem}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                  placeholder="Conte-nos mais sobre você..."
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Criar Conta
-                </button>
+              <div className="text-center">
                 <button
                   type="button"
                   onClick={() => window.location.href = '/login'}
-                  className="px-6 py-3 border border-neutral-600 text-neutral-300 hover:bg-neutral-800 rounded-lg transition-colors duration-200"
+                  className="text-pink-400 hover:text-pink-300 text-sm transition-colors"
                 >
-                  Já tenho conta
+                  Já tem conta? Entrar
                 </button>
               </div>
-            </form>
+            </div>
           </motion.div>
         </motion.div>
       )}
@@ -265,19 +126,15 @@ export default function Home() {
     markAsInstalled();
     
     // Se usuário não está logado, mostrar modal de inscrição
-    if (!user) {
+    if (!user && !isLoading) {
       setTimeout(() => {
         setShowInscricao(true);
       }, 1000);
     }
   };
 
-  // Se usuário está logado e não está carregando, redirecionar para dashboard
-  useEffect(() => {
-    if (!isLoading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, isLoading, router]);
+  // Se usuário está logado e não está carregando, não redirecionar - deixar na home
+  // O usuário pode navegar livremente pela home e usar o menu para acessar dashboard/perfil
 
   return (
     <>

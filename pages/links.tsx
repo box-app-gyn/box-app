@@ -64,6 +64,8 @@ const LinksPage: React.FC = () => {
                   width={144}
                   height={144}
                   className="h-36 md:h-48 w-auto"
+                  style={{ width: 'auto', height: 'auto' }}
+                  priority
                 />
               </div>
               <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-red-500 mx-auto rounded-full"></div>

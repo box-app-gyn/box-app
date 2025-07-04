@@ -231,11 +231,12 @@ export default function Login() {
         <div className="text-center mb-8">
           <Image
             src="/logos/oficial_logo.png"
-            
             alt="Interbox 2025 Logo"
             width={120}
             height={120}
             className="mx-auto mb-4 drop-shadow-[0_2px_12px_rgba(255,27,221,0.7)]"
+            style={{ width: 'auto', height: 'auto' }}
+            priority
           />
           <h1 className="text-3xl font-bold text-white mb-2">INTERBØX 2025</h1>
           <p className="text-pink-400 font-tech">Aqui você acessa o ecossistema.</p>

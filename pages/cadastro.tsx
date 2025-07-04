@@ -14,6 +14,7 @@ import { sanitizeInput } from '../utils/sanitize';
 import { handleAuthError } from '../utils/errorHandler';
 import { useRateLimit } from '../hooks/useRateLimit';
 import { motion } from 'framer-motion';
+import ConfettiExplosion from '@/components/ConfettiExplosion';
 
 export default function Cadastro() {
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ export default function Cadastro() {
   const [success, setSuccess] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
+  const [showConfetti, setShowConfetti] = useState(false);
   const router = useRouter();
   const { checkRateLimit, attempts, maxAttempts } = useRateLimit();
 
@@ -166,12 +168,13 @@ export default function Cadastro() {
         }
       });
 
-      setSuccess('Conta criada com sucesso! Redirecionando...');
+      setSuccess('Conta criada com sucesso! 🎉');
+      setShowConfetti(true);
       
-      // Redirecionar para dashboard após 2 segundos
+      // Redirecionar para home após 3 segundos
       setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
+        router.push('/');
+      }, 3000);
 
     } catch (err) {
       setError(handleAuthError(err));
@@ -228,11 +231,12 @@ export default function Cadastro() {
         }
       });
 
-      setSuccess('Conta criada com sucesso! Redirecionando...');
+      setSuccess('Conta criada com sucesso! 🎉');
+      setShowConfetti(true);
       
       setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
+        router.push('/');
+      }, 3000);
 
     } catch (err) {
       setError(handleAuthError(err));
@@ -252,6 +256,8 @@ export default function Cadastro() {
             width={120}
             height={120}
             className="mx-auto mb-4 drop-shadow-[0_2px_12px_rgba(255,27,221,0.7)]"
+            style={{ width: 'auto', height: 'auto' }}
+            priority
           />
           <h1 className="text-3xl font-bold text-white mb-2">INTERBØX 2025</h1>
           <p className="text-pink-400 font-tech">Crie sua conta e entre na arena</p>
@@ -466,10 +472,10 @@ export default function Cadastro() {
                     required
                     disabled={loading}
                   >
-                    <option value="atleta">🏋️‍♀️ Atleta - Quero competir</option>
-                    <option value="coach">👨‍🏫 Coach - Quero treinar</option>
-                    <option value="espectador">👥 Espectador - Quero assistir</option>
-                    <option value="midia">📹 Mídia - Quero cobrir</option>
+                    <option value="atleta">◾ Atleta - Quero competir</option>
+                    <option value="judge">◾ Judge - Quero julgar</option>
+                    <option value="espectador">◾ Espectador - Quero assistir</option>
+                    <option value="midia">◾ Mídia - Quero cobrir</option>
                   </select>
                 </div>
 
@@ -600,6 +606,12 @@ export default function Cadastro() {
           </div>
         </div>
       </div>
+
+      {/* Confete */}
+      <ConfettiExplosion
+        trigger={showConfetti}
+        onComplete={() => setShowConfetti(false)}
+      />
     </div>
   );
 } 

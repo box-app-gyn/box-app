@@ -1,5 +1,4 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('../vertex-ai-sa-key.json');
 
 // Inicializar Firebase Admin
 if (!admin.apps.length) {

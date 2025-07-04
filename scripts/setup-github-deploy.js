@@ -41,7 +41,6 @@ if (fs.existsSync(gitignorePath)) {
     '.env.development',
     'firebase-service-account.json',
     'firebase-admin-key.json',
-    'vertex-ai-sa-key.json'
   ];
   
   const missingEntries = requiredEntries.filter(entry => !gitignore.includes(entry));
