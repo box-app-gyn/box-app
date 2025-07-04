@@ -16,6 +16,7 @@ env_variables:
   
   # Google Analytics
   NEXT_PUBLIC_GA_MEASUREMENT_ID: "${NEXT_PUBLIC_GA_MEASUREMENT_ID}"
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: "${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}"
   
   # App Config
   NODE_ENV: "production"
@@ -26,7 +27,6 @@ env_variables:
 
 # Configurações do App Hosting
 runtime: nodejs18
-instance_class: F1
 
 # Configurações de rede
 network:
@@ -37,19 +37,13 @@ network:
 # Configurações de recursos (otimizadas para PWA)
 resources:
   cpu: 1
-  memory_gb: 1.0  # Aumentado para melhor performance
+  memory_gb: 1.0
   disk_size_gb: 10
 
 # Configurações de escalonamento (otimizadas para eventos)
 automatic_scaling:
-  target_cpu_utilization: 0.7  # Mais eficiente
-  min_instances: 1  # Sempre 1 instância ativa para PWA
-  max_instances: 20  # Suporte a picos de tráfego
-  min_idle_instances: 1  # Mantém 1 instância sempre ativa
-  max_idle_instances: 2  # Máximo 2 instâncias ociosas
-  min_pending_latency: 10ms  # Resposta mais rápida
-  max_pending_latency: 5s
-  max_concurrent_requests: 80  # Mais requisições simultâneas
+  min_instances: 1
+  max_instances: 5
 
 # Configurações de health check
 liveness_check:
@@ -69,8 +63,7 @@ readiness_check:
 
 # Configurações de segurança
 security:
-  allow_unauthenticated: true  # PWA público - permite acesso sem login
-  service_account: "firebase-app-hosting-compute@interbox-app-8d400.iam.gserviceaccount.com"
+  allow_unauthenticated: true
 
 # Configurações de logs
 logging:

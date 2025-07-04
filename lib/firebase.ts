@@ -24,13 +24,29 @@ export const storage = getStorage(app);
 
 // Initialize Analytics conditionally (only in browser and if supported)
 let analytics = null;
+
 if (typeof window !== 'undefined') {
-  isSupported().then(yes => yes ? getAnalytics(app) : null).then(analyticsInstance => {
-    analytics = analyticsInstance;
-  }).catch(() => {
-    // Analytics not supported or failed to initialize
-    console.log('Firebase Analytics not supported in this environment');
-  });
+  // Verificar se o measurement ID está disponível
+  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID;
+  
+  if (measurementId) {
+    isSupported().then(yes => {
+      if (yes) {
+        try {
+          analytics = getAnalytics(app);
+          console.log('✅ Firebase Analytics inicializado com sucesso');
+        } catch (error) {
+          console.log('⚠️ Firebase Analytics falhou ao inicializar:', error);
+        }
+      } else {
+        console.log('ℹ️ Firebase Analytics não suportado neste ambiente');
+      }
+    }).catch((error) => {
+      console.log('⚠️ Firebase Analytics não suportado:', error);
+    });
+  } else {
+    console.log('ℹ️ Measurement ID não configurado - Analytics desabilitado');
+  }
 }
 
 export { analytics };

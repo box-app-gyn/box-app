@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { trackEvent, trackPageView } from '@/components/GoogleAnalytics';
 
 // Tipos para eventos específicos do CERRADØ
 export interface CerradoEvent {
@@ -8,6 +7,30 @@ export interface CerradoEvent {
   label?: string;
   value?: number;
 }
+
+// Função para rastrear eventos com gtag
+const trackEvent = (action: string, category: string, label?: string, value?: number) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', action, {
+      event_category: category,
+      event_label: label,
+      value: value,
+    });
+  }
+};
+
+// Função para rastrear pageviews
+const trackPageView = (url: string) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    if (measurementId) {
+      window.gtag('config', measurementId, {
+        page_path: url,
+        page_title: document.title,
+      });
+    }
+  }
+};
 
 // Hook principal para analytics
 export const useAnalytics = () => {

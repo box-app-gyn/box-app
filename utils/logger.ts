@@ -1,45 +1,58 @@
 // Sistema de logging robusto para produção
 import { SECURITY_UTILS } from '../constants/security';
 
-type LogLevel = {
-  DEBUG: number;
-  INFO: number;
-  WARN: number;
-  ERROR: number;
-  FATAL: number;
-};
-
-const LOG_LEVELS: LogLevel = {
-  DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-  FATAL: 4,
-};
-
-const CURRENT_LOG_LEVEL = process.env.NODE_ENV === 'production' 
-  ? LOG_LEVELS.INFO 
-  : LOG_LEVELS.DEBUG;
-
-interface LogEntry {
-  timestamp: string;
-  level: keyof LogLevel;
-  message: string;
-  data?: any;
-  context?: any;
+// Tipos para logging
+export interface LogContext {
   userId?: string;
   requestId?: string;
   ip?: string;
   userAgent?: string;
   sessionId?: string;
   action?: string;
+  eventType?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  timestamp?: string;
+  component?: string;
+}
+
+export interface LogLevel {
+  ERROR: 0;
+  WARN: 1;
+  INFO: 2;
+  DEBUG: 3;
+}
+
+const LOG_LEVELS: LogLevel = {
+  ERROR: 0,
+  WARN: 1,
+  INFO: 2,
+  DEBUG: 3,
+};
+
+// Configurações de logging
+const LOG_CONFIG = {
+  MAX_LOG_SIZE: 1000, // Máximo de logs em memória
+  MAX_STRING_LENGTH: 500, // Máximo tamanho de string nos logs
+  ENABLE_CONSOLE: process.env.NODE_ENV !== 'production',
+  ENABLE_REMOTE: process.env.NODE_ENV === 'production',
+  REMOTE_ENDPOINT: process.env.NEXT_PUBLIC_LOG_ENDPOINT,
+  BATCH_SIZE: 10,
+  BATCH_TIMEOUT: 5000, // 5 segundos
+};
+
+// Buffer para logs remotos
+let logBuffer: Array<{ level: string; message: string; data: any; context?: LogContext }> = [];
+let batchTimeout: NodeJS.Timeout | null = null;
+
+// Função para gerar ID único
+function generateRequestId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 // Função para sanitizar dados de log
 function sanitizeLogData(data: any): any {
   if (typeof data === 'string') {
-    return SECURITY_UTILS.sanitizeString(data, 500);
+    return SECURITY_UTILS.sanitizeString(data, LOG_CONFIG.MAX_STRING_LENGTH);
   }
   
   if (typeof data === 'object' && data !== null) {
@@ -56,120 +69,151 @@ function sanitizeLogData(data: any): any {
   return data;
 }
 
-// Função para gerar ID único para requests
-function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+// Função para truncar strings longas
+function truncateString(str: string, maxLength: number): string {
+  if (str.length <= maxLength) return str;
+  return str.substring(0, maxLength - 3) + '...';
 }
 
-class Logger {
-  private requestId: string;
+// Função para enviar logs remotos
+async function sendLogsToRemote(logs: Array<{ level: string; message: string; data: any; context?: LogContext }>): Promise<void> {
+  if (!LOG_CONFIG.ENABLE_REMOTE || !LOG_CONFIG.REMOTE_ENDPOINT) {
+    return;
+  }
 
-  constructor() {
-    this.requestId = generateRequestId();
+  try {
+    const response = await fetch(LOG_CONFIG.REMOTE_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-ID': generateRequestId(),
+      },
+      body: JSON.stringify({
+        logs,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Falha ao enviar logs remotos:', response.status);
+    }
+  } catch (error) {
+    console.error('Erro ao enviar logs remotos:', error);
+  }
+}
+
+// Função para processar buffer de logs
+function processLogBuffer(): void {
+  if (logBuffer.length === 0) return;
+
+  const logsToSend = logBuffer.splice(0, LOG_CONFIG.BATCH_SIZE);
+  
+  // Enviar logs em background
+  sendLogsToRemote(logsToSend).catch(error => {
+    console.error('Erro ao processar buffer de logs:', error);
+  });
+
+  // Agendar próximo processamento se ainda há logs
+  if (logBuffer.length > 0) {
+    batchTimeout = setTimeout(processLogBuffer, LOG_CONFIG.BATCH_TIMEOUT);
+  }
+}
+
+// Função para adicionar log ao buffer
+function addToBuffer(level: string, message: string, data: any, context?: LogContext): void {
+  if (!LOG_CONFIG.ENABLE_REMOTE) return;
+
+  logBuffer.push({ level, message, data, context });
+
+  // Limitar tamanho do buffer
+  if (logBuffer.length > LOG_CONFIG.MAX_LOG_SIZE) {
+    logBuffer = logBuffer.slice(-LOG_CONFIG.MAX_LOG_SIZE);
+  }
+
+  // Processar buffer se atingiu o tamanho ou se é o primeiro log
+  if (logBuffer.length >= LOG_CONFIG.BATCH_SIZE && !batchTimeout) {
+    batchTimeout = setTimeout(processLogBuffer, LOG_CONFIG.BATCH_TIMEOUT);
+  }
+}
+
+// Classe Logger principal
+class Logger {
+  private logLevel: number;
+
+  constructor(level: keyof LogLevel = 'INFO') {
+    this.logLevel = LOG_LEVELS[level];
   }
 
   private shouldLog(level: keyof LogLevel): boolean {
-    return LOG_LEVELS[level] >= CURRENT_LOG_LEVEL;
+    return LOG_LEVELS[level] <= this.logLevel;
   }
 
-  private formatLog(level: keyof LogLevel, message: string, data?: any, context?: any): LogEntry {
-    const sanitizedData = data ? sanitizeLogData(data) : undefined;
-    const sanitizedContext = context ? sanitizeLogData(context) : undefined;
-
-    return {
-      timestamp: new Date().toISOString(),
-      level,
-      message: SECURITY_UTILS.sanitizeString(message, 200),
-      data: sanitizedData,
-      context: sanitizedContext,
-      userId: sanitizedContext?.userId,
-      requestId: this.requestId,
-      ip: sanitizedContext?.ip,
-      userAgent: sanitizedContext?.userAgent,
-      sessionId: sanitizedContext?.sessionId,
-      action: sanitizedContext?.action,
-      severity: this.getSeverity(level)
-    };
+  private formatMessage(level: string, message: string, data?: any, context?: LogContext): string {
+    const timestamp = new Date().toISOString();
+    const contextStr = context ? ` [${Object.entries(context).map(([k, v]) => `${k}:${v}`).join(', ')}]` : '';
+    const dataStr = data ? ` ${JSON.stringify(sanitizeLogData(data))}` : '';
+    
+    return `[${timestamp}] ${level.toUpperCase()}: ${truncateString(message, LOG_CONFIG.MAX_STRING_LENGTH)}${contextStr}${dataStr}`;
   }
 
-  private getSeverity(level: keyof LogLevel): 'low' | 'medium' | 'high' | 'critical' {
-    switch (level) {
-      case 'DEBUG':
-      case 'INFO':
-        return 'low';
-      case 'WARN':
-        return 'medium';
-      case 'ERROR':
-        return 'high';
-      case 'FATAL':
-        return 'critical';
-      default:
-        return 'low';
+  private log(level: keyof LogLevel, message: string, data?: any, context?: LogContext): void {
+    if (!this.shouldLog(level)) return;
+
+    const sanitizedData = sanitizeLogData(data);
+    const formattedMessage = this.formatMessage(level, message, sanitizedData, context);
+
+    // Log no console se habilitado
+    if (LOG_CONFIG.ENABLE_CONSOLE) {
+      switch (level) {
+        case 'ERROR':
+          console.error(formattedMessage);
+          break;
+        case 'WARN':
+          console.warn(formattedMessage);
+          break;
+        case 'INFO':
+          console.info(formattedMessage);
+          break;
+        case 'DEBUG':
+          console.debug(formattedMessage);
+          break;
+      }
     }
+
+    // Adicionar ao buffer para envio remoto
+    addToBuffer(level, message, sanitizedData, context);
   }
 
-  private output(entry: LogEntry): void {
-    if (process.env.NODE_ENV === 'production') {
-      // Em produção, usar console.log estruturado
-      console.log(JSON.stringify(entry));
-    } else {
-      // Em desenvolvimento, usar console colorido
-      const colors = {
-        DEBUG: '\x1b[36m', // Cyan
-        INFO: '\x1b[32m',  // Green
-        WARN: '\x1b[33m',  // Yellow
-        ERROR: '\x1b[31m', // Red
-        FATAL: '\x1b[35m'  // Magenta
-      };
-      
-      const reset = '\x1b[0m';
-      const color = colors[entry.level] || '';
-      
-      console.log(
-        `${color}[${entry.level}]${reset} ${entry.timestamp} ${entry.message}`,
-        entry.data ? `\n${JSON.stringify(entry.data, null, 2)}` : '',
-        entry.context ? `\nContext: ${JSON.stringify(entry.context, null, 2)}` : ''
-      );
-    }
+  // Métodos públicos
+  error(message: string, error?: any, context?: LogContext): void {
+    const errorData = error instanceof Error
+      ? { 
+          message: error.message, 
+          stack: error.stack, 
+          name: error.name,
+          code: (error as any).code 
+        }
+      : error;
+    
+    this.log('ERROR', message, errorData, context);
   }
 
-  debug(message: string, data?: any, context?: any): void {
-    if (this.shouldLog('DEBUG')) {
-      const entry = this.formatLog('DEBUG', message, data, context);
-      this.output(entry);
-    }
+  warn(message: string, data?: any, context?: LogContext): void {
+    this.log('WARN', message, data, context);
   }
 
-  info(message: string, data?: any, context?: any): void {
-    if (this.shouldLog('INFO')) {
-      const entry = this.formatLog('INFO', message, data, context);
-      this.output(entry);
-    }
+  info(message: string, data?: any, context?: LogContext): void {
+    this.log('INFO', message, data, context);
   }
 
-  warn(message: string, data?: any, context?: any): void {
-    if (this.shouldLog('WARN')) {
-      const entry = this.formatLog('WARN', message, data, context);
-      this.output(entry);
-    }
-  }
-
-  error(message: string, data?: any, context?: any): void {
-    if (this.shouldLog('ERROR')) {
-      const entry = this.formatLog('ERROR', message, data, context);
-      this.output(entry);
-    }
-  }
-
-  fatal(message: string, data?: any, context?: any): void {
-    if (this.shouldLog('FATAL')) {
-      const entry = this.formatLog('FATAL', message, data, context);
-      this.output(entry);
-    }
+  debug(message: string, data?: any, context?: LogContext): void {
+    this.log('DEBUG', message, data, context);
   }
 
   // Método para logging de segurança
-  security(event: string, details: any, context?: { userId?: string; requestId?: string; ip?: string; userAgent?: string; sessionId?: string; action?: string }): void {
+  security(event: string, details: any, context?: LogContext): void {
     const securityContext = {
       ...context,
       eventType: 'security',
@@ -188,7 +232,8 @@ class Logger {
         eventLower.includes('xss') || 
         eventLower.includes('sql') ||
         eventLower.includes('authentication bypass') ||
-        eventLower.includes('privilege escalation')) {
+        eventLower.includes('privilege escalation') ||
+        eventLower.includes('data breach')) {
       return 'critical';
     }
     
@@ -196,66 +241,38 @@ class Logger {
     if (eventLower.includes('rate limit') ||
         eventLower.includes('brute force') ||
         eventLower.includes('suspicious pattern') ||
-        eventLower.includes('unauthorized access')) {
+        eventLower.includes('unauthorized access') ||
+        eventLower.includes('malicious') ||
+        eventLower.includes('exploit')) {
       return 'high';
     }
     
     // Eventos de média severidade
     if (eventLower.includes('invalid token') ||
         eventLower.includes('expired session') ||
-        eventLower.includes('invalid input')) {
+        eventLower.includes('invalid input') ||
+        eventLower.includes('failed login')) {
       return 'medium';
     }
     
     return 'low';
   }
 
-  // Método para logging de auditoria
-  audit(action: string, userId: string, resource: string, details?: any): void {
-    const auditContext = {
-      userId,
-      action,
-      resource,
-      eventType: 'audit',
-      timestamp: new Date().toISOString()
-    };
-
-    this.info(`Audit: ${action} on ${resource}`, details, auditContext);
-  }
-
   // Método para logging de performance
-  performance(operation: string, duration: number, context?: any): void {
+  performance(operation: string, duration: number, context?: LogContext): void {
     const performanceContext = {
       ...context,
-      operation,
-      duration,
       eventType: 'performance',
+      duration,
       timestamp: new Date().toISOString()
     };
 
-    if (duration > 5000) {
-      this.warn(`Slow operation: ${operation} took ${duration}ms`, { duration }, performanceContext);
-    } else if (duration > 1000) {
-      this.info(`Operation: ${operation} took ${duration}ms`, { duration }, performanceContext);
-    } else {
-      this.debug(`Operation: ${operation} took ${duration}ms`, { duration }, performanceContext);
-    }
-  }
-
-  // Método para logging de erro com stack trace
-  errorWithStack(message: string, error: Error, context?: any): void {
-    const errorData = {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      ...context
-    };
-
-    this.error(message, errorData, context);
+    const level = duration > 5000 ? 'WARN' : duration > 1000 ? 'INFO' : 'DEBUG';
+    this.log(level as keyof LogLevel, `Performance: ${operation}`, { duration }, performanceContext);
   }
 
   // Método para logging de request
-  request(method: string, url: string, statusCode: number, duration: number, context?: any): void {
+  request(method: string, url: string, statusCode: number, duration: number, context?: LogContext): void {
     const requestContext = {
       ...context,
       method,
@@ -274,17 +291,142 @@ class Logger {
       this.info(`Request: ${method} ${url} - ${statusCode}`, { statusCode, duration }, requestContext);
     }
   }
+
+  // Método para logging de usuário
+  user(userId: string, action: string, details?: any, context?: LogContext): void {
+    const userContext = {
+      ...context,
+      userId: SECURITY_UTILS.sanitizeString(userId, 50),
+      action,
+      eventType: 'user_action',
+      timestamp: new Date().toISOString()
+    };
+
+    this.info(`User action: ${action}`, details, userContext);
+  }
+
+  // Método para logging de sistema
+  system(component: string, action: string, details?: any, context?: LogContext): void {
+    const systemContext = {
+      ...context,
+      component,
+      action,
+      eventType: 'system',
+      timestamp: new Date().toISOString()
+    };
+
+    this.info(`System: ${component} - ${action}`, details, systemContext);
+  }
+
+  // Método para logging de PWA
+  pwa(event: string, details?: any, context?: LogContext): void {
+    const pwaContext = {
+      ...context,
+      eventType: 'pwa',
+      timestamp: new Date().toISOString()
+    };
+
+    this.info(`PWA: ${event}`, details, pwaContext);
+  }
+
+  // Método para logging de gamificação
+  gamification(userId: string, action: string, points?: number, context?: LogContext): void {
+    const gamificationContext = {
+      ...context,
+      userId: SECURITY_UTILS.sanitizeString(userId, 50),
+      action,
+      points,
+      eventType: 'gamification',
+      timestamp: new Date().toISOString()
+    };
+
+    this.info(`Gamification: ${action}`, { points }, gamificationContext);
+  }
+
+  // Método para limpar buffer
+  flush(): void {
+    if (batchTimeout) {
+      clearTimeout(batchTimeout);
+      batchTimeout = null;
+    }
+    processLogBuffer();
+  }
+
+  // Método para obter estatísticas
+  getStats(): { bufferSize: number; totalLogs: number } {
+    return {
+      bufferSize: logBuffer.length,
+      totalLogs: logBuffer.length
+    };
+  }
 }
 
-// Instância singleton
+// Instância global do logger
 export const logger = new Logger();
 
 // Função para criar contexto de request
-export const createRequestContext = (req: any) => ({
+export const createRequestContext = (req: any): LogContext => ({
   userId: req.user?.uid,
   requestId: req.headers['x-request-id'] || generateRequestId(),
   ip: req.ip || req.connection?.remoteAddress || 'unknown',
   userAgent: SECURITY_UTILS.sanitizeString(req.headers['user-agent'] || '', 200),
   sessionId: req.headers['x-session-id'],
   action: req.method + ' ' + req.path
-}); 
+});
+
+// Função para criar contexto de usuário
+export const createUserContext = (userId: string, action: string): LogContext => ({
+  userId: SECURITY_UTILS.sanitizeString(userId, 50),
+  action,
+  timestamp: new Date().toISOString()
+});
+
+// Função para criar contexto de sistema
+export const createSystemContext = (component: string, action: string): LogContext => ({
+  component,
+  action,
+  timestamp: new Date().toISOString()
+});
+
+// Middleware para logging automático de requests (se usado com Express)
+export const requestLogger = (req: any, res: any, next: any) => {
+  const startTime = Date.now();
+  const context = createRequestContext(req);
+
+  // Log do request
+  logger.info(`Request started: ${req.method} ${req.path}`, {}, context);
+
+  // Interceptar resposta
+  const originalSend = res.send;
+  res.send = function(data: any) {
+    const duration = Date.now() - startTime;
+    logger.request(req.method, req.path, res.statusCode, duration, context);
+    return originalSend.call(this, data);
+  };
+
+  next();
+};
+
+// Cleanup ao sair da aplicação
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    logger.flush();
+  });
+}
+
+// Cleanup em Node.js
+if (typeof process !== 'undefined') {
+  process.on('beforeExit', () => {
+    logger.flush();
+  });
+
+  process.on('SIGINT', () => {
+    logger.flush();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    logger.flush();
+    process.exit(0);
+  });
+} 

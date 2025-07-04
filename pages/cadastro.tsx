@@ -3,14 +3,13 @@ import { useRouter } from 'next/router';
 import { 
   createUserWithEmailAndPassword, 
   onAuthStateChanged,
-  User,
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import Image from 'next/image';
-import { sanitizeInput } from '../utils/sanitize';
+
 import { handleAuthError } from '../utils/errorHandler';
 import { useRateLimit } from '../hooks/useRateLimit';
 import { motion } from 'framer-motion';
@@ -33,7 +32,7 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [user, setUser] = useState<User | null>(null);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [showConfetti, setShowConfetti] = useState(false);
   const router = useRouter();
@@ -43,7 +42,6 @@ export default function Cadastro() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
         // Se já tem dados completos, redirecionar para dashboard
         router.push('/dashboard');
       }
@@ -121,7 +119,39 @@ export default function Cadastro() {
       return;
     }
 
-    if (!validateStep1() || !validateStep2()) return;
+    // Validação inline para evitar dependências
+    if (!formData.nome.trim()) {
+      setError('Nome é obrigatório');
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError('Email é obrigatório');
+      return;
+    }
+    if (!formData.senha) {
+      setError('Senha é obrigatória');
+      return;
+    }
+    if (formData.senha.length < 6) {
+      setError('Senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    if (formData.senha !== formData.confirmarSenha) {
+      setError('Senhas não coincidem');
+      return;
+    }
+    if (!formData.cidade.trim()) {
+      setError('Cidade é obrigatória');
+      return;
+    }
+    if (!formData.box.trim()) {
+      setError('Box/Academia é obrigatório');
+      return;
+    }
+    if (!formData.whatsapp.trim()) {
+      setError('WhatsApp é obrigatório');
+      return;
+    }
 
     setLoading(true);
     setError('');

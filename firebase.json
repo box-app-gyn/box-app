@@ -9,12 +9,21 @@
   "functions": {
     "source": "functions"
   },
-  "apphosting": {
-    "backends": [
-      {
-        "backendId": "git-box-app",
-        "source": "."
-      }
+  "apphosting": [
+    {
+      "backendId": "git-box-app",
+      "source": "."
+    }
+  ],
+  "hosting": {
+    "public": "out",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
     ]
   }
-} 
+}

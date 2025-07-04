@@ -1,6 +1,6 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import GoogleAnalytics from '../components/GoogleAnalytics';
@@ -8,119 +8,224 @@ import ChatButton from '../components/ChatButton';
 import SplashScreen from '../components/SplashScreen';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import UpdateNotification from '../components/UpdateNotification';
-import { SECURITY_CONSTANTS } from '../constants/security';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  
+  // Refs para evitar memory leaks
+  const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout>();
+  const installPromptTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Função para detectar plataforma de forma segura
+  const detectPlatform = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const iOS = /ipad|iphone|ipod/.test(userAgent);
+      const safari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+      const isMobile = /iphone|ipad|ipod|android|blackberry|iemobile|opera mini/i.test(userAgent);
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                        (window.navigator as { standalone?: boolean }).standalone === true;
+      
+      return { iOS, safari, isMobile, standalone };
+    } catch (error) {
+      console.error('Erro ao detectar plataforma:', error);
+      return null;
+    }
+  }, []);
+
+  // Função para registrar Service Worker de forma segura
+  const registerServiceWorker = useCallback(async () => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    try {
+      // Verificar se já existe um SW registrado
+      const existingRegistration = await navigator.serviceWorker.getRegistration();
+      if (existingRegistration) {
+        swRegistrationRef.current = existingRegistration;
+        console.log('Service Worker já registrado:', existingRegistration);
+        return;
+      }
+
+      // Registrar novo SW
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
+      
+      swRegistrationRef.current = registration;
+      console.log('Service Worker registrado com sucesso:', registration);
+
+      // Listener para atualizações
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('Nova versão do SW disponível');
+            }
+          });
+        }
+      });
+
+    } catch (error) {
+      console.error('Erro ao registrar Service Worker:', error);
+    }
+  }, []);
+
+  // Função para verificar se deve mostrar splash
+  const shouldShowSplash = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    
+    try {
+      const platform = detectPlatform();
+      if (!platform) return false;
+
+      const { iOS, safari, isMobile, standalone } = platform;
+      const isInstalled = localStorage.getItem('pwa-installed') === 'true';
+      
+      // Mostrar splash apenas para iOS mobile + Safari que não estão em modo standalone
+      return iOS && safari && isMobile && !standalone && !isInstalled;
+    } catch (error) {
+      console.error('Erro ao verificar splash:', error);
+      return false;
+    }
+  }, [detectPlatform]);
+
+  // Função para mostrar prompt de instalação
+  const triggerInstallPrompt = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const platform = detectPlatform();
+      if (!platform) return;
+
+      const { iOS, safari, isMobile, standalone } = platform;
+      
+      if (iOS && safari && isMobile && !standalone) {
+        // Limpar timeout anterior se existir
+        if (installPromptTimeoutRef.current) {
+          clearTimeout(installPromptTimeoutRef.current);
+        }
+        
+        installPromptTimeoutRef.current = setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Erro ao mostrar prompt de instalação:', error);
+    }
+  }, [detectPlatform]);
+
+  // Inicialização principal
   useEffect(() => {
     setIsClient(true);
     
     // Proteção contra ataques de clickjacking
     if (typeof window !== 'undefined') {
-      // Verificar se está em um iframe
-      if (window.self !== window.top && window.top) {
-        // Tentativa de clickjacking detectada
-        window.top.location.href = window.self.location.href;
+      try {
+        // Verificar se está em um iframe
+        if (window.self !== window.top && window.top) {
+          // Tentativa de clickjacking detectada
+          window.top.location.href = window.self.location.href;
+        }
+      } catch (error) {
+        console.error('Erro na verificação de clickjacking:', error);
       }
     }
     
     // Registrar Service Worker
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('SW registrado:', registration);
-          })
-          .catch((error) => {
-            console.log('SW falhou:', error);
-          });
-      });
-    }
+    registerServiceWorker();
     
-    // Detectar se deve mostrar splash (apenas iOS + Safari mobile)
-    if (typeof window !== 'undefined') {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        (window.navigator as { standalone?: boolean }).standalone === true;
-      const isInstalled = localStorage.getItem('pwa-installed') === 'true';
-      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const safari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-      const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      // Mostrar splash apenas para iOS mobile + Safari que não estão em modo standalone
-      if (iOS && safari && isMobile && !standalone && !isInstalled) {
-        setShowSplash(true);
-      }
+    // Verificar splash screen
+    if (shouldShowSplash()) {
+      setShowSplash(true);
     }
-  }, []);
+  }, [registerServiceWorker, shouldShowSplash]);
 
-  // useEffect separado para redirecionamento baseado na largura da tela
+  // Listener para redimensionamento otimizado
   useEffect(() => {
     if (!isClient) return;
 
-    const checkScreenSize = () => {
-      if (typeof window !== 'undefined') {
-        const isDesktop = window.innerWidth > 768;
-        const isMobilePage = router.pathname === '/acesso-mobile-obrigatorio';
-        
-        // Apenas log para debug
-        console.log('Screen size check:', { 
-          isDesktop, 
-          isMobilePage, 
-          pathname: router.pathname,
-          width: window.innerWidth 
-        });
+    const handleResize = () => {
+      // Debounce para evitar muitas execuções
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
       }
+      
+      resizeTimeoutRef.current = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          const isDesktop = window.innerWidth > 768;
+          const isMobilePage = router.pathname === '/acesso-mobile-obrigatorio';
+          
+          // Apenas log para debug
+          console.log('Screen size check:', { 
+            isDesktop, 
+            isMobilePage, 
+            pathname: router.pathname,
+            width: window.innerWidth 
+          });
+        }
+      }, 250); // 250ms debounce
     };
 
     // Verificar tamanho da tela inicialmente
-    checkScreenSize();
+    handleResize();
 
-    // Listener para redimensionamento da janela (mantido para debug)
-    const handleResize = () => {
-      checkScreenSize();
-    };
+    // Adicionar listener
+    window.addEventListener('resize', handleResize, { passive: true });
     
-    window.addEventListener('resize', handleResize);
-    
-    // Cleanup do listener
+    // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
-    };
-  }, [isClient, router.pathname, router]);
-
-  const handleSplashComplete = () => {
-    setShowSplash(false);
-    localStorage.setItem('pwa-installed', 'true');
-    
-    // Mostrar prompt de instalação após 3 segundos (apenas iOS mobile + Safari)
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const safari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-        const isMobile = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                          (window.navigator as { standalone?: boolean }).standalone === true;
-        
-        if (iOS && safari && isMobile && !standalone) {
-          setTimeout(() => {
-            setShowInstallPrompt(true);
-          }, 5000);
-        }
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
       }
-    }, 3000);
-  };
+    };
+  }, [isClient, router.pathname]);
 
-  const handleCloseInstallPrompt = () => {
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      if (installPromptTimeoutRef.current) {
+        clearTimeout(installPromptTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+    
+    try {
+      localStorage.setItem('pwa-installed', 'true');
+    } catch (error) {
+      console.error('Erro ao salvar no localStorage:', error);
+    }
+    
+    // Mostrar prompt de instalação
+    triggerInstallPrompt();
+  }, [triggerInstallPrompt]);
+
+  const handleCloseInstallPrompt = useCallback(() => {
     setShowInstallPrompt(false);
-  };
+  }, []);
 
-  const handleUpdate = () => {
+  const handleUpdate = useCallback(() => {
     // Atualização será feita pelo componente
-  };
+    if (swRegistrationRef.current) {
+      swRegistrationRef.current.update();
+    }
+  }, []);
 
   if (!isClient) {
     return null; // Evita hidratação
@@ -130,18 +235,19 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         {/* Headers de Segurança */}
-        {/* <meta httpEquiv="X-Frame-Options" content="DENY" /> Removido pois só funciona via header HTTP */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
         <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
         <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+        
         {/* Apple PWA Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="CERRADØ" />
         <meta name="apple-mobile-web-app-orientations" content="portrait" />
         <meta name="apple-touch-fullscreen" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-icon" sizes="72x72" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-icon" sizes="96x96" href="/logos/logo_circulo.png" />
@@ -151,6 +257,8 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="apple-touch-icon" sizes="192x192" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-icon" sizes="384x384" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-icon" sizes="512x512" href="/logos/logo_circulo.png" />
+        
+        {/* Apple Touch Startup Images */}
         <link rel="apple-touch-startup-image" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="/logos/logo_circulo.png" />
@@ -161,30 +269,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
         <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/logos/logo_circulo.png" />
-        {/* Content Security Policy */}
-        <meta httpEquiv="Content-Security-Policy" content={`
-          default-src 'self';
-          script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.gstatic.com;
-          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-          font-src 'self' https://fonts.gstatic.com;
-          img-src 'self' data: https: blob: https://firebasestorage.googleapis.com https://www.google-analytics.com;
-          connect-src 'self' https://api.flowpay.com.br https://www.google-analytics.com https://analytics.google.com https://firestore.googleapis.com https://firebase.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com;
-          frame-src 'none';
-          object-src 'none';
-          base-uri 'self';
-          form-action 'self';
-          upgrade-insecure-requests;
-        `.replace(/\s+/g, ' ').trim()} />
-        
-        {/* Prevenção de MIME sniffing */}
-        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-        
-        {/* Prevenção de clickjacking */}
-        {/* <meta httpEquiv="X-Frame-Options" content="DENY" /> Removido pois só funciona via header HTTP */}
         
         {/* Configurações de privacidade */}
         <meta name="robots" content="index, follow" />
-        <meta name="googlebot" content="index, follow" />
         
         {/* Configurações de viewport seguras */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -196,13 +283,13 @@ export default function App({ Component, pageProps }: AppProps) {
 
       {/* Google Analytics - apenas em produção */}
       {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-        <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        <GoogleAnalytics />
       )}
       
       {/* Splash Screen */}
-      {showSplash ? (
+      {showSplash && (
         <SplashScreen onComplete={handleSplashComplete} />
-      ) : null}
+      )}
       
       <div className="bg-animated-gradient" />
       <Component {...pageProps} />
@@ -211,9 +298,9 @@ export default function App({ Component, pageProps }: AppProps) {
       <ChatButton />
       
       {/* PWA Install Prompt */}
-      {showInstallPrompt ? (
+      {showInstallPrompt && (
         <PWAInstallPrompt onClose={handleCloseInstallPrompt} />
-      ) : null}
+      )}
       
       {/* Update Notification */}
       <UpdateNotification onUpdate={handleUpdate} />

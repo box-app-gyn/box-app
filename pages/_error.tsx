@@ -40,7 +40,7 @@ function Error({ statusCode, hasGetInitialPropsRun, err }: CustomErrorProps) {
   )
 }
 
-Error.getInitialProps = ({ res, err, asPath }: NextPageContext) => {
+Error.getInitialProps = ({ res, err }: NextPageContext) => {
   const errorInitialProps: CustomErrorProps = {
     hasGetInitialPropsRun: true,
     err: err ?? undefined,

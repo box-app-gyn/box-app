@@ -3,8 +3,6 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import Image from 'next/image';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SEOHead from '@/components/SEOHead';
 import PIXQRCode from '@/components/PIXQRCode';
@@ -123,7 +121,7 @@ export default function AudiovisualFormPage() {
       setTimeout(() => {
         setCurrentStep('confirmation');
       }, 2000);
-    } catch (error) {
+    } catch {
       setError('Erro ao processar inscrição. Tente novamente.');
     }
   };
