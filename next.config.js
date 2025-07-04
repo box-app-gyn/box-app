@@ -14,7 +14,6 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     // Otimizações para Cloud Run
-    serverComponentsExternalPackages: ['@google-cloud/storage'],
     optimizeCss: true,
     optimizePackageImports: ['framer-motion', 'lucide-react'],
   },

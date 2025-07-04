@@ -65,6 +65,12 @@ export interface FirestoreUser {
   photoURL?: string;
   role: UserRole;
   phone?: string;
+  cidade?: string;
+  box?: string;
+  whatsapp?: string;
+  telefone?: string;
+  categoria?: 'atleta' | 'coach' | 'espectador' | 'midia';
+  mensagem?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   isActive: boolean;

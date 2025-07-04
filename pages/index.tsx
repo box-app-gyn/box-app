@@ -14,6 +14,9 @@ import InstallBanner from "@/components/InstallBanner";
 import { usePWA } from "@/hooks/usePWA";
 import Image from "next/image";
 import { motion, AnimatePresence } from 'framer-motion';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { useRouter } from 'next/router';
 
 function LinhaDelicada() {
   return (
@@ -29,6 +32,9 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
     nome: '',
     email: '',
     telefone: '',
+    cidade: '',
+    box: '',
+    whatsapp: '',
     categoria: 'atleta',
     mensagem: ''
   });
@@ -44,8 +50,8 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Inscrição realizada:', formData);
-    // Aqui você pode adicionar a lógica para salvar a inscrição
-    onClose();
+    // Redirecionar para página de cadastro
+    window.location.href = '/cadastro';
   };
 
   return (
@@ -62,7 +68,7 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 max-w-md w-full relative"
+            className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Decoração de canto */}
@@ -77,10 +83,10 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
             
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">
-                🏆 Inscreva-se no CERRADØ INTERBOX 2025
+                🏆 Entre na Arena do CERRADØ INTERBOX 2025
               </h2>
               <p className="text-neutral-300">
-                24, 25 e 26 de outubro - O maior evento de times da América Latina
+                24, 25 e 26 de outubro - Crie sua conta e comece sua jornada
               </p>
             </div>
 
@@ -118,8 +124,56 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               </div>
 
               <div>
+                <label htmlFor="cidade" className="block text-sm font-medium text-neutral-300 mb-2">
+                  Cidade *
+                </label>
+                <input
+                  type="text"
+                  id="cidade"
+                  name="cidade"
+                  value={formData.cidade}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                  placeholder="Sua cidade"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="box" className="block text-sm font-medium text-neutral-300 mb-2">
+                  Box/Academia *
+                </label>
+                <input
+                  type="text"
+                  id="box"
+                  name="box"
+                  value={formData.box}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                  placeholder="Nome do seu box/academia"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="whatsapp" className="block text-sm font-medium text-neutral-300 mb-2">
+                  WhatsApp *
+                </label>
+                <input
+                  type="tel"
+                  id="whatsapp"
+                  name="whatsapp"
+                  value={formData.whatsapp}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="telefone" className="block text-sm font-medium text-neutral-300 mb-2">
-                  Telefone *
+                  Telefone (opcional)
                 </label>
                 <input
                   type="tel"
@@ -127,7 +181,6 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                   name="telefone"
                   value={formData.telefone}
                   onChange={handleInputChange}
-                  required
                   className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
                   placeholder="(11) 99999-9999"
                 />
@@ -145,10 +198,10 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                   required
                   className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
                 >
-                  <option value="atleta">Atleta</option>
-                  <option value="coach">Coach</option>
-                  <option value="espectador">Espectador</option>
-                  <option value="midia">Mídia</option>
+                  <option value="atleta">🏋️‍♀️ Atleta - Quero competir</option>
+                  <option value="coach">👨‍🏫 Coach - Quero treinar</option>
+                  <option value="espectador">👥 Espectador - Quero assistir</option>
+                  <option value="midia">📹 Mídia - Quero cobrir</option>
                 </select>
               </div>
 
@@ -172,14 +225,14 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                   type="submit"
                   className="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
                 >
-                  Inscrever-se
+                  Criar Conta
                 </button>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={() => window.location.href = '/login'}
                   className="px-6 py-3 border border-neutral-600 text-neutral-300 hover:bg-neutral-800 rounded-lg transition-colors duration-200"
                 >
-                  Depois
+                  Já tenho conta
                 </button>
               </div>
             </form>
@@ -193,16 +246,38 @@ function InscricaoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [showInscricao, setShowInscricao] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { platform, isStandalone, markAsInstalled } = usePWA();
+  const router = useRouter();
+
+  // Verificar autenticação
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
     markAsInstalled();
-    // Mostrar modal de inscrição após 1 segundo
-    setTimeout(() => {
-      setShowInscricao(true);
-    }, 1000);
+    
+    // Se usuário não está logado, mostrar modal de inscrição
+    if (!user) {
+      setTimeout(() => {
+        setShowInscricao(true);
+      }, 1000);
+    }
   };
+
+  // Se usuário está logado e não está carregando, redirecionar para dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, isLoading, router]);
 
   return (
     <>
