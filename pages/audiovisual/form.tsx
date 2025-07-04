@@ -3,7 +3,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 import SEOHead from '@/components/SEOHead';
 import PIXQRCode from '@/components/PIXQRCode';
 
@@ -58,12 +58,9 @@ export default function AudiovisualFormPage() {
     motivacao: ''
   });
   const [error, setError] = useState('');
-  const { trackPage, trackFormSubmit, trackAudiovisual } = useAnalytics();
 
-  useEffect(() => {
-    trackPage('audiovisual_form');
-    trackAudiovisual('view_form', 'candidatura_audiovisual');
-  }, [trackPage, trackAudiovisual]);
+
+
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -115,8 +112,7 @@ export default function AudiovisualFormPage() {
       
       await setDoc(doc(db, 'audiovisual', `${Date.now()}-${formData.email}`), audiovisualData);
       
-      trackFormSubmit('formulario_audiovisual');
-      trackAudiovisual('submit_form', `${formData.areaAtuacao}_${formData.cidade}`);
+
       
       setTimeout(() => {
         setCurrentStep('confirmation');

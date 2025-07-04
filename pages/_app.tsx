@@ -3,7 +3,7 @@ import type { AppProps } from 'next/app';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import GoogleAnalytics from '../components/GoogleAnalytics';
+
 import ChatButton from '../components/ChatButton';
 import SplashScreen from '../components/SplashScreen';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
@@ -80,24 +80,10 @@ export default function App({ Component, pageProps }: AppProps) {
     }
   }, []);
 
-  // Função para verificar se deve mostrar splash
+  // Função para verificar se deve mostrar splash (desabilitada - gerenciado pelo index.tsx)
   const shouldShowSplash = useCallback(() => {
-    if (typeof window === 'undefined') return false;
-    
-    try {
-      const platform = detectPlatform();
-      if (!platform) return false;
-
-      const { iOS, safari, isMobile, standalone } = platform;
-      const isInstalled = localStorage.getItem('pwa-installed') === 'true';
-      
-      // Mostrar splash apenas para iOS mobile + Safari que não estão em modo standalone
-      return iOS && safari && isMobile && !standalone && !isInstalled;
-    } catch (error) {
-      console.error('Erro ao verificar splash:', error);
-      return false;
-    }
-  }, [detectPlatform]);
+    return false; // Desabilitado - o intro é gerenciado pelo index.tsx
+  }, []);
 
   // Função para mostrar prompt de instalação
   const triggerInstallPrompt = useCallback(() => {
@@ -161,17 +147,12 @@ export default function App({ Component, pageProps }: AppProps) {
       }
       
       resizeTimeoutRef.current = setTimeout(() => {
+        // Verificação silenciosa do tamanho da tela
         if (typeof window !== 'undefined') {
           const isDesktop = window.innerWidth > 768;
           const isMobilePage = router.pathname === '/acesso-mobile-obrigatorio';
           
-          // Apenas log para debug
-          console.log('Screen size check:', { 
-            isDesktop, 
-            isMobilePage, 
-            pathname: router.pathname,
-            width: window.innerWidth 
-          });
+          // Log removido para limpar console
         }
       }, 250); // 250ms debounce
     };
@@ -240,8 +221,8 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
         <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
         
-        {/* Apple PWA Meta Tags */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* PWA Meta Tags */}
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="CERRADØ" />
         <meta name="apple-mobile-web-app-orientations" content="portrait" />
@@ -281,10 +262,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="color-scheme" content="dark light" />
       </Head>
 
-      {/* Google Analytics - apenas em produção */}
-      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-        <GoogleAnalytics />
-      )}
+
       
       {/* Splash Screen */}
       {showSplash && (

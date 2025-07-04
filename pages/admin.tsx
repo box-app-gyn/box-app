@@ -4,7 +4,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, getDocs, where, orderBy, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import Image from 'next/image';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 
 interface UserData {
   id: string;
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const router = useRouter();
-  const { trackPage, trackAdmin } = useAnalytics();
+
 
   const loadStats = useCallback(async () => {
     try {
@@ -205,19 +205,15 @@ export default function AdminDashboard() {
     return () => unsubscribe();
   }, [router, loadUserData]);
 
-  // Tracking de acesso ao painel admin
+  // Carregar dados admin após o usuário ser carregado
   useEffect(() => {
     if (userData && !loading) {
-      trackPage('admin');
-      trackAdmin('access', userData.email);
-      // Carregar dados admin após o usuário ser carregado
       loadAdminData();
     }
-  }, [userData, loading, trackPage, trackAdmin, loadAdminData]);
+  }, [userData, loading, loadAdminData]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    trackAdmin('tab_change', `${userData?.email}_${tab}`);
     if (tab !== 'overview') {
       loadAdminData();
     }
@@ -226,7 +222,6 @@ export default function AdminDashboard() {
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       await updateDoc(doc(db, 'users', userId), { role: newRole });
-      trackAdmin('update_user_role', `${userData?.email}_${newRole}`);
       await loadUsers();
       await loadStats();
     } catch (error) {
@@ -237,7 +232,6 @@ export default function AdminDashboard() {
   const updateTeamStatus = async (teamId: string, newStatus: string) => {
     try {
       await updateDoc(doc(db, 'teams', teamId), { status: newStatus });
-      trackAdmin('update_team_status', `${userData?.email}_${newStatus}`);
       await loadTeams();
       await loadStats();
     } catch (error) {
@@ -248,7 +242,6 @@ export default function AdminDashboard() {
   const updatePedidoStatus = async (pedidoId: string, newStatus: string) => {
     try {
       await updateDoc(doc(db, 'pedidos', pedidoId), { status: newStatus });
-      trackAdmin('update_pedido_status', `${userData?.email}_${newStatus}`);
       await loadPedidos();
       await loadStats();
     } catch (error) {
@@ -258,7 +251,6 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
-      trackAdmin('logout', userData?.email || 'unknown');
       await signOut(auth);
       router.push('/');
     } catch (error) {
