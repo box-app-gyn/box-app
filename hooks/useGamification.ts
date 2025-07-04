@@ -22,14 +22,14 @@ interface UseGamificationReturn {
   error: string | null;
 
   // Ações
-  addPoints: (action: GamificationAction, metadata?: Record<string, any>) => Promise<{ success: boolean; pointsAdded: number; newTotal: number; newLevel: GamificationLevel }>;
+  addPoints: (action: GamificationAction, metadata?: Record<string, any>) => Promise<{ success: boolean; pointsAdded: number; newTotal: number; newLevel: string }>;
   redeemReward: (rewardId: string) => Promise<{ success: boolean; reward?: FirestoreGamificationReward }>;
   refreshStats: () => Promise<void>;
   refreshLeaderboard: () => Promise<void>;
   refreshRewards: () => Promise<void>;
 
   // Utilitários
-  getLevelInfo: (level: GamificationLevel) => { min: number; max: number; color: string };
+  getLevelInfo: (level: GamificationLevel) => { minPoints: number; maxPoints: number; color: string };
   getLevelProgress: () => { current: number; next: number; percentage: number };
   getAchievementInfo: (achievementId: string) => any;
   getRewardInfo: (rewardId: string) => any;
@@ -171,26 +171,49 @@ export function useGamification(): UseGamificationReturn {
 
   // 📊 UTILITÁRIOS
   const getLevelInfo = useCallback((level: GamificationLevel) => {
-    return GAMIFICATION_LEVELS[level];
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[level.toLowerCase()];
+    return levelKey ? GAMIFICATION_LEVELS[levelKey] : GAMIFICATION_LEVELS.INICIANTE;
   }, []);
 
   const getLevelProgress = useCallback(() => {
     if (!stats) return { current: 0, next: 0, percentage: 0 };
 
-    const currentLevel = GAMIFICATION_LEVELS[stats.level];
-    const current = stats.points - currentLevel.min;
-    const next = currentLevel.max - currentLevel.min;
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[stats.level.toLowerCase()];
+    const currentLevel = levelKey ? GAMIFICATION_LEVELS[levelKey] : GAMIFICATION_LEVELS.INICIANTE;
+    
+    const current = stats.points - currentLevel.minPoints;
+    const next = currentLevel.maxPoints - currentLevel.minPoints;
     const percentage = Math.min((current / next) * 100, 100);
 
     return { current, next, percentage };
   }, [stats]);
 
   const getAchievementInfo = useCallback((achievementId: string) => {
-    return GAMIFICATION_ACHIEVEMENTS.find(achievement => achievement.id === achievementId);
+    return Object.values(GAMIFICATION_ACHIEVEMENTS).find(achievement => achievement.id === achievementId);
   }, []);
 
   const getRewardInfo = useCallback((rewardId: string) => {
-    return GAMIFICATION_REWARDS.find(reward => reward.id === rewardId);
+    return Object.values(GAMIFICATION_REWARDS).find(reward => reward.id === rewardId);
   }, []);
 
   // 🚀 EFEITOS

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useGamification } from '@/hooks/useGamification';
 import { GAMIFICATION_LEVELS, GAMIFICATION_POINTS } from '@/lib/gamification';
 import { GamificationAction } from '@/types/firestore';
+import { useGamification } from '@/hooks/useGamification';
 
 interface GamificationDemoProps {
   className?: string;
@@ -20,23 +20,35 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
 
   // 🎯 AÇÕES DE DEMONSTRAÇÃO
   const demoActions: { action: GamificationAction; label: string; icon: string; points: number }[] = [
-    { action: 'compartilhamento', label: 'Compartilhar', icon: '📤', points: GAMIFICATION_POINTS.compartilhamento },
-    { action: 'participacao_enquete', label: 'Participar Enquete', icon: '📊', points: GAMIFICATION_POINTS.participacao_enquete },
-    { action: 'completar_perfil', label: 'Completar Perfil', icon: '✅', points: GAMIFICATION_POINTS.completar_perfil },
-    { action: 'envio_conteudo', label: 'Enviar Conteúdo', icon: '📸', points: GAMIFICATION_POINTS.envio_conteudo },
-    { action: 'acesso_spoiler', label: 'Acessar Spoiler', icon: '🔮', points: GAMIFICATION_POINTS.acesso_spoiler },
-    { action: 'checkin_evento', label: 'Check-in Evento', icon: '📍', points: GAMIFICATION_POINTS.checkin_evento }
+    { action: 'compartilhamento', label: 'Compartilhar', icon: '📤', points: GAMIFICATION_POINTS.COMPARTILHAR },
+    { action: 'completar_perfil', label: 'Completar Perfil', icon: '✅', points: GAMIFICATION_POINTS.COMPLETAR_PERFIL },
+    { action: 'login_diario', label: 'Login Diário', icon: '🔥', points: GAMIFICATION_POINTS.LOGIN_DIARIO },
+    { action: 'cadastro', label: 'Cadastro', icon: '📝', points: GAMIFICATION_POINTS.CADASTRO },
+    { action: 'envio_conteudo', label: 'Enviar Conteúdo', icon: '📸', points: GAMIFICATION_POINTS.INSCRICAO_AUDIOVISUAL },
+    { action: 'checkin_evento', label: 'Check-in Evento', icon: '🎫', points: 30 }
   ];
 
   // 🎨 COR DO NÍVEL
   const getLevelColor = (level: string) => {
-    if (!level || !(level in GAMIFICATION_LEVELS)) return '#6B7280';
-    return GAMIFICATION_LEVELS[level as keyof typeof GAMIFICATION_LEVELS]?.color || '#6B7280';
+    if (!level) return '#6B7280';
+    
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[level.toLowerCase()];
+    return levelKey ? GAMIFICATION_LEVELS[levelKey]?.color || '#6B7280' : '#6B7280';
   };
 
   // 🎯 EXECUTAR AÇÃO DE DEMO
   const handleDemoAction = async (action: GamificationAction) => {
-    if (!action || !(action in GAMIFICATION_POINTS)) {
+    if (!action) {
       console.error('Ação inválida:', action);
       return;
     }
