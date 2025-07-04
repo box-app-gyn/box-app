@@ -11,7 +11,7 @@ const nextConfig = {
   allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.1.104', '*.local'],
   
   // Configurações para produção
-  output: 'standalone',
+  output: 'export',
   experimental: {
     // Otimizações para Cloud Run
     optimizeCss: true,
@@ -30,65 +30,15 @@ const nextConfig = {
     domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias
+    dangerouslyAllowSVG: false, // Desabilitar SVG por segurança
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Configurações de headers para PWA
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-        ],
-      },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, max-age=0',
-          },
-        ],
-      },
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-    ];
-  },
+
   
-  // Configurações de redirecionamento
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-    ];
-  },
+
   
-  // Configurações de webpack para otimização
+  // Configurações de webpack para otimização e segurança
   webpack: (config, { dev, isServer }) => {
     // Otimizações para produção
     if (!dev && !isServer) {
@@ -99,22 +49,51 @@ const nextConfig = {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all',
+            priority: 10,
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: 5,
           },
         },
+      };
+      
+      // Configurações de segurança
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
+    // Configurações de segurança para desenvolvimento
+    if (dev) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
       };
     }
     
     return config;
   },
   
-  // Configurações de PWA
-  async rewrites() {
-    return [
-      {
-        source: '/sw.js',
-        destination: '/_next/static/sw.js',
-      },
-    ];
+
+  
+  // Configurações de compressão
+  compress: true,
+  
+  // Configurações de performance
+  poweredByHeader: false,
+  
+  // Configurações de segurança
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
   },
 }
 

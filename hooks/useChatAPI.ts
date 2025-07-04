@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useAuth } from './useAuth';
+import { useState, useCallback } from 'react';
 
 export interface ChatMessage {
   id: string;
@@ -37,61 +36,50 @@ export interface FeedbackData {
   feedback?: string;
 }
 
+// Respostas pré-definidas do chat
+const CHAT_RESPONSES: Record<string, string> = {
+  'inscrições': '🔥 As inscrições para o CERRADØ 2025 abrem em breve! Fique ligado nas nossas redes sociais para não perder o prazo. Será um evento épico!',
+  'evento': '🏛️ O CERRADØ 2025 será realizado no Centro de Convenções de Brasília, um local incrível para reunir a comunidade fitness!',
+  'time': '🤝 Para formar seu time, você precisa de 3-5 atletas. Escolha sua categoria e monte seu dream team! Cada membro deve se inscrever individualmente.',
+  'audiovisual': '📸 A categoria audiovisual é perfeita para quem ama fotografia e vídeo! Capture os melhores momentos do evento e concorra a prêmios incríveis.',
+  'categorias': '🏆 Temos várias categorias: Individual, Duplas, Trios, Times (3-5 atletas) e Audiovisual. Cada uma com desafios únicos!',
+  'valores': '💰 Os valores das inscrições variam por categoria. Individual: R$ 150, Duplas: R$ 280, Trios: R$ 390, Times: R$ 600, Audiovisual: R$ 100.',
+  'quando': '📅 O CERRADØ 2025 acontece em março de 2025! As inscrições abrem em janeiro. Não perca essa oportunidade!',
+  'onde': '📍 O evento será no Centro de Convenções de Brasília, um local incrível com toda infraestrutura necessária para um evento épico!',
+  'como': '🎯 Para participar, escolha sua categoria, forme seu time (se aplicável) e aguarde a abertura das inscrições. Será simples e rápido!',
+  'preço': '💎 Os valores são acessíveis: Individual R$ 150, Duplas R$ 280, Trios R$ 390, Times R$ 600, Audiovisual R$ 100. Vale cada centavo!',
+  'inscrever': '📝 As inscrições abrem em janeiro de 2025! Fique ligado nas nossas redes sociais para ser o primeiro a se inscrever!',
+  'local': '🏢 Centro de Convenções de Brasília - um local incrível com toda estrutura necessária para o maior evento fitness do ano!',
+  'data': '🗓️ Março de 2025! Prepare-se para o evento mais épico do ano. As inscrições abrem em janeiro!',
+  'horário': '⏰ O evento acontece durante todo o dia de março de 2025. Programação completa será divulgada em breve!',
+  'regulamento': '📋 O regulamento completo será divulgado junto com as inscrições. Fique ligado nas nossas redes sociais!',
+  'premiação': '🏆 Prêmios incríveis para os campeões! Detalhes da premiação serão divulgados em breve.',
+  'patrocinadores': '💪 Temos patrocinadores incríveis apoiando o evento! Lista completa será divulgada em breve.',
+  'organização': '👥 O CERRADØ é organizado pela equipe INTERBØX, especialistas em eventos fitness de alta qualidade!',
+  'contato': '📞 Entre em contato conosco via WhatsApp ou Instagram @interbox. Estamos sempre disponíveis para ajudar!',
+  'ajuda': '🤝 Estou aqui para ajudar! Pergunte sobre inscrições, categorias, local, valores ou qualquer dúvida sobre o CERRADØ 2025!'
+};
+
+// Função para encontrar a melhor resposta baseada na mensagem
+const findBestResponse = (message: string): string => {
+  const lowerMessage = message.toLowerCase();
+  
+  // Buscar por palavras-chave específicas
+  for (const [keyword, response] of Object.entries(CHAT_RESPONSES)) {
+    if (lowerMessage.includes(keyword)) {
+      return response;
+    }
+  }
+  
+  // Resposta padrão se não encontrar nada específico
+  return '🤖 Oi! Sou o assistente do CERRADØ 2025! Posso te ajudar com informações sobre inscrições, categorias, local, valores e muito mais. O que você gostaria de saber?';
+};
+
 export const useChatAPI = () => {
-  const { user } = useAuth();
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const lastMessageIdRef = useRef<string | null>(null);
-
-  // Função base para fazer requisições
-  const makeRequest = useCallback(async (endpoint: string, options: RequestInit = {}) => {
-    const baseURL = process.env.NODE_ENV === 'production' 
-      ? 'https://us-central1-interbox-app-8d400.cloudfunctions.net'
-      : 'http://localhost:5001/interbox-app-8d400/us-central1';
-
-    const url = `${baseURL}/${endpoint}`;
-    
-    console.log('🔗 Fazendo requisição para:', url);
-    console.log('📦 Dados da requisição:', { endpoint, options });
-    
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    try {
-      console.log('🚀 Iniciando fetch...');
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
-
-      console.log('📡 Resposta recebida:', { status: response.status, ok: response.ok });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Erro na resposta:', errorData);
-        throw new Error(errorData.message || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Dados recebidos:', data);
-      return data;
-    } catch (error) {
-      console.error('💥 Erro na requisição:', error);
-      console.error('🔍 Detalhes do erro:', {
-        message: error instanceof Error ? error.message : 'Erro desconhecido',
-        stack: error instanceof Error ? error.stack : undefined,
-        url,
-        options
-      });
-      throw error;
-    }
-  }, []);
 
   // Enviar mensagem
   const sendMessage = useCallback(async (message: string, context?: string): Promise<ChatResponse> => {
@@ -99,21 +87,18 @@ export const useChatAPI = () => {
     setError(null);
 
     try {
-      const response = await makeRequest('sendMessageFunction', {
-        method: 'POST',
-        body: JSON.stringify({
-          message,
-          context,
-          sessionId: currentSession?.id,
-          userId: user?.uid || 'anonymous'
-        })
-      });
+      // Simular delay de resposta
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+
+      const response = findBestResponse(message);
+      const sessionId = currentSession?.id || `session-${Date.now()}`;
+      const messageId = `msg-${Date.now()}`;
 
       // Adicionar mensagem do usuário
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
-        sessionId: response.sessionId,
-        userId: user?.uid || 'anonymous',
+        sessionId,
+        userId: 'user',
         content: message,
         role: 'user',
         timestamp: new Date()
@@ -121,20 +106,34 @@ export const useChatAPI = () => {
 
       // Adicionar resposta da IA
       const aiMessage: ChatMessage = {
-        id: response.messageId,
-        sessionId: response.sessionId,
+        id: messageId,
+        sessionId,
         userId: 'ai',
-        content: response.response,
+        content: response,
         role: 'assistant',
-        timestamp: new Date(),
-        metadata: response.metadata
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, userMessage, aiMessage]);
-      setCurrentSession(prev => prev ? { ...prev, id: response.sessionId } : null);
-      lastMessageIdRef.current = response.messageId;
+      
+      if (!currentSession) {
+        setCurrentSession({
+          id: sessionId,
+          userId: 'user',
+          context: context || 'cerrado-interbox-2025',
+          status: 'active',
+          createdAt: new Date(),
+          lastActivity: new Date(),
+          messageCount: 2
+        });
+      }
 
-      return response;
+      return {
+        success: true,
+        response,
+        sessionId,
+        messageId
+      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);
@@ -142,138 +141,64 @@ export const useChatAPI = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [makeRequest, currentSession?.id, user?.uid]);
+  }, [currentSession?.id]);
 
   // Criar nova sessão
   const createSession = useCallback(async (context?: string): Promise<ChatSession> => {
-    try {
-      const response = await makeRequest('createSessionFunction', {
-        method: 'POST',
-        body: JSON.stringify({
-          context,
-          userId: user?.uid || 'anonymous'
-        })
-      });
+    const session: ChatSession = {
+      id: `session-${Date.now()}`,
+      userId: 'user',
+      context: context || 'cerrado-interbox-2025',
+      status: 'active',
+      createdAt: new Date(),
+      lastActivity: new Date(),
+      messageCount: 0
+    };
 
-      setCurrentSession(response.session);
-      setMessages([]);
-      lastMessageIdRef.current = null;
+    setCurrentSession(session);
+    setMessages([]);
 
-      return response.session;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      setError(errorMessage);
-      throw error;
-    }
-  }, [makeRequest, user?.uid]);
-
-  // Buscar histórico
-  const loadHistory = useCallback(async (sessionId: string) => {
-    try {
-      const response = await makeRequest(`getChatHistoryFunction?sessionId=${sessionId}&userId=${user?.uid || 'anonymous'}`);
-      
-      setMessages(response.history);
-      lastMessageIdRef.current = response.history[response.history.length - 1]?.id || null;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      setError(errorMessage);
-    }
-  }, [makeRequest, user?.uid]);
-
-  // Salvar feedback
-  const saveFeedback = useCallback(async (feedbackData: Omit<FeedbackData, 'userId'>) => {
-    try {
-      await makeRequest('saveFeedbackFunction', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...feedbackData,
-          userId: user?.uid || 'anonymous'
-        })
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      setError(errorMessage);
-      throw error;
-    }
-  }, [makeRequest, user?.uid]);
-
-  // Polling para novas mensagens
-  const startPolling = useCallback(() => {
-    if (!currentSession?.id || isPolling) return;
-
-    setIsPolling(true);
-    pollingIntervalRef.current = setInterval(async () => {
-      try {
-        const response = await makeRequest(
-          `pollMessagesFunction?sessionId=${currentSession.id}&userId=${user?.uid || 'anonymous'}&lastMessageId=${lastMessageIdRef.current || ''}`
-        );
-
-        if (response.messages && response.messages.length > 0) {
-          setMessages(prev => {
-            const newMessages = response.messages.filter(
-              (msg: ChatMessage) => !prev.find(existing => existing.id === msg.id)
-            );
-            return [...prev, ...newMessages];
-          });
-
-          lastMessageIdRef.current = response.messages[response.messages.length - 1]?.id || null;
-        }
-      } catch (error) {
-        console.error('Erro no polling:', error);
-      }
-    }, 3000); // Poll a cada 3 segundos
-  }, [makeRequest, currentSession?.id, user?.uid, isPolling]);
-
-  const stopPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-    setIsPolling(false);
+    return session;
   }, []);
 
-  // Limpar chat
-  const clearChat = useCallback(() => {
+  // Buscar histórico (não implementado no chat simples)
+  const loadHistory = useCallback(async (sessionId: string) => {
+    // Não implementado no chat simples
+    console.log('Histórico não disponível no chat simples');
+  }, []);
+
+  // Salvar feedback (não implementado no chat simples)
+  const saveFeedback = useCallback(async (feedbackData: Omit<FeedbackData, 'userId'>) => {
+    // Não implementado no chat simples
+    console.log('Feedback não disponível no chat simples');
+  }, []);
+
+  // Polling (não necessário no chat simples)
+  const startPolling = useCallback(() => {
+    // Não implementado no chat simples
+  }, []);
+
+  const stopPolling = useCallback(() => {
+    // Não implementado no chat simples
+  }, []);
+
+  // Limpar mensagens
+  const clearMessages = useCallback(() => {
     setMessages([]);
-    setCurrentSession(null);
     setError(null);
-    lastMessageIdRef.current = null;
-    stopPolling();
-  }, [stopPolling]);
-
-  // Iniciar polling quando sessão estiver ativa
-  useEffect(() => {
-    if (currentSession?.id && !isPolling) {
-      startPolling();
-    }
-
-    return () => {
-      stopPolling();
-    };
-  }, [currentSession?.id, startPolling, stopPolling, isPolling]);
-
-  // Limpar polling quando componente for desmontado
-  useEffect(() => {
-    return () => {
-      stopPolling();
-    };
-  }, [stopPolling]);
+  }, []);
 
   return {
-    // Estado
     messages,
-    currentSession,
     isLoading,
     error,
-    isPolling,
-
-    // Ações
+    currentSession,
     sendMessage,
     createSession,
     loadHistory,
     saveFeedback,
-    clearChat,
     startPolling,
-    stopPolling
+    stopPolling,
+    clearMessages
   };
 }; 

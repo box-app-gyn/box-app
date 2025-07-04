@@ -279,16 +279,19 @@ security:
 ```
 
 #### **Erro 404 - Imagens não encontradas**
+
 - Verificar se arquivo existe em `public/images/`
 - Limpar cache do navegador
 - Aguardar propagação do deploy
 
 #### **Deploy não atualiza**
+
 - Verificar `firebase.json` com `backendId` correto
 - Usar `firebase deploy --only apphosting:git-box-app`
 - Aguardar 2-3 minutos para propagação
 
 #### **Commit muito grande no GitHub**
+
 - Usar searchbox para encontrar arquivos específicos
 - Fazer commits menores e mais frequentes
 - Dividir mudanças em PRs separados
@@ -476,6 +479,7 @@ npm run setup:macos
 ```
 
 ### Git e Versionamento
+
 ```bash
 # Verificar status
 git status

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 
 export default function TestImages() {
   const [imageStatus, setImageStatus] = useState<Record<string, string>>({});
 
-  const testImages = [
+  const testImages = useMemo(() => [
     '/logos/logo_circulo.png',
     '/logos/oficial_logo.png',
     '/logos/nome_hrz.png',
@@ -12,7 +12,7 @@ export default function TestImages() {
     '/images/twolines.png',
     '/images/liner.png',
     '/qrcode_cerrado.png'
-  ];
+  ], []);
 
   useEffect(() => {
     testImages.forEach(src => {
@@ -25,7 +25,7 @@ export default function TestImages() {
       };
       img.src = src;
     });
-  }, []);
+  }, [testImages]);
 
   return (
     <div className="min-h-screen bg-black text-white p-8">
