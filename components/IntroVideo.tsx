@@ -65,7 +65,6 @@ export default function IntroVideo({ onFinish }: IntroVideoProps) {
           playsInline
         >
           <source src="/videos/intro.mp4" type="video/mp4" />
-          <source src="/videos/intro 2.mp4" type="video/mp4" />
           Seu navegador não suporta vídeos.
         </video>
 

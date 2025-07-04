@@ -1,36 +1,14 @@
 import React, { useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 import SEOHead from '@/components/SEOHead';
 
 export default function Audiovisual() {
-  const { trackPage, trackCTA, trackScroll } = useAnalytics();
 
-  // Tracking de visualização da página audiovisual
-  useEffect(() => {
-    trackPage('audiovisual');
-  }, [trackPage]);
-
-  // Tracking de scroll na página audiovisual
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercentage = Math.round((scrollY / pageHeight) * 100);
-      
-      // Rastrear scroll a cada 25% da página
-      if (scrollPercentage > 0 && scrollPercentage % 25 === 0) {
-        trackScroll('audiovisual_page', scrollPercentage);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [trackScroll]);
 
   const handleParticipateClick = () => {
-    trackCTA('QUERO PARTICIPAR', '/audiovisual');
+    // Função vazia para manter compatibilidade
   };
 
   return (

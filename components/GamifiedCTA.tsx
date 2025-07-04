@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useCallback } from 'react';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 
 interface GamifiedCTAProps {
   children: React.ReactNode;
@@ -66,7 +66,7 @@ export default function GamifiedCTA({
   tooltipText = "VOCÊ FOI ESCOLHIDO",
   onClick 
 }: GamifiedCTAProps) {
-  const { trackCTA } = useAnalytics();
+
   const [showTooltip, setShowTooltip] = useState(false);
 
   // Validar e sanitizar props
@@ -78,14 +78,11 @@ export default function GamifiedCTA({
   const isValid = sanitizedHref !== '#';
 
   const handleClick = useCallback(() => {
-    // Rastrear clique no CTA
-    trackCTA(children as string, window.location.pathname);
-    
     // Executar onClick customizado se fornecido
     if (onClick) {
       onClick();
     }
-  }, [children, onClick, trackCTA]);
+  }, [onClick]);
 
   const handleHoverStart = useCallback(() => {
     if (sanitizedTooltipText) {

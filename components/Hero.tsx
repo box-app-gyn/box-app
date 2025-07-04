@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import GamifiedCTA from './GamifiedCTA';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 
 function useDeviceParallax(ref: React.RefObject<HTMLDivElement>) {
   useEffect(() => {
@@ -22,7 +22,7 @@ function useDeviceParallax(ref: React.RefObject<HTMLDivElement>) {
 
 export default function Hero() {
   const logoRef = useRef<HTMLDivElement>(null);
-  const { trackPage, trackScroll } = useAnalytics();
+
   const [strobeActive, setStrobeActive] = useState(false);
   useDeviceParallax(logoRef);
 
@@ -36,25 +36,7 @@ export default function Hero() {
     return () => clearInterval(strobeInterval);
   }, []);
 
-  // Tracking de visualização da página inicial
-  useEffect(() => {
-    trackPage('home');
-  }, [trackPage]);
 
-  // Tracking de scroll na seção hero
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const heroHeight = window.innerHeight;
-      
-      if (scrollY > heroHeight * 0.5) {
-        trackScroll('hero_section', Math.round((scrollY / heroHeight) * 100));
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [trackScroll]);
 
   return (
     <section className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-6 text-white">

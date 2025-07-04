@@ -2,20 +2,18 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import CerradoChat from './CerradoChat';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 
 export default function ChatButton() {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { trackAudiovisual } = useAnalytics();
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
-    trackAudiovisual('open_chat', 'chat_button_click');
   };
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
-    trackAudiovisual('close_chat', 'chat_close');
   };
 
   return (
