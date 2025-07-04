@@ -127,3 +127,5 @@ node_modules/
 # Temporary folders
 tmp/
 temp/
+
+._*

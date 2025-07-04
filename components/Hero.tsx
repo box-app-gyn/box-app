@@ -155,7 +155,7 @@ export default function Hero() {
             tooltipText="O PORTAL ESTÁ ABERTO"
             className="btn-neon-pulse px-8 py-3"
           >
-            ACESSAR A ARENA
+            ACESSAR COMUNIDADE
           </GamifiedCTA>
         </motion.div>
         <motion.div
