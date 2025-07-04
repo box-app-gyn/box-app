@@ -32,18 +32,26 @@ export type StatusPatrocinador = 'ativo' | 'pendente' | 'inativo' | 'cancelado';
 
 // 🎯 GAMIFICAÇÃO CAMADA 1 - Tipos de ação que geram pontos
 export type GamificationAction = 
-  | 'cadastro'           // +10 XP
-  | 'indicacao_confirmada' // +50 XP
-  | 'compra_ingresso'    // +100 XP
-  | 'envio_conteudo'     // +75 XP
-  | 'qr_scan_evento'     // +25 XP (variável)
-  | 'prova_extra'        // +50 XP (variável)
-  | 'participacao_enquete' // +15 XP
-  | 'acesso_spoiler'     // +20 XP
-  | 'checkin_evento'     // +30 XP
-  | 'compartilhamento'   // +10 XP
-  | 'login_diario'       // +5 XP
-  | 'completar_perfil'   // +25 XP;
+  | 'CADASTRO'           // +10 XP
+  | 'LOGIN_DIARIO'       // +5 XP
+  | 'COMPLETAR_PERFIL'   // +25 XP
+  | 'CRIAR_TIME'         // +50 XP
+  | 'ENTRAR_TIME'        // +30 XP
+  | 'CONVIDAR_ATLETA'    // +15 XP
+  | 'ACEITAR_CONVITE'    // +25 XP
+  | 'COMPLETAR_TIME'     // +100 XP
+  | 'INSCRICAO_AUDIOVISUAL' // +40 XP
+  | 'APROVACAO_AUDIOVISUAL' // +60 XP
+  | 'INSCRICAO_EVENTO'   // +80 XP
+  | 'PAGAMENTO_CONFIRMADO' // +120 XP
+  | 'PRIMEIRA_VEZ'       // +25 XP
+  | 'STREAK_7_DIAS'      // +50 XP
+  | 'STREAK_30_DIAS'     // +200 XP
+  | 'REFERRAL'           // +30 XP
+  | 'VISITAR_APP'        // +2 XP
+  | 'COMPARTILHAR'       // +10 XP
+  | 'FEEDBACK'           // +15 XP
+  | 'AVALIAR'            // +10 XP;
 
 // Níveis de gamificação
 export type GamificationLevel = 

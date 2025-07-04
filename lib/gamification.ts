@@ -478,7 +478,7 @@ export const gamificationService = {
   // 🎁 OBTER RECOMPENSAS DISPONÍVEIS
   async getAvailableRewards(level: string, points: number): Promise<any[]> {
     return Object.values(GAMIFICATION_REWARDS).filter(reward => {
-      if (reward.requiredLevel) {
+      if ('requiredLevel' in reward && reward.requiredLevel) {
         const levelMap: Record<string, number> = {
           'iniciante': 0,
           'bronze': 1,
@@ -487,7 +487,7 @@ export const gamificationService = {
           'platina': 4,
           'diamante': 5
         };
-        return levelMap[level] >= levelMap[reward.requiredLevel];
+        return levelMap[level] >= levelMap[(reward as any).requiredLevel];
       }
       return true;
     });

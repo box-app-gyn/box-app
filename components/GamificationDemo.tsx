@@ -20,12 +20,12 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
 
   // 🎯 AÇÕES DE DEMONSTRAÇÃO
   const demoActions: { action: GamificationAction; label: string; icon: string; points: number }[] = [
-    { action: 'compartilhamento', label: 'Compartilhar', icon: '📤', points: GAMIFICATION_POINTS.COMPARTILHAR },
-    { action: 'completar_perfil', label: 'Completar Perfil', icon: '✅', points: GAMIFICATION_POINTS.COMPLETAR_PERFIL },
-    { action: 'login_diario', label: 'Login Diário', icon: '🔥', points: GAMIFICATION_POINTS.LOGIN_DIARIO },
-    { action: 'cadastro', label: 'Cadastro', icon: '📝', points: GAMIFICATION_POINTS.CADASTRO },
-    { action: 'envio_conteudo', label: 'Enviar Conteúdo', icon: '📸', points: GAMIFICATION_POINTS.INSCRICAO_AUDIOVISUAL },
-    { action: 'checkin_evento', label: 'Check-in Evento', icon: '🎫', points: 30 }
+    { action: 'COMPARTILHAR', label: 'Compartilhar', icon: '📤', points: GAMIFICATION_POINTS.COMPARTILHAR },
+    { action: 'COMPLETAR_PERFIL', label: 'Completar Perfil', icon: '✅', points: GAMIFICATION_POINTS.COMPLETAR_PERFIL },
+    { action: 'LOGIN_DIARIO', label: 'Login Diário', icon: '🔥', points: GAMIFICATION_POINTS.LOGIN_DIARIO },
+    { action: 'CADASTRO', label: 'Cadastro', icon: '📝', points: GAMIFICATION_POINTS.CADASTRO },
+    { action: 'INSCRICAO_AUDIOVISUAL', label: 'Enviar Conteúdo', icon: '📸', points: GAMIFICATION_POINTS.INSCRICAO_AUDIOVISUAL },
+    { action: 'VISITAR_APP', label: 'Check-in Evento', icon: '🎫', points: GAMIFICATION_POINTS.VISITAR_APP }
   ];
 
   // 🎨 COR DO NÍVEL

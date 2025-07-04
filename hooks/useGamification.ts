@@ -100,7 +100,7 @@ export function useGamification(): UseGamificationReturn {
         setStats({
           ...stats,
           points: result.newTotal,
-          level: result.newLevel,
+          level: result.newLevel as GamificationLevel,
           totalActions: stats.totalActions + 1
         });
       }
@@ -238,7 +238,7 @@ export function useGamification(): UseGamificationReturn {
         const today = new Date().toDateString();
 
         if (lastLogin !== today) {
-          await addPoints('login_diario');
+          await addPoints('LOGIN_DIARIO');
           localStorage.setItem(`daily_login_${user.uid}`, today);
         }
       } catch (err) {
