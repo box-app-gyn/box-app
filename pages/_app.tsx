@@ -66,24 +66,20 @@ export default function App({ Component, pageProps }: AppProps) {
         const isDesktop = window.innerWidth > 768;
         const isMobilePage = router.pathname === '/acesso-mobile-obrigatorio';
         
-        // Se for desktop e não estiver na página de acesso mobile, redirecionar
-        if (isDesktop && !isMobilePage) {
-          router.push('/acesso-mobile-obrigatorio');
-          return;
-        }
-        
-        // Se for mobile e estiver na página de acesso mobile, redirecionar para home
-        if (!isDesktop && isMobilePage) {
-          router.push('/');
-          return;
-        }
+        // Apenas log para debug
+        console.log('Screen size check:', { 
+          isDesktop, 
+          isMobilePage, 
+          pathname: router.pathname,
+          width: window.innerWidth 
+        });
       }
     };
 
     // Verificar tamanho da tela inicialmente
     checkScreenSize();
 
-    // Listener para redimensionamento da janela
+    // Listener para redimensionamento da janela (mantido para debug)
     const handleResize = () => {
       checkScreenSize();
     };
@@ -134,7 +130,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         {/* Headers de Segurança */}
-        <meta httpEquiv="X-Frame-Options" content="DENY" />
+        {/* <meta httpEquiv="X-Frame-Options" content="DENY" /> Removido pois só funciona via header HTTP */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
         <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
@@ -168,11 +164,11 @@ export default function App({ Component, pageProps }: AppProps) {
         {/* Content Security Policy */}
         <meta httpEquiv="Content-Security-Policy" content={`
           default-src 'self';
-          script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
+          script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.gstatic.com;
           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
           font-src 'self' https://fonts.gstatic.com;
-          img-src 'self' data: https: blob: https://firebasestorage.googleapis.com;
-          connect-src 'self' https://api.flowpay.com.br https://www.google-analytics.com https://firestore.googleapis.com;
+          img-src 'self' data: https: blob: https://firebasestorage.googleapis.com https://www.google-analytics.com;
+          connect-src 'self' https://api.flowpay.com.br https://www.google-analytics.com https://analytics.google.com https://firestore.googleapis.com https://firebase.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com;
           frame-src 'none';
           object-src 'none';
           base-uri 'self';
@@ -184,7 +180,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
         
         {/* Prevenção de clickjacking */}
-        <meta httpEquiv="X-Frame-Options" content="DENY" />
+        {/* <meta httpEquiv="X-Frame-Options" content="DENY" /> Removido pois só funciona via header HTTP */}
         
         {/* Configurações de privacidade */}
         <meta name="robots" content="index, follow" />

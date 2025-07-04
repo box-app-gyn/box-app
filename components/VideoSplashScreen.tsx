@@ -13,14 +13,19 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
   const [videoError, setVideoError] = useState(false);
   const [showLogo, setShowLogo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     // Mostrar logo após 1 segundo
     const logoTimer = setTimeout(() => {
       setShowLogo(true);
     }, 1000);
 
-    return () => clearTimeout(logoTimer);
+    return () => {
+      isMounted.current = false;
+      clearTimeout(logoTimer);
+    };
   }, []);
 
   const handleVideoLoad = () => {
@@ -30,16 +35,14 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
   const handleVideoError = () => {
     setVideoError(true);
     setIsLoading(false);
-    // Se o vídeo falhar, mostrar splash por 3 segundos
     setTimeout(() => {
-      onComplete();
+      if (isMounted.current) onComplete();
     }, 3000);
   };
 
   const handleVideoEnd = () => {
-    // Aguardar um pouco antes de completar
     setTimeout(() => {
-      onComplete();
+      if (isMounted.current) onComplete();
     }, 500);
   };
 
@@ -152,7 +155,7 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
         </motion.button>
 
         {/* Progress Bar */}
-        {!isLoading && !videoError && videoRef.current && (
+        {!isLoading && !videoError && videoRef.current && videoRef.current.duration > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
