@@ -1,28 +1,20 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, User, signInWithPopup, GoogleAuthProvider, signOut as firebaseSignOut } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
-export function useAuth() {
+export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasWatchedIntro, setHasWatchedIntro] = useState(false);
 
   useEffect(() => {
+    setHasWatchedIntro(localStorage.getItem('intro_watched') === 'true');
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
-
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    return await signInWithPopup(auth, provider);
-  };
-
-  const signOut = async () => {
-    await firebaseSignOut(auth);
-  };
-
-  return { user, loading, signInWithGoogle, signOut };
-} 
+  return { user, loading, hasWatchedIntro, setHasWatchedIntro };
+}; 

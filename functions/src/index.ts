@@ -1,14 +1,10 @@
 // Firebase Functions - CERRADØ INTERBOX 2025
 import * as functions from 'firebase-functions';
-import admin from 'firebase-admin';
+import { authenticateUser } from './legacy/middleware/auth';
 import { sendMessageFunction } from './legacy/chat';
 
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
-
-// Exportar apenas a função de chat que existe
-export { sendMessageFunction };
+// Exportar funções
+export { sendMessageFunction, authenticateUser };
 
 // Função temporária para testar deploy
 export const testFunction = functions.https.onRequest((req, res) => {

@@ -440,6 +440,7 @@ npm run deploy:full
 
 # Deploy manual (legado)
 firebase deploy --only apphosting:git-box-app
+firebase deploy --only hosting
 
 # Verificar backends
 firebase apphosting:backends:list

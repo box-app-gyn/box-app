@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { handleAuthError } from '../utils/errorHandler';
 import { getValidatedUserType } from '../utils/storage';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // interface Team {
 //   id: string;
@@ -29,6 +30,14 @@ interface UserData {
 }
 
 export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);

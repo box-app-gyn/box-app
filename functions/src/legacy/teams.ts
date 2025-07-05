@@ -21,7 +21,9 @@ interface RespostaConviteData {
 }
 
 // Função para enviar convite para time
-export const enviarConviteTime = functions.https.onCall(async (data: ConviteTimeData, context: functions.https.CallableContext) => {
+export const enviarConviteTime = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const context = request;
   const contextData = { userId: context.auth?.uid };
   
   try {
@@ -110,7 +112,9 @@ export const enviarConviteTime = functions.https.onCall(async (data: ConviteTime
 });
 
 // Função para responder a convite
-export const responderConviteTime = functions.https.onCall(async (data: RespostaConviteData, context: functions.https.CallableContext) => {
+export const responderConviteTime = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const context = request;
   const contextData = { userId: context.auth?.uid };
   
   try {
@@ -199,7 +203,9 @@ export const responderConviteTime = functions.https.onCall(async (data: Resposta
 });
 
 // Função para listar convites do usuário
-export const listarConvitesUsuario = functions.https.onCall(async (data: { userId: string }, context: functions.https.CallableContext) => {
+export const listarConvitesUsuario = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const context = request;
   const contextData = { userId: context.auth?.uid };
   
   try {
@@ -242,7 +248,9 @@ export const listarConvitesUsuario = functions.https.onCall(async (data: { userI
 });
 
 // Função para cancelar convite (apenas capitão)
-export const cancelarConviteTime = functions.https.onCall(async (data: { conviteId: string }, context: functions.https.CallableContext) => {
+export const cancelarConviteTime = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const context = request;
   const contextData = { userId: context.auth?.uid };
   
   try {

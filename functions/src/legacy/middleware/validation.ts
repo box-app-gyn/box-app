@@ -1,3 +1,5 @@
+import { User } from 'firebase/auth';
+
 export interface ValidationResult {
   isValid: boolean;
   errors?: string[];

@@ -3,10 +3,12 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useAuth } from '../hooks/useAuth';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<{
     displayName?: string;
@@ -16,6 +18,16 @@ export default function HomePage() {
     providerData?: Array<{ providerId?: string }>;
     loginTime?: number;
   } | null>(null);
+
+  // Redireciona para página de QR code se for desktop
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isMobile = /iphone|ipad|ipod|android|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
+      if (!isMobile) {
+        router.replace('/acesso-mobile-obrigatorio');
+      }
+    }
+  }, [router]);
 
   useEffect(() => {
     // Verificar se está logado
@@ -60,8 +72,8 @@ export default function HomePage() {
     localStorage.removeItem('authenticated');
     localStorage.removeItem('user');
     localStorage.removeItem('intro_watched'); // Reset intro também
-    signOut();
-    router.replace('/');
+    signOut(auth);
+    router.replace('/login');
   };
 
   const handleContinue = () => {
@@ -111,7 +123,7 @@ export default function HomePage() {
 
           {/* User Info */}
           <div className="max-w-md mx-auto bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">👤 Informações do Usuário</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">�� Informações do Usuário</h2>
             {userData && (
               <div className="space-y-3 text-white">
                 <div className="flex items-center space-x-3">
