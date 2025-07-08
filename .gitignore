@@ -52,9 +52,28 @@ docs/VARIABLES-REAIS.md
 .vscode/
 .idea/
 
-# OS
-Thumbs.db
+# Cursor IDE
+.cursor/
+.cursor/._*
+._cursor*
+.cursorrules
+
+# OS - macOS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*/.DS_Store
+*/.AppleDouble
+*/LSOverride
+
+# OS - Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Logs
 logs
@@ -127,18 +146,3 @@ node_modules/
 # Temporary folders
 tmp/
 temp/
-
-# macOS hidden files
-._*
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# macOS metadata
-*/.DS_Store
-*/.AppleDouble
-*/LSOverride

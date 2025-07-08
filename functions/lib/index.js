@@ -32,19 +32,14 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.testFunction = exports.sendMessageFunction = void 0;
+exports.testFunction = exports.authenticateUser = exports.sendMessageFunction = void 0;
 // Firebase Functions - CERRADØ INTERBOX 2025
 const functions = __importStar(require("firebase-functions"));
-const firebase_admin_1 = __importDefault(require("firebase-admin"));
+const auth_1 = require("./legacy/middleware/auth");
+Object.defineProperty(exports, "authenticateUser", { enumerable: true, get: function () { return auth_1.authenticateUser; } });
 const chat_1 = require("./legacy/chat");
 Object.defineProperty(exports, "sendMessageFunction", { enumerable: true, get: function () { return chat_1.sendMessageFunction; } });
-if (!firebase_admin_1.default.apps.length) {
-    firebase_admin_1.default.initializeApp();
-}
 // Função temporária para testar deploy
 exports.testFunction = functions.https.onRequest((req, res) => {
     res.json({ message: 'Função temporária funcionando!' });

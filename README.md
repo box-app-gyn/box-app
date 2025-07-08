@@ -306,11 +306,53 @@ security:
 
 ## 📝 Scripts Disponíveis
 
-- `npm run dev` - Desenvolvimento
+### 🚀 **Desenvolvimento:**
+- `npm run dev` - Desenvolvimento com Turbopack
+- `npm run dev:mobile` - Desenvolvimento mobile (0.0.0.0:3000)
+- `npm run dev:mobile:https` - Desenvolvimento mobile com HTTPS
+- `npm run ip` - Obter IP local para desenvolvimento
+
+### 🧹 **Limpeza e Manutenção:**
+- `npm run cleanup` - Limpar arquivos macOS (._*, .DS_Store)
+- `npm run clean` - Limpeza geral do projeto
+- `npm run clean:all` - Limpeza completa + reinstalação
+- `npm run clean:cache` - Limpar cache npm e Next.js
+- `npm run clean:macos` - Limpar arquivos macOS existentes
+- `npm run prevent:macos` - Configurar proteção macOS
+- `npm run setup:macos` - Setup completo de proteção
+
+### 🔒 **Segurança e Validação:**
+- `npm run security:check` - Verificar vulnerabilidades
+- `npm run security:fix` - Corrigir vulnerabilidades
+- `npm run validate-firestore` - Validar configurações Firestore
+- `npm run check-permissions` - Verificar sistema de permissões
+- `npm run validate-sitemap` - Validar sitemap
+- `npm run validate-images` - Validar imagens
+
+### 📦 **Build e Deploy:**
 - `npm run build` - Build de produção
+- `npm run build:analyze` - Build com análise de bundle
 - `npm run start` - Servidor de produção
-- `npm run lint` - Linting
-- `npm run type-check` - Verificação de tipos
+- `npm run deploy:direct` - Deploy direto (recomendado)
+- `npm run deploy:rollout` - Deploy com rollout gradual
+- `npm run deploy:full` - Deploy completo (app + funções)
+- `npm run deploy:pwa` - Deploy PWA específico
+
+### 🔍 **Qualidade de Código:**
+- `npm run lint` - Linting com ESLint
+- `npm run type-check` - Verificação de tipos TypeScript
+- `npm run format` - Formatação com Prettier
+- `npm run format:check` - Verificar formatação
+
+### 📊 **Dependências:**
+- `npm run deps:update` - Atualizar dependências
+- `npm run deps:check` - Verificar dependências desatualizadas
+
+### 🧪 **Testes e PWA:**
+- `npm run test` - Executar testes (configurar)
+- `npm run test:watch` - Testes em modo watch
+- `npm run test:pwa` - Testar funcionalidades PWA
+- `npm run check:pwa` - Verificar configuração PWA
 
 ## 🎨 Customização
 
@@ -477,6 +519,27 @@ npm run prevent:macos
 
 # Setup completo
 npm run setup:macos
+
+# Limpeza rápida (novo)
+npm run cleanup
+```
+
+### 🔒 **Segurança e Validação:**
+```bash
+# Verificar vulnerabilidades
+npm run security:check
+
+# Validar Firestore
+npm run validate-firestore
+
+# Verificar permissões
+npm run check-permissions
+
+# Validar sitemap
+npm run validate-sitemap
+
+# Validar imagens
+npm run validate-images
 ```
 
 ### Git e Versionamento

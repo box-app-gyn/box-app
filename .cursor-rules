@@ -1,0 +1,226 @@
+# .cursorrules - Configuração para React/Next.js + Firebase
+# Cole este arquivo inteiro na raiz do seu projeto
+
+## IDENTIFICAÇÃO DO PROJETO
+# Stack: React/Next.js + TypeScript + Firebase + Tailwind
+# Database: Firestore
+# Deployment: Vercel/Netlify
+
+## COMO O SISTEMA FUNCIONA
+# O Cursor lê este arquivo e automaticamente:
+# 1. Identifica o nível de risco pela localização do arquivo
+# 2. Aplica as regras correspondentes
+# 3. Pede aprovação quando necessário
+
+## NÍVEL 1 - ALTERAÇÕES AUTOMÁTICAS (Sem aprovação)
+# Pode alterar livremente:
+- src/components/**/*.{tsx,ts,jsx,js} (apenas UI e styling)
+- src/styles/**/*.{css,scss,module.css}
+- src/types/**/*.{ts,d.ts}
+- src/utils/**/*.{ts,js} (funções puras)
+- src/constants/**/*.{ts,js}
+- *.md (documentação)
+- Comentários em qualquer arquivo
+- Formatação e linting
+- Tailwind classes
+- Imports e exports básicos
+
+## NÍVEL 2 - REVISÃO OBRIGATÓRIA (Mostrar antes/depois)
+# Deve explicar E mostrar código:
+- src/pages/**/*.{tsx,ts} (páginas Next.js)
+- src/app/**/*.{tsx,ts} (App Router Next.js 13+)
+- src/hooks/**/*.{ts,js} (custom hooks)
+- src/context/**/*.{tsx,ts} (React Context)
+- src/lib/**/*.{ts,js} (bibliotecas auxiliares)
+- next.config.js (configurações não-críticas)
+- tailwind.config.js (configurações de design)
+- tsconfig.json (configurações TypeScript)
+- Lógica de estado complexa
+- Integrações com APIs externas
+
+## NÍVEL 3 - APROVAÇÃO MANUAL OBRIGATÓRIA (Crítico)
+# NUNCA altere sem aprovação explícita:
+- src/lib/firebase.{ts,js} (configuração Firebase)
+- firestore.rules (regras de segurança)
+- firebase.json (configuração do projeto)
+- src/pages/api/**/*.{ts,js} (API routes)
+- src/app/api/**/*.{ts,js} (API routes App Router)
+- package.json (dependências)
+- .env* (variáveis de ambiente)
+- middleware.{ts,js} (middleware Next.js)
+- Estruturas de coleções Firestore
+- Configurações de autenticação
+- Regras de segurança
+- Configurações de deploy
+
+## REGRAS ESPECÍFICAS PARA FIRESTORE
+
+### COLEÇÕES (Sempre Nível 3)
+- users → Aprovação manual obrigatória
+- products → Aprovação manual obrigatória  
+- orders → Aprovação manual obrigatória
+- Qualquer nova coleção → Aprovação manual
+
+### ANTES de alterar Firestore:
+1. **MOSTRAR** estrutura atual da coleção
+2. **MOSTRAR** estrutura proposta
+3. **EXPLICAR** impacto em dados existentes
+4. **SUGERIR** estratégia de migração
+5. **ALERTAR** sobre possível perda de dados
+6. **AGUARDAR** confirmação explícita
+
+## PROCESSO OBRIGATÓRIO
+
+### PARA NÍVEL 2 (Revisão):
+```
+🔍 REVISÃO NECESSÁRIA
+
+ARQUIVO: [nome do arquivo]
+ALTERAÇÃO: [breve descrição]
+
+ANTES:
+[código atual]
+
+DEPOIS:
+[código proposto]
+
+IMPACTO: [explicação]
+PODE PROSSEGUIR? (s/n)
+```
+
+### PARA NÍVEL 3 (Crítico):
+```
+🚨 APROVAÇÃO CRÍTICA NECESSÁRIA
+
+TIPO: [Firebase/API/Config/etc]
+ARQUIVOS: [lista completa]
+RESUMO: [o que vai fazer]
+
+CÓDIGO ANTES:
+[código atual completo]
+
+CÓDIGO DEPOIS:
+[código proposto completo]
+
+IMPACTO:
+- [impacto 1]
+- [impacto 2]
+
+RISCOS:
+- [risco 1]
+- [risco 2]
+
+COMO REVERTER:
+- [passo 1]
+- [passo 2]
+
+PRECISO DE APROVAÇÃO EXPLÍCITA!
+Digite "APROVADO" para continuar:
+```
+
+## PROTEÇÕES ESPECÍFICAS DO REACT/NEXT.JS
+
+### COMPONENTES
+- Sempre mantenha props tipadas
+- Preserve estrutura de pastas
+- Mantenha padrões de nomenclatura
+- Não quebre componentes existentes
+
+### PÁGINAS E ROTAS
+- Não altere URLs existentes sem avisar
+- Preserve parâmetros de rota
+- Mantenha SEO metadata
+- Não quebre navegação
+
+### HOOKS
+- Mantenha assinatura de hooks existentes
+- Preserve dependencies arrays
+- Não altere comportamento de hooks em uso
+
+### ESTADO
+- Não altere estruturas de state em uso
+- Preserve Context providers
+- Mantenha compatibilidade com componentes
+
+## SINAIS DE ALERTA CRÍTICOS
+Se detectar qualquer um desses, PARE imediatamente:
+- Deletar coleções Firestore
+- Alterar firestore.rules
+- Modificar autenticação
+- Mudar API endpoints em produção
+- Alterar variáveis de ambiente
+- Modificar configurações de build
+- Quebrar rotas existentes
+
+## COMANDOS ESPECIAIS
+
+### Para solicitar alteração crítica:
+"Quero alterar [X]. Mostre-me o processo completo antes de fazer qualquer mudança."
+
+### Para forçar aprovação:
+"APROVADO - pode prosseguir com a alteração proposta"
+
+### Para criar backup:
+"Crie backup antes de alterar [X]"
+
+## INTEGRAÇÃO COM FIREBASE
+
+### Regras de Segurança:
+- Sempre validar autenticação
+- Nunca permitir write público
+- Sempre validar dados de entrada
+- Preservar estruturas existentes
+
+### Coleções Firestore:
+```javascript
+// Estrutura padrão que deve ser preservada
+users: {
+  id: string,
+  email: string,
+  createdAt: timestamp,
+  // ... outros campos
+}
+
+products: {
+  id: string,
+  name: string,
+  price: number,
+  // ... outros campos
+}
+```
+
+## BACKUP AUTOMÁTICO
+Criar backup antes de alterar:
+- firestore.rules
+- firebase.json
+- src/lib/firebase.ts
+- package.json
+- .env files
+
+## TESTES OBRIGATÓRIOS
+Sempre sugerir testes para:
+- Alterações em hooks
+- Mudanças em Context
+- Modificações em utils
+- Integrações Firebase
+
+## EXEMPLO DE USO CORRETO
+
+❌ **ERRADO:**
+```
+Cursor altera firestore.rules diretamente sem mostrar
+```
+
+✅ **CORRETO:**
+```
+Cursor: "🚨 Detectei que você quer alterar firestore.rules. 
+Isso é uma alteração crítica. Vou mostrar exatamente o que 
+pretendo alterar e aguardar sua aprovação explícita..."
+```
+
+## CONFIGURAÇÃO FINAL
+Este arquivo deve estar na raiz do projeto junto com:
+- package.json
+- next.config.js
+- tsconfig.json
+- .env.local

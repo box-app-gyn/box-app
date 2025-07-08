@@ -81,6 +81,12 @@ export default function Login() {
     }
   }, [recaptchaVerifier]);
 
+  useEffect(() => {
+    if (!loading && !user && router.pathname !== '/login') {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -92,7 +98,7 @@ export default function Login() {
     }
 
     const sanitizedEmail = sanitizeInput(email);
-    const sanitizedPassword = password; // Senha não precisa sanitizar
+    const sanitizedPassword = password; // Senha não precisa sanitizar  
 
     if (!sanitizedEmail || !sanitizedPassword) {
       setError('Preencha todos os campos');

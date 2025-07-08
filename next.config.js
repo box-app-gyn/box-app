@@ -10,11 +10,10 @@ const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.1.104', '*.local'],
   
-  // Configurações para produção
-  output: 'export',
+  // Configurações para produção (removido output: 'export' para evitar conflito com API routes)
   experimental: {
-    // Otimizações para Cloud Run
-    optimizeCss: true,
+    // Otimizações para Cloud Run (desabilitado temporariamente)
+    // optimizeCss: true,
     optimizePackageImports: ['framer-motion', 'lucide-react'],
   },
   
@@ -33,10 +32,6 @@ const nextConfig = {
     dangerouslyAllowSVG: false, // Desabilitar SVG por segurança
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  
-
-  
-
   
   // Configurações de webpack para otimização e segurança
   webpack: (config, { dev, isServer }) => {
@@ -81,8 +76,6 @@ const nextConfig = {
     
     return config;
   },
-  
-
   
   // Configurações de compressão
   compress: true,

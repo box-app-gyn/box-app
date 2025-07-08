@@ -17,18 +17,21 @@ npm run dev:mobile:https
 ```
 
 ### 3. Acessar no Mobile
+
 - **HTTP**: `http://192.168.1.104:3000`
 - **HTTPS**: URL fornecida pelo ngrok
 
 ## 📋 Checklist de Teste PWA
 
 ### ✅ Splash Screen
+
 - [ ] Vídeo `/videos/intro.mp4` carrega
 - [ ] Loading spinner aparece
 - [ ] Botão "Pular" funciona
 - [ ] Logo overlay aparece
 
 ### ✅ Instalação PWA
+
 - [ ] Toast iOS aparece (Safari)
 - [ ] Banner Android aparece (Chrome)
 - [ ] Instruções específicas por plataforma

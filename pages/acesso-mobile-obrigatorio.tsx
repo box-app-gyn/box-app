@@ -1,13 +1,6 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
-import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
-
-registerRoute(
-  ({request}) => request.destination === 'image',
-  new StaleWhileRevalidate()
-);
 
 export default function AcessoMobileObrigatorio() {
   const [copied, setCopied] = useState(false);
