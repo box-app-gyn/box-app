@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate } from 'workbox-strategies';
+
+registerRoute(
+  ({request}) => request.destination === 'image',
+  new StaleWhileRevalidate()
+);
 
 export default function AcessoMobileObrigatorio() {
   const [copied, setCopied] = useState(false);
@@ -33,13 +40,13 @@ export default function AcessoMobileObrigatorio() {
           className="absolute inset-0"
           priority
         />
-        <div className="relative max-w-md w-full bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center border border-white/20 shadow-2xl overflow-hidden z-10">
+        <div className="relative max-w-md w-full bg-white/10 backdrop-blur-lg rounded-2xl p-5 text-center border border-white/20 shadow-2xl overflow-hidden z-10">
           {/* Decoração de canto */}
           <Image
             src="/images/corner.png"
             alt="Decoração de canto"
-            width={120}
-            height={40}
+            width={90}
+            height={90}
             className="absolute top-0 left-0 z-10"
             style={{ pointerEvents: 'none', width: 'auto', height: 'auto' }}
             priority
@@ -48,11 +55,11 @@ export default function AcessoMobileObrigatorio() {
           <div className="mb-6">
             <div className="flex items-center justify-center mx-auto mb-4">
               <Image
-                src="/logos/nome_hrz.png"
+                src="/logos/oficial_logo.png"
                 alt="Cerrado Interbox"
-                width={200}
-                height={60}
-                className="h-12 w-auto"
+                width={400}
+                height={400}
+                className="h-40 w-auto"
                 priority
               />
             </div>
@@ -78,6 +85,26 @@ export default function AcessoMobileObrigatorio() {
                 height={200}
                 className="rounded-lg"
                 priority
+                unoptimized
+                style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+                onError={(e) => {
+                  console.error('Erro ao carregar QR code:', e);
+                  // Fallback para texto se a imagem falhar
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = document.createElement('div');
+                  fallback.innerHTML = '📱 QR Code<br/>Escaneie com seu celular';
+                  fallback.className = 'text-center text-gray-600 font-semibold';
+                  fallback.style.width = '200px';
+                  fallback.style.height = '200px';
+                  fallback.style.display = 'flex';
+                  fallback.style.alignItems = 'center';
+                  fallback.style.justifyContent = 'center';
+                  target.parentNode?.appendChild(fallback);
+                }}
+                onLoad={() => {
+                  console.log('QR code carregado com sucesso');
+                }}
               />
             </div>
           </div>
