@@ -64,6 +64,9 @@ docs/VARIABLES-REAIS.md
 ._*
 .Spotlight-V100
 .Trashes
+
+# Backups completos (muito grandes para git)
+backups/full-static-backup-*/
 ehthumbs.db
 Thumbs.db
 */.DS_Store
