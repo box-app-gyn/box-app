@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 interface IntroVideoProps {
   onFinish: () => void;
@@ -71,16 +72,18 @@ export default function IntroVideo({ onFinish }: IntroVideoProps) {
         {/* Overlay com logo e texto */}
         <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-center justify-center">
           <div className="text-center text-white">
-            <img 
+            <Image 
               src="/logos/logo_circulo.png" 
               alt="CERRADØ" 
+              width={128}
+              height={128}
               className="w-32 h-32 mx-auto mb-6 animate-pulse"
             />
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               CERRADØ
             </h1>
             <p className="text-xl md:text-2xl mb-8">
-              INTERBOX 2025
+              INTERBØX.GAMES 2025
             </p>
             
             {!isPlaying && (

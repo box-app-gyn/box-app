@@ -88,7 +88,7 @@ export class ChatService {
     } else if (userMessage.includes('comunidade') || userMessage.includes('whatsapp') || userMessage.includes('link')) {
       return "O link da comunidade oficial do WhatsApp será divulgado em breve! 📱 Fique atento às nossas redes sociais (@cerradointerbox) para receber o convite em primeira mão. Lá você receberá todas as novidades sobre inscrições, treinos e preparação para o evento. É onde a comunidade CERRADØ se conecta! 🤝";
     } else if (userMessage.includes('categoria') || userMessage.includes('nível')) {
-      return "Temos categorias para todos os níveis: Iniciante, Scale, Amador, Master 145+ e Rx! 🏆 Cada categoria tem suas especificidades e movimentos. A definição completa será divulgada junto com as inscrições. Aqui não há limites, apenas superação! 💪";
+      return "Temos categorias para todos os níveis: Iniciante, Scale, Amador, Master 145+ e RX! 🏆 Cada categoria tem suas especificidades e movimentos. A definição completa será divulgada junto com as inscrições. Aqui não há limites, apenas superação! 💪";
     } else if (userMessage.includes('time') || userMessage.includes('formar')) {
       return "Para participar, você precisa formar seu time de 4 atletas (2 homens + 2 mulheres) da mesma box! 🤝 Comece a treinar junto, fortaleça os laços e prepare-se para assumir seu chamado no CERRADØ INTERBOX 2025! É sobre união, superação e história! 🔥";
     } else if (userMessage.includes('valor') || userMessage.includes('preço') || userMessage.includes('custo')) {

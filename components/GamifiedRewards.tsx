@@ -19,7 +19,7 @@ function sanitizeText(text: string): string {
 
 export default function GamifiedRewards({
   title = "🎁 Recompensas",
-  subtitle = "Resgate seus prêmios exclusivos",
+  subtitle = "Resgate seus prêmios exclusivos.",
   className = ""
 }: GamifiedRewardsProps) {
   const { availableRewards, stats, loading, redeemReward } = useGamification();

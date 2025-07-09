@@ -14,6 +14,7 @@ export default function PIXQRCode({ valor, categoria, onPaymentSuccess, onPaymen
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'error'>('pending');
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutos
   const [showInstructions, setShowInstructions] = useState(false);
+  // const [error, setError] = useState(''); // Removido para evitar erro de lint - não usado
 
   useEffect(() => {
     if (timeLeft > 0 && paymentStatus === 'pending') {

@@ -14,7 +14,7 @@ export default function LogoSelo() {
     >
       <Image
         src="/logos/logo_circulo.png"
-        alt="Selo Interbox 2025"
+        alt="Selo INTERBØX.GAMES"
         width={128}
         height={128}
         priority

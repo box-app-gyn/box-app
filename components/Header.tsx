@@ -209,7 +209,7 @@ export default function Header() {
                     transition={{ delay: 0.2 }}
                   >
                     <Image src="/logos/nome_hrz.png"
-                      alt="Interbox 2025"
+                      alt="CERRADØ INTERBØX"
                       width={100}
                       height={30}
                       className="filter brightness-110"

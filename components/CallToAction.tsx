@@ -9,7 +9,7 @@ export function AudiovisualInvite() {
   return (
     <section className="w-full py-8 bg-black border-t border-neutral-700 flex flex-col items-center justify-center">
       <h1 className="text-xl md:text-3xl font-bold text-white mb-1 text-center">
-        Fotógrafos, videomakers, criadores e mídia:
+        Fotógrafos, videomakers, criators e mídia:
       </h1>
       <h3 className="text-base md:text-xl font-bold text-white mb-4 text-center">
         Quer fazer parte da cobertura oficial do evento?

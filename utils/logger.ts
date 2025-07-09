@@ -42,7 +42,7 @@ const LOG_CONFIG = {
 
 // Buffer para logs remotos
 let logBuffer: Array<{ level: string; message: string; data: any; context?: LogContext }> = [];
-let batchTimeout: NodeJS.Timeout | null = null;
+  let batchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Função para gerar ID único
 function generateRequestId(): string {

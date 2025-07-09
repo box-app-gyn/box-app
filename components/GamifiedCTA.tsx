@@ -32,7 +32,7 @@ function validateAndSanitizeUrl(url: string): string {
       const urlObj = new URL(trimmedUrl);
       // Permitir apenas domínios confiáveis
       const allowedDomains = [
-        'interbox.com.br',
+        'cerradointerbox.com.br',
         'flowpay.com.br',
         'firebaseapp.com',
         'googleapis.com',

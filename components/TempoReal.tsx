@@ -237,12 +237,12 @@ const TempoReal: React.FC = () => {
             className="rounded-xl p-6 border border-pink-500/50 bg-pink-500/10"
           >
             <div className="text-center">
-              <p className="text-sm text-gray-400 mb-2">⭐ XP Total</p>
+                              <p className="text-sm text-gray-400 mb-2">⭐ $BOX Total</p>
               <p className="text-2xl font-bold text-pink-400 mb-1">
                 {data.xp.total.toLocaleString()}
               </p>
               <p className="text-xs text-gray-500">
-                Média: {data.xp.media} XP
+                Média: {data.xp.media} $BOX
               </p>
             </div>
           </motion.div>

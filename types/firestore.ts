@@ -16,7 +16,7 @@ export type ConviteStatus = 'pendente' | 'aceito' | 'recusado' | 'cancelado' | '
 export type AudiovisualTipo = 'fotografo' | 'videomaker' | 'editor' | 'drone' | 'audio' | 'iluminacao';
 
 // Categorias de competição
-export type CategoriaCompeticao = 'Scale' | 'RX' | 'Elite';
+export type CategoriaCompeticao = 'Iniciante' | 'Scale' | 'Amador' | 'Master 145+' | 'RX';
 
 // Lotes de inscrição
 export type LoteInscricao = 'pre_venda' | 'primeiro' | 'segundo' | 'terceiro' | 'quarto' | 'quinto';
@@ -32,35 +32,35 @@ export type StatusPatrocinador = 'ativo' | 'pendente' | 'inativo' | 'cancelado';
 
 // 🎯 GAMIFICAÇÃO CAMADA 1 - Tipos de ação que geram pontos
 export type GamificationAction = 
-  | 'CADASTRO'           // +10 XP
-  | 'LOGIN_DIARIO'       // +5 XP
-  | 'COMPLETAR_PERFIL'   // +25 XP
-  | 'CRIAR_TIME'         // +50 XP
-  | 'ENTRAR_TIME'        // +30 XP
-  | 'CONVIDAR_ATLETA'    // +15 XP
-  | 'ACEITAR_CONVITE'    // +25 XP
-  | 'COMPLETAR_TIME'     // +100 XP
-  | 'INSCRICAO_AUDIOVISUAL' // +40 XP
-  | 'APROVACAO_AUDIOVISUAL' // +60 XP
-  | 'INSCRICAO_EVENTO'   // +80 XP
-  | 'PAGAMENTO_CONFIRMADO' // +120 XP
-  | 'PRIMEIRA_VEZ'       // +25 XP
-  | 'STREAK_7_DIAS'      // +50 XP
-  | 'STREAK_30_DIAS'     // +200 XP
-  | 'REFERRAL'           // +30 XP
-  | 'VISITAR_APP'        // +2 XP
-  | 'COMPARTILHAR'       // +10 XP
-  | 'FEEDBACK'           // +15 XP
-  | 'AVALIAR'            // +10 XP;
+  | 'CADASTRO'           // +10 $BOX
+  | 'LOGIN_DIARIO'       // +5 $BOX
+  | 'COMPLETAR_PERFIL'   // +25 $BOX
+  | 'CRIAR_TIME'         // +50 $BOX
+  | 'ENTRAR_TIME'        // +30 $BOX
+  | 'CONVIDAR_ATLETA'    // +15 $BOX
+  | 'ACEITAR_CONVITE'    // +25 $BOX
+  | 'COMPLETAR_TIME'     // +100 $BOX
+  | 'INSCRICAO_AUDIOVISUAL' // +40 $BOX
+  | 'APROVACAO_AUDIOVISUAL' // +60 $BOX
+  | 'INSCRICAO_EVENTO'   // +80 $BOX
+  | 'PAGAMENTO_CONFIRMADO' // +120 $BOX
+  | 'PRIMEIRA_VEZ'       // +25 $BOX
+  | 'STREAK_7_DIAS'      // +50 $BOX
+  | 'STREAK_30_DIAS'     // +200 $BOX
+  | 'REFERRAL'           // +30 $BOX
+  | 'VISITAR_APP'        // +2 $BOX
+  | 'COMPARTILHAR'       // +10 $BOX
+  | 'FEEDBACK'           // +15 $BOX
+  | 'AVALIAR'            // +10 $BOX;
 
 // Níveis de gamificação
 export type GamificationLevel = 
-  | 'iniciante'    // 0-99 XP
-  | 'bronze'       // 100-299 XP
-  | 'prata'        // 300-599 XP
-  | 'ouro'         // 600-999 XP
-  | 'platina'      // 1000-1999 XP
-  | 'diamante'     // 2000+ XP;
+  | 'iniciante'    // 0-99 $BOX
+  | 'bronze'       // 100-299 $BOX
+  | 'prata'        // 300-599 $BOX
+  | 'ouro'         // 600-999 $BOX
+  | 'platina'      // 1000-1999 $BOX
+  | 'diamante'     // 2000+ $BOX;
 
 // Status de recompensa
 export type RewardStatus = 'disponivel' | 'resgatada' | 'expirada';
@@ -89,7 +89,7 @@ export interface FirestoreUser {
   };
   // 🎯 GAMIFICAÇÃO CAMADA 1
   gamification?: {
-    points: number;                    // Pontos totais (XP)
+    points: number;                    // Pontos totais ($BOX)
     level: GamificationLevel;          // Nível atual
     totalActions: number;              // Total de ações realizadas
     lastActionAt?: Timestamp;          // Última ação realizada

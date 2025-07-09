@@ -20,10 +20,10 @@ export default function Footer() {
       {/* Footer */}
       <div className="mt-32 text-sm border-t border-neutral-800 pt-6 w-full text-center">
         <p className="text-white">
-          © {new Date().getFullYear()} Cerrado Interbox. Todos os direitos reservados.
+          © {new Date().getFullYear()} CERRADØ INTERBØX. Todos os direitos reservados.
         </p>
         <p className="mt-1 italic text-neutral-500">
-          Desenvolvido por Protocolo <span className="text-pink-500">NEØ</span>
+          Desenvolvido por Protocolo <span className="text-pink-500">NEØ / MELLØ</span>
         </p>
         <div className="mt-4 space-x-4">
           <Link 

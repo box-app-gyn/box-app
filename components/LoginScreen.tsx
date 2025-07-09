@@ -20,10 +20,10 @@ export default function LoginScreen({ onSuccess, onError }: LoginScreenProps) {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      onSuccess && onSuccess();
-    } catch (err: any) {
+      if (onSuccess) onSuccess();
+    } catch (err: unknown) {
       setError('Erro ao fazer login. Verifique suas credenciais.');
-      onError && onError(err.message);
+      if (onError) onError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
     }
@@ -35,10 +35,10 @@ export default function LoginScreen({ onSuccess, onError }: LoginScreenProps) {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      onSuccess && onSuccess();
-    } catch (err: any) {
+      if (onSuccess) onSuccess();
+    } catch (err: unknown) {
       setError('Erro ao fazer login com Google.');
-      onError && onError(err.message);
+      if (onError) onError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
     }
@@ -50,14 +50,14 @@ export default function LoginScreen({ onSuccess, onError }: LoginScreenProps) {
         <div className="text-center mb-8">
           <Image
             src="/logos/oficial_logo.png"
-            alt="Interbox 2025 Logo"
+            alt="CERRADØ INTERBØX"
             width={120}
             height={120}
             className="mx-auto mb-4 drop-shadow-[0_2px_12px_rgba(255,27,221,0.7)]"
             style={{ width: 'auto', height: 'auto' }}
             priority
           />
-          <h1 className="text-3xl font-bold text-white mb-2">INTERBØX 2025</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">INTERBØX.GAMES</h1>
           <p className="text-pink-400 font-tech">Aqui você acessa o ecossistema.</p>
         </div>
         <form onSubmit={handleEmailLogin} className="space-y-4">

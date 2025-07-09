@@ -18,7 +18,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     const video = videoRef.current;
     if (!video) return;
 
-    let failTimeout: NodeJS.Timeout | null = null;
+    let failTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const handleVideoEnd = () => {
       setVideoEnded(true);

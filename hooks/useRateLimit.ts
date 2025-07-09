@@ -78,7 +78,7 @@ export const useRateLimit = (config: RateLimitConfig | number = DEFAULT_MAX_ATTE
   });
 
   // Refs para evitar race conditions
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const isUnmountingRef = useRef(false);
 
   // Persistir estado no localStorage de forma segura

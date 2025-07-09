@@ -393,103 +393,159 @@ export interface GamificationData {
   referralCode: string;
   referrals: string[];
   referralPoints: number;
+  position?: number;
 }
 
 export interface GamificationActionData {
   action: GamificationAction;
   points: number;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // =====================================
 // SERVIÇO DE GAMIFICAÇÃO
 // =====================================
 
+import { doc, getDoc, updateDoc, collection, getDocs, query, orderBy, limit as firestoreLimit, increment, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebase';
+import { FirestoreGamificationReward, FirestoreGamificationLeaderboard } from '@/types/firestore';
+
 export const gamificationService = {
   // 🎯 OBTER ESTATÍSTICAS DO USUÁRIO
-  async getUserStats(userId: string): Promise<any> {
-    // Implementação básica - retorna dados mock para demonstração
-    return {
-      points: 150,
-      level: 'bronze',
-      totalActions: 12,
-      achievements: ['first_blood', 'profile_complete'],
-      rewards: [],
-      streakDays: 3,
-      position: 42
-    };
+  async getUserStats(userId: string): Promise<GamificationData> {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        // Retornar dados padrão para usuário novo
+        return {
+          points: 0,
+          level: 'iniciante',
+          totalActions: 0,
+          lastActionAt: new Date(),
+          achievements: [],
+          rewards: [],
+          streakDays: 0,
+          lastLoginStreak: new Date(),
+          referralCode: '',
+          referrals: [],
+          referralPoints: 0
+        };
+      }
+      const userData = userDoc.data();
+      const gamificationData = userData.gamification || {};
+      return {
+        points: gamificationData.points || 0,
+        level: gamificationData.level || 'iniciante',
+        totalActions: gamificationData.totalActions || 0,
+        lastActionAt: gamificationData.lastActionAt?.toDate() || new Date(),
+        achievements: gamificationData.achievements || [],
+        rewards: gamificationData.rewards || [],
+        streakDays: gamificationData.streakDays || 0,
+        lastLoginStreak: gamificationData.lastLoginStreak?.toDate() || new Date(),
+        referralCode: gamificationData.referralCode || '',
+        referrals: gamificationData.referrals || [],
+        referralPoints: gamificationData.referralPoints || 0
+      };
+    } catch (error) {
+      console.error('Erro ao obter estatísticas do usuário:', error);
+      return {
+        points: 0,
+        level: 'iniciante',
+        totalActions: 0,
+        lastActionAt: new Date(),
+        achievements: [],
+        rewards: [],
+        streakDays: 0,
+        lastLoginStreak: new Date(),
+        referralCode: '',
+        referrals: [],
+        referralPoints: 0
+      };
+    }
   },
 
   // 🏅 OBTER RANKING
-  async getLeaderboard(limit: number = 10): Promise<any[]> {
-    // Implementação básica - retorna ranking mock
-    return Array.from({ length: limit }, (_, i) => ({
-      id: `user_${i + 1}`,
-      userId: `user_${i + 1}`,
-      userEmail: `user${i + 1}@example.com`,
-      userName: `Atleta ${i + 1}`,
-      points: 1000 - (i * 50),
-      level: i < 2 ? 'diamante' : i < 5 ? 'platina' : i < 8 ? 'ouro' : 'prata',
-      totalActions: 50 - i,
-      streakDays: 10 - i,
-      position: i + 1
-    }));
+  async getLeaderboard(limit: number = 10): Promise<FirestoreGamificationLeaderboard[]> {
+    try {
+      const leaderboardQuery = query(
+        collection(db, 'gamification_leaderboard'),
+        orderBy('points', 'desc'),
+        firestoreLimit(limit)
+      );
+      const leaderboardSnapshot = await getDocs(leaderboardQuery);
+      return leaderboardSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as FirestoreGamificationLeaderboard[];
+    } catch (error) {
+      console.error('Erro ao obter ranking:', error);
+      return [];
+    }
   },
 
   // 🎯 ADICIONAR PONTOS
-  async addPoints(
-    userId: string, 
-    userEmail: string, 
-    userName: string, 
-    action: GamificationAction, 
-    metadata?: Record<string, any>
-  ): Promise<{ success: boolean; pointsAdded: number; newTotal: number; newLevel: string }> {
-    const pointsToAdd = GAMIFICATION_POINTS[action] || 0;
-    
-    // Simular adição de pontos
-    const currentPoints = 150; // Mock
-    const newTotal = currentPoints + pointsToAdd;
-    const newLevel = calculateLevel(newTotal);
-    
-    return {
-      success: true,
-      pointsAdded: pointsToAdd,
-      newTotal,
-      newLevel
-    };
+  async addPoints(userId: string, action: GamificationAction): Promise<{ success: boolean; pointsAdded: number; newTotal: number; newLevel: string }> {
+    try {
+      const pointsToAdd = GAMIFICATION_POINTS[action] || 0;
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const currentPoints = userDoc.exists() ? (userDoc.data().gamification?.points || 0) : 0;
+      const newTotal = currentPoints + pointsToAdd;
+      const newLevel = calculateLevel(newTotal);
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        'gamification.points': increment(pointsToAdd),
+        'gamification.level': newLevel,
+        'gamification.totalActions': increment(1),
+        'gamification.lastActionAt': serverTimestamp()
+      });
+      return {
+        success: true,
+        pointsAdded: pointsToAdd,
+        newTotal,
+        newLevel
+      };
+    } catch (error) {
+      console.error('Erro ao adicionar pontos:', error);
+      return {
+        success: false,
+        pointsAdded: 0,
+        newTotal: 0,
+        newLevel: 'iniciante'
+      };
+    }
   },
 
   // 🎁 RESGATAR RECOMPENSA
-  async redeemReward(
-    userId: string, 
-    userEmail: string, 
-    userName: string, 
-    rewardId: string
-  ): Promise<{ success: boolean; reward?: any }> {
-    const reward = Object.values(GAMIFICATION_REWARDS).find(r => r.id === rewardId);
-    
-    return {
-      success: !!reward,
-      reward
-    };
+  async redeemReward(userId: string, rewardId: string): Promise<{ success: boolean; reward?: FirestoreGamificationReward }> {
+    try {
+      const rewardDoc = await getDoc(doc(db, 'gamification_rewards', rewardId));
+      if (!rewardDoc.exists()) return { success: false };
+      const reward = { id: rewardDoc.id, ...rewardDoc.data() } as FirestoreGamificationReward;
+      // Verificar se o usuário já resgatou esta recompensa
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const userRewards = userDoc.exists() ? (userDoc.data().gamification?.rewards || []) : [];
+      if (userRewards.includes(rewardId)) return { success: false };
+      // Adicionar recompensa ao usuário
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        'gamification.rewards': [...userRewards, rewardId]
+      });
+      return { success: true, reward };
+    } catch (error) {
+      console.error('Erro ao resgatar recompensa:', error);
+      return { success: false };
+    }
   },
 
   // 🎁 OBTER RECOMPENSAS DISPONÍVEIS
-  async getAvailableRewards(level: string, points: number): Promise<any[]> {
-    return Object.values(GAMIFICATION_REWARDS).filter(reward => {
-      if ('requiredLevel' in reward && reward.requiredLevel) {
-        const levelMap: Record<string, number> = {
-          'iniciante': 0,
-          'bronze': 1,
-          'prata': 2,
-          'ouro': 3,
-          'platina': 4,
-          'diamante': 5
-        };
-        return levelMap[level] >= levelMap[(reward as any).requiredLevel];
-      }
-      return true;
-    });
+  async getAvailableRewards(level: string): Promise<FirestoreGamificationReward[]> {
+    try {
+      const rewardsSnapshot = await getDocs(collection(db, 'gamification_rewards'));
+      if (rewardsSnapshot.empty) return [];
+      return rewardsSnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as FirestoreGamificationReward))
+        .filter(reward => reward.isActive && reward.requiredLevel.toLowerCase() === level.toLowerCase());
+    } catch (error) {
+      console.error('Erro ao obter recompensas:', error);
+      return [];
+    }
   }
 }; 

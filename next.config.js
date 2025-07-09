@@ -8,35 +8,27 @@ const nextConfig = {
   },
   trailingSlash: false,
   reactStrictMode: true,
-  allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.1.104', '*.local'],
   
-  // Configurações para produção (removido output: 'export' para evitar conflito com API routes)
-  experimental: {
-    // Otimizações para Cloud Run (desabilitado temporariamente)
-    // optimizeCss: true,
-    optimizePackageImports: ['framer-motion', 'lucide-react'],
-  },
+  // Configuração para export estático (Firebase Hosting)
+  output: 'export',
   
-  // Configurações de compressão
+  // Configurações de produção
   compress: true,
-  
-  // Configurações de cache
   generateEtags: true,
+  poweredByHeader: false,
   
-  // Configurações de imagens
+  // Configurações de imagens otimizadas
   images: {
-    unoptimized: true,
+    unoptimized: true, // Necessário para export estático
     domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias
-    dangerouslyAllowSVG: false, // Desabilitar SVG por segurança
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Configurações de webpack para otimização e segurança
+  // Configurações de webpack para produção
   webpack: (config, { dev, isServer }) => {
-    // Otimizações para produção
     if (!dev && !isServer) {
+      // Otimizações para produção
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
@@ -54,40 +46,16 @@ const nextConfig = {
           },
         },
       };
-      
-      // Configurações de segurança
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    
-    // Configurações de segurança para desenvolvimento
-    if (dev) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
     }
     
     return config;
   },
   
-  // Configurações de compressão
-  compress: true,
-  
   // Configurações de performance
-  poweredByHeader: false,
-  
-  // Configurações de segurança
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
 }
 
-module.exports = nextConfig 
+export default nextConfig 

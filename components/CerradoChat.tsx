@@ -76,8 +76,8 @@ export default function CerradoChat({ isOpen, onClose }: CerradoChatProps) {
                   />
                 </div>
                 <div>
-                  <h3 className="font-bold">INTERBØX Assistant</h3>
-                  <p className="text-xs opacity-90">Seu guia no CERRADØ 2025</p>
+                  <h3 className="font-bold">Assistente bot INTERBØX</h3>
+                  <p className="text-xs opacity-90">Respostas rápidas sobre o evento</p>
                 </div>
               </div>
               <button

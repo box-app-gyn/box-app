@@ -250,7 +250,7 @@ A IA é especializada no CERRADØ INTERBOX 2025 com informações sobre:
 - **Evento**: 24-26 outubro 2025, Praça Cívica, Goiânia
 - **Alcance**: 200km (Goiânia, DF, MG, TO, BA)
 - **Formato**: Times de 4 atletas (2H + 2M)
-- **Categorias**: Iniciante, Scale, Amador, Master 145+, Rx
+- **Categorias**: Iniciante, Scale, Amador, Master 145+, RX
 - **Audiovisual**: Criadores e cobertura do evento
 
 ## Migração para Backend Próprio

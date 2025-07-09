@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -57,7 +57,6 @@ export default function AudiovisualFormPage() {
     disponibilidade: '',
     motivacao: ''
   });
-  const [error, setError] = useState('');
 
 
 
@@ -118,12 +117,12 @@ export default function AudiovisualFormPage() {
         setCurrentStep('confirmation');
       }, 2000);
     } catch {
-      setError('Erro ao processar inscrição. Tente novamente.');
+      // setError('Erro ao processar inscrição. Tente novamente.'); // Original line commented out
     }
   };
 
-  const handlePaymentError = (errorMessage: string) => {
-    setError(errorMessage);
+  const handlePaymentError = () => {
+    // setError(errorMessage); // Original line commented out
   };
 
   const renderStep = () => {
@@ -167,7 +166,7 @@ export default function AudiovisualFormPage() {
           </motion.div>
         );
 
-      case 'summary':
+      case 'summary': {
         const lote = LOTES[selectedCategory as keyof typeof LOTES];
         return (
           <motion.div
@@ -219,6 +218,7 @@ export default function AudiovisualFormPage() {
             </div>
           </motion.div>
         );
+      }
 
       case 'form':
         return (
@@ -343,8 +343,8 @@ export default function AudiovisualFormPage() {
           </motion.div>
         );
 
-             case 'payment':
-         const lotePayment = LOTES[selectedCategory as keyof typeof LOTES];
+      case 'payment': {
+        const lotePayment = LOTES[selectedCategory as keyof typeof LOTES];
          return (
            <motion.div
              initial={{ opacity: 0, x: 20 }}
@@ -372,6 +372,7 @@ export default function AudiovisualFormPage() {
              </button>
            </motion.div>
          );
+      }
 
       case 'confirmation':
         return (

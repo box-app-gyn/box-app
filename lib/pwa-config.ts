@@ -18,7 +18,7 @@ export const PWA_UTILS = {
   // Verificar se está em modo standalone (instalado)
   isStandalone(): boolean {
     return window.matchMedia('(display-mode: standalone)').matches ||
-           (window.navigator as any).standalone === true;
+           (window.navigator as { standalone?: boolean }).standalone === true;
   },
 
   // Verificar se pode instalar

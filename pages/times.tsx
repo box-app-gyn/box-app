@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import GamifiedCTA from '../components/GamifiedCTA';
 import Header from '../components/Header';
@@ -55,7 +55,7 @@ const TimesPage: React.FC = () => {
                 <h3 className="text-lg md:text-xl font-bold text-green-400 mb-2">📏 Regras de participação</h3>
                 <ul className="list-disc list-inside text-green-100 space-y-1 ml-4">
                   <li>Idade mínima: 18 anos (menores podem participar com autorização dos pais/responsáveis)</li>
-                  <li>Categorias: Iniciante, Scale, Amador, Master 145+, Rx</li>
+                  <li>Categorias: Iniciante, Scale, Amador, Master 145+, RX</li>
                   <li>Alterações no time: até o momento do check-in</li>
                   <li className="text-xs text-green-300">
                     Obs: Alterações feitas a menos de um mês do evento podem não garantir kit personalizado (ex: tamanho de camisa).

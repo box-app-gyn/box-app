@@ -32,7 +32,7 @@ export default function InstallInstructions({ isVisible, onClose }: InstallInstr
               Como Instalar
             </h2>
             <p className="text-gray-600">
-              Siga os passos abaixo para adicionar o CERRADØ à sua tela inicial
+              Siga os passos abaixo para adicionar o INTERBØX.GAMES à sua tela inicial
             </p>
           </div>
 

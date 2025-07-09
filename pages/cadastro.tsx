@@ -551,7 +551,7 @@ export default function Cadastro() {
 
                 <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4">
                   <p className="text-pink-300 text-sm">
-                    🎯 <strong>Bônus:</strong> Você ganhará <strong>10 XP</strong> por criar sua conta!
+                    🎯 <strong>Bônus:</strong> Você ganhará <strong>10 $BOX</strong> por criar sua conta!
                   </p>
                 </div>
               </motion.div>

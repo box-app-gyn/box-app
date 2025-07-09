@@ -19,6 +19,7 @@ import { db } from '../lib/firebase';
 import { sanitizeInput } from '../utils/sanitize';
 import { handleAuthError } from '../utils/errorHandler';
 import { useRateLimit } from '../hooks/useRateLimit';
+import { UserType } from '../constants';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -32,7 +33,7 @@ export default function Login() {
   const [showMFA, setShowMFA] = useState(false);
   const [verificationId, setVerificationId] = useState('');
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
-  const [userType, setUserType] = useState<'atleta' | 'audiovisual'>('atleta');
+  const [userType, setUserType] = useState<UserType>('atleta');
   const router = useRouter();
   const { checkRateLimit, attempts, maxAttempts } = useRateLimit();
 
@@ -316,7 +317,7 @@ export default function Login() {
                           name="userType"
                           value="atleta"
                           checked={userType === 'atleta'}
-                          onChange={(e) => setUserType(e.target.value as 'atleta' | 'audiovisual')}
+                          onChange={(e) => setUserType(e.target.value as UserType)}
                           className="text-pink-500 focus:ring-pink-500"
                         />
                         <span className="text-white">🏋️‍♀️ Atleta - Quero competir</span>
@@ -327,7 +328,7 @@ export default function Login() {
                           name="userType"
                           value="audiovisual"
                           checked={userType === 'audiovisual'}
-                          onChange={(e) => setUserType(e.target.value as 'atleta' | 'audiovisual')}
+                          onChange={(e) => setUserType(e.target.value as UserType)}
                           className="text-pink-500 focus:ring-pink-500"
                         />
                         <span className="text-white">📹 Audiovisual - Quero cobrir o evento</span>

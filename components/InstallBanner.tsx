@@ -61,7 +61,7 @@ export default function InstallBanner() {
               className="w-8 h-8"
              priority/>
             <div>
-              <p className="text-sm font-medium">Instalar CERRADØ</p>
+              <p className="text-sm font-medium">Instalar WEBAPP INTERBØX.GAMES</p>
               <p className="text-xs opacity-90">Acesso rápido à tela inicial</p>
             </div>
           </div>

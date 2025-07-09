@@ -52,12 +52,28 @@ export function useGamification(): UseGamificationReturn {
       setError(null);
       
       const userStats = await gamificationService.getUserStats(user.uid);
-      setStats(userStats);
+      setStats({
+        ...userStats,
+        level: userStats.level as GamificationLevel
+      });
 
       // Carregar recompensas disponíveis se temos os stats
       if (userStats) {
-        const rewards = await gamificationService.getAvailableRewards(userStats.level, userStats.points);
-        setAvailableRewards(rewards);
+        const rewards = await gamificationService.getAvailableRewards(userStats.level as GamificationLevel);
+        // Converter para o formato FirestoreGamificationReward
+        const convertedRewards: FirestoreGamificationReward[] = rewards.map(reward => ({
+          id: reward.id,
+          title: reward.title,
+          description: reward.description,
+          type: 'spoiler' as const, // Tipo padrão
+          requiredPoints: 0,
+          requiredLevel: 'requiredLevel' in reward ? reward.requiredLevel as GamificationLevel : 'iniciante',
+          currentRedemptions: 0,
+          isActive: true,
+          createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+          updatedAt: { seconds: Date.now() / 1000, nanoseconds: 0 }
+        }));
+        setAvailableRewards(convertedRewards);
       }
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
@@ -87,13 +103,7 @@ export function useGamification(): UseGamificationReturn {
       setLoading(true);
       setError(null);
 
-      const result = await gamificationService.addPoints(
-        user.uid,
-        user.email,
-        user.displayName,
-        action,
-        metadata
-      );
+      const result = await gamificationService.addPoints(user.uid, action);
 
       // Atualizar stats locais
       if (stats) {
@@ -131,12 +141,7 @@ export function useGamification(): UseGamificationReturn {
       setLoading(true);
       setError(null);
 
-      const result = await gamificationService.redeemReward(
-        user.uid,
-        user.email,
-        user.displayName,
-        rewardId
-      );
+      const result = await gamificationService.redeemReward(user.uid, rewardId);
 
       // Atualizar recompensas do usuário
       if (stats && result.reward) {
@@ -164,8 +169,21 @@ export function useGamification(): UseGamificationReturn {
   const refreshLeaderboard = useCallback(() => loadLeaderboard(), [loadLeaderboard]);
   const refreshRewards = useCallback(async () => {
     if (stats) {
-      const rewards = await gamificationService.getAvailableRewards(stats.level, stats.points);
-      setAvailableRewards(rewards);
+      const rewards = await gamificationService.getAvailableRewards(stats.level as keyof typeof GAMIFICATION_LEVELS);
+      // Converter para o formato FirestoreGamificationReward
+      const convertedRewards: FirestoreGamificationReward[] = rewards.map(reward => ({
+        id: reward.id,
+        title: reward.title,
+        description: reward.description,
+        type: 'spoiler' as const, // Tipo padrão
+        requiredPoints: 0,
+                  requiredLevel: 'requiredLevel' in reward ? reward.requiredLevel as GamificationLevel : 'iniciante',
+        currentRedemptions: 0,
+        isActive: true,
+        createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+        updatedAt: { seconds: Date.now() / 1000, nanoseconds: 0 }
+      }));
+      setAvailableRewards(convertedRewards);
     }
   }, [stats]);
 

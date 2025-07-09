@@ -4,12 +4,29 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { useAuth } from '../hooks/useAuth';
 import { signOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { GamificationData } from '../lib/gamification';
 
 // Constantes de segurança
 const AUTH_TIMEOUT_MS = 10000; // 10 segundos
 const MAX_RETRY_ATTEMPTS = 3;
 const MOBILE_USER_AGENTS = /iphone|ipad|ipod|android|blackberry|iemobile|opera mini/i;
+
+// Dados padrão de gamificação
+const defaultStats: GamificationData = {
+  points: 0,
+  level: 'iniciante',
+  totalActions: 0,
+  lastActionAt: new Date(),
+  achievements: [],
+  rewards: [],
+  streakDays: 0,
+  lastLoginStreak: new Date(),
+  referralCode: '',
+  referrals: [],
+  referralPoints: 0
+};
 
 // Tipos de segurança
 interface SecureUserData {
@@ -41,28 +58,38 @@ export default function HomePage() {
   });
 
   // Refs para evitar race conditions
-  const authTimeoutRef = useRef<NodeJS.Timeout>();
+  const authTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const retryCountRef = useRef(0);
   const isUnmountingRef = useRef(false);
 
-  // Sanitizar dados do usuário
-  const sanitizeUserData = useCallback((userData: any): SecureUserData | null => {
+  // Função para sanitizar dados do usuário
+  const sanitizeUserData = (userData: any): SecureUserData | null => {
     try {
       if (!userData || typeof userData !== 'object') return null;
-
+      
       return {
-        displayName: typeof userData.displayName === 'string' ? userData.displayName.slice(0, 100) : undefined,
-        email: typeof userData.email === 'string' && userData.email.includes('@') ? userData.email : undefined,
-        uid: typeof userData.uid === 'string' ? userData.uid.slice(0, 128) : undefined,
-        photoURL: typeof userData.photoURL === 'string' && userData.photoURL.startsWith('http') ? userData.photoURL : undefined,
-        providerData: Array.isArray(userData.providerData) ? userData.providerData.slice(0, 5) : undefined,
+        displayName: typeof userData.displayName === 'string' ? userData.displayName : undefined,
+        email: typeof userData.email === 'string' ? userData.email : undefined,
+        uid: typeof userData.uid === 'string' ? userData.uid : undefined,
+        photoURL: typeof userData.photoURL === 'string' ? userData.photoURL : undefined,
+        providerData: Array.isArray(userData.providerData) ? userData.providerData : undefined,
         loginTime: typeof userData.loginTime === 'number' ? userData.loginTime : undefined
       };
     } catch (error) {
       console.error('Erro ao sanitizar dados do usuário:', error);
       return null;
     }
-  }, []);
+  };
+
+  // Sanitizar dados do usuário
+  const getUserStats = async (userId: string): Promise<GamificationData> => {
+    const docRef = doc(db, 'gamification_stats', userId);
+    const snap = await getDoc(docRef);
+    return snap.exists() ? (snap.data() as GamificationData) : defaultStats;
+  };
+
+
+
 
   // Verificar se é dispositivo móvel de forma segura
   const isMobileDevice = useCallback((): boolean => {

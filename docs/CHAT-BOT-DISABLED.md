@@ -43,7 +43,7 @@ O bot de chat foi reativado e finalizado com melhorias significativas para o CER
 - **Local**: Praça Cívica, Goiânia - GO
 - **Alcance**: 200km (Goiânia, DF, MG, TO, BA)
 - **Formato**: Times de 4 atletas (2 homens + 2 mulheres) da mesma box
-- **Categorias**: Iniciante, Scale, Amador, Master 145+, Rx
+- **Categorias**: Iniciante, Scale, Amador, Master 145+, RX
 - **Inscrições**: Ainda não abriram (serão anunciadas na comunidade)
 - **Comunidade**: WhatsApp oficial (link será divulgado)
 - **Audiovisual**: Inscrições na página específica do site

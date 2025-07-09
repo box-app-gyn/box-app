@@ -7,7 +7,6 @@ import { useRouter } from 'next/router';
 import ChatButton from '../components/ChatButton';
 import SplashScreen from '../components/SplashScreen';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
-import UpdateNotification from '../components/UpdateNotification';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -17,8 +16,8 @@ export default function App({ Component, pageProps }: AppProps) {
   
   // Refs para evitar memory leaks
   const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null);
-  const resizeTimeoutRef = useRef<NodeJS.Timeout>();
-  const installPromptTimeoutRef = useRef<NodeJS.Timeout>();
+  const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const installPromptTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Função para detectar plataforma de forma segura
   const detectPlatform = useCallback(() => {
@@ -45,16 +44,22 @@ export default function App({ Component, pageProps }: AppProps) {
       return;
     }
 
+    // Evitar registro duplo usando ref
+    if (swRegistrationRef.current) {
+      console.log('Service Worker já registrado anteriormente');
+      return;
+    }
+
     try {
       // Verificar se já existe um SW registrado
       const existingRegistration = await navigator.serviceWorker.getRegistration();
-      if (existingRegistration) {
+      if (existingRegistration && existingRegistration.active) {
         swRegistrationRef.current = existingRegistration;
         console.log('Service Worker já registrado:', existingRegistration);
         return;
       }
 
-      // Registrar novo SW
+      // Registrar novo SW apenas se não existir
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none'
@@ -73,6 +78,11 @@ export default function App({ Component, pageProps }: AppProps) {
             }
           });
         }
+      });
+
+      // Listener para erros
+      registration.addEventListener('error', (error) => {
+        console.error('Erro no Service Worker:', error);
       });
 
     } catch (error) {
@@ -152,7 +162,10 @@ export default function App({ Component, pageProps }: AppProps) {
           const isDesktop = window.innerWidth > 768;
           const isMobilePage = router.pathname === '/acesso-mobile-obrigatorio';
           
-          // Log removido para limpar console
+          // Redirecionar desktop para página mobile obrigatório
+          if (isDesktop && !isMobilePage && router.pathname !== '/admin') {
+            router.replace('/acesso-mobile-obrigatorio');
+          }
         }
       }, 250); // 250ms debounce
     };
@@ -170,7 +183,7 @@ export default function App({ Component, pageProps }: AppProps) {
         clearTimeout(resizeTimeoutRef.current);
       }
     };
-  }, [isClient, router.pathname]);
+  }, [isClient, router, router.pathname]);
 
   // Cleanup ao desmontar
   useEffect(() => {
@@ -201,12 +214,12 @@ export default function App({ Component, pageProps }: AppProps) {
     setShowInstallPrompt(false);
   }, []);
 
-  const handleUpdate = useCallback(() => {
-    // Atualização será feita pelo componente
-    if (swRegistrationRef.current) {
-      swRegistrationRef.current.update();
-    }
-  }, []);
+  // Função de atualização comentada - será usada quando UpdateNotification for reativado
+  // const handleUpdate = useCallback(() => {
+  //   if (swRegistrationRef.current) {
+  //     swRegistrationRef.current.update();
+  //   }
+  // }, []);
 
   if (!isClient) {
     return null; // Evita hidratação
@@ -223,6 +236,7 @@ export default function App({ Component, pageProps }: AppProps) {
         
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="CERRADØ" />
         <meta name="apple-mobile-web-app-orientations" content="portrait" />
@@ -280,8 +294,8 @@ export default function App({ Component, pageProps }: AppProps) {
         <PWAInstallPrompt onClose={handleCloseInstallPrompt} />
       )}
       
-      {/* Update Notification */}
-      <UpdateNotification onUpdate={handleUpdate} />
+      {/* Update Notification - Desabilitado temporariamente */}
+      {/* <UpdateNotification onUpdate={handleUpdate} /> */}
     </>
   );
 } 

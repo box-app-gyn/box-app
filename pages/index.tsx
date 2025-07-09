@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -7,18 +8,49 @@ import Image from 'next/image';
 export default function Home() {
   const router = useRouter();
   const { user, loading, signInWithGoogle } = useAuth();
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // Se já está autenticado, vai para a próxima etapa
+  // Se já está autenticado, vai para o dashboard
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/categoria'); // ajuste para a próxima etapa real do seu fluxo
+      router.replace('/dashboard');
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  // Timeout de segurança para loading
+  useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        setAuthError('Timeout de carregamento. Verifique sua conexão.');
+      }, 10000); // 10 segundos
+
+      return () => clearTimeout(timeout);
+    }
+  }, [loading]);
+
+  if (loading && !authError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        Carregando...
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center p-6">
+          <p className="text-red-400 mb-4">{authError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-white text-black px-4 py-2 rounded"
+          >
+            Tentar Novamente
+          </button>
+        </div>
       </div>
     );
   }
@@ -57,7 +89,7 @@ export default function Home() {
           Entrar com Email
         </button>
       </div>
-      <p className="text-xs text-gray-400 mt-8 text-center">Ao continuar, você concorda com os <a href="/termos-uso" className="underline">Termos de Uso</a>.</p>
+      <p className="text-xs text-gray-400 mt-8 text-center">Ao continuar, você concorda com os <Link href="/termos-uso" className="underline">Termos de Uso</Link>.</p>
     </motion.main>
   );
 } 

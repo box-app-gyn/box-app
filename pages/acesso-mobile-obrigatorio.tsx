@@ -26,7 +26,7 @@ export default function AcessoMobileObrigatorio() {
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
         {/* Background total */}
         <Image
-          src="/images/bg_main.png"
+          src="/images/bg_1.webp"
           alt="Background Cerrado Interbox"
           fill
           style={{ objectFit: 'cover', zIndex: 0 }}

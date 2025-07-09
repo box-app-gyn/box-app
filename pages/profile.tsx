@@ -10,13 +10,14 @@ import { sanitizeInput } from '../utils/sanitize';
 import { useGamification } from '@/hooks/useGamification';
 import GamifiedLeaderboard from '@/components/GamifiedLeaderboard';
 import GamifiedRewards from '@/components/GamifiedRewards';
+import { UserType } from '../constants';
 
 interface UserProfile {
   uid: string;
   email: string;
   displayName?: string;
   photoURL?: string;
-  userType: 'atleta' | 'audiovisual';
+  userType: UserType;
   phoneNumber?: string;
   createdAt: Date;
   lastLogin: Date;
@@ -590,8 +591,8 @@ export default function Profile() {
                         />
                       </div>
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>{getLevelProgress().current} XP</span>
-                        <span>{getLevelProgress().next} XP</span>
+                                        <span>{getLevelProgress().current} $BOX</span>
+                <span>{getLevelProgress().next} $BOX</span>
                       </div>
                     </div>
                   </>

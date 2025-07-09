@@ -44,7 +44,7 @@ export default function Hero() {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(/images/bg_main.png)',
+          backgroundImage: 'url(/images/BG_1.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -134,7 +134,7 @@ export default function Hero() {
         >
           <GamifiedCTA 
             href="https://chat.whatsapp.com/FHTqm0l36kc7RWYWMw1Kiz" 
-            tooltipText="O PORTAL ESTÁ ABERTO"
+            tooltipText="A PRÉ TEMPORADA 2025 ESTÁ ABERTA"
             className="btn-neon-pulse px-8 py-3"
           >
             ACESSAR COMUNIDADE
@@ -147,7 +147,7 @@ export default function Hero() {
           className="mb-24"
         >
           <p className="mt-20 text-base md:text-lg text-neutral-200 font-semibold drop-shadow-lg">
-            Aqui você não se inscreve. Você assume seu chamado.
+          COMPETIÇÃO. COMUNIDADE. PROPRIEDADE.
           </p>
         </motion.div>
       </div>
