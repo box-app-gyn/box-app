@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import admin from 'firebase-admin';
 import { logger } from './utils/logger';
 
@@ -23,8 +23,8 @@ interface RespostaConviteData {
 // Função para enviar convite para time
 export const enviarConviteTime = functions.https.onCall(async (request) => {
   const data = request.data;
-  const context = request;
-  const contextData = { userId: context.auth?.uid };
+  const auth = request.auth;
+  const contextData = { userId: auth?.uid };
   
   try {
     // Validar dados
@@ -33,7 +33,7 @@ export const enviarConviteTime = functions.https.onCall(async (request) => {
     }
 
     // Verificar se o usuário é o capitão do time
-    if (context.auth?.uid !== data.captainId) {
+    if (auth?.uid !== data.captainId) {
       throw new functions.https.HttpsError('permission-denied', 'Apenas o capitão pode enviar convites');
     }
 
@@ -73,14 +73,14 @@ export const enviarConviteTime = functions.https.onCall(async (request) => {
       teamName: data.teamName,
       captainId: data.captainId,
       captainName: data.captainName,
-      captainEmail: context.auth?.token.email || '',
+      captainEmail: auth?.token.email || '',
       invitedEmail: data.invitedEmail,
       invitedName: data.invitedName || '',
       status: 'pendente',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias
-      createdBy: context.auth?.uid,
-      ipAddress: context.rawRequest?.ip || 'unknown'
+      createdBy: auth?.uid,
+      ipAddress: request.rawRequest?.ip || 'unknown'
     });
 
     // Enviar email de convite
@@ -114,8 +114,8 @@ export const enviarConviteTime = functions.https.onCall(async (request) => {
 // Função para responder a convite
 export const responderConviteTime = functions.https.onCall(async (request) => {
   const data = request.data;
-  const context = request;
-  const contextData = { userId: context.auth?.uid };
+  const auth = request.auth;
+  const contextData = { userId: auth?.uid };
   
   try {
     // Validar dados
@@ -124,7 +124,7 @@ export const responderConviteTime = functions.https.onCall(async (request) => {
     }
 
     // Verificar se o usuário é o convidado
-    if (context.auth?.uid !== data.userId) {
+    if (auth?.uid !== data.userId) {
       throw new functions.https.HttpsError('permission-denied', 'Apenas o convidado pode responder ao convite');
     }
 
@@ -154,7 +154,7 @@ export const responderConviteTime = functions.https.onCall(async (request) => {
     await conviteRef.update({
       status: data.resposta,
       respondedAt: admin.firestore.FieldValue.serverTimestamp(),
-      respondedBy: context.auth?.uid
+      respondedBy: auth?.uid
     });
 
     if (data.resposta === 'aceito') {
@@ -203,10 +203,10 @@ export const responderConviteTime = functions.https.onCall(async (request) => {
 });
 
 // Função para listar convites do usuário
-export const listarConvitesUsuario = functions.https.onCall(async (request) => {
+export const listarConviteTime = functions.https.onCall(async (request) => {
   const data = request.data;
-  const context = request;
-  const contextData = { userId: context.auth?.uid };
+  const auth = request.auth;
+  const contextData = { userId: auth?.uid };
   
   try {
     if (!data.userId) {
@@ -214,7 +214,7 @@ export const listarConvitesUsuario = functions.https.onCall(async (request) => {
     }
 
     // Verificar se o usuário está consultando seus próprios convites
-    if (context.auth?.uid !== data.userId) {
+    if (auth?.uid !== data.userId) {
       throw new functions.https.HttpsError('permission-denied', 'Apenas o próprio usuário pode consultar seus convites');
     }
 
@@ -225,7 +225,7 @@ export const listarConvitesUsuario = functions.https.onCall(async (request) => {
       .orderBy('createdAt', 'desc')
       .get();
 
-    const convites = convitesSnapshot.docs.map(doc => ({
+    const convites = convitesSnapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data()
     }));

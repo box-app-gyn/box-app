@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import admin from 'firebase-admin';
 import axios from 'axios';
 
@@ -144,7 +144,7 @@ function validateInscricaoData(data: InscricaoTimeData): { isValid: boolean; err
     errors.push('deve ter exatamente 4 atletas');
   } else {
     // Validar cada atleta
-    data.atletas.forEach((atleta, index) => {
+    data.atletas.forEach((atleta: any, index: number) => {
       if (!atleta.nome || !atleta.email || !atleta.telefone || !atleta.genero) {
         errors.push(`atleta ${index + 1} com dados incompletos`);
       }
@@ -154,8 +154,8 @@ function validateInscricaoData(data: InscricaoTimeData): { isValid: boolean; err
     });
 
     // Verificar se tem 2 homens e 2 mulheres
-    const homens = data.atletas.filter(a => a.genero === 'masculino').length;
-    const mulheres = data.atletas.filter(a => a.genero === 'feminino').length;
+    const homens = data.atletas.filter((a: any) => a.genero === 'masculino').length;
+    const mulheres = data.atletas.filter((a: any) => a.genero === 'feminino').length;
     if (homens !== 2 || mulheres !== 2) {
       errors.push('deve ter exatamente 2 homens e 2 mulheres');
     }
@@ -185,15 +185,17 @@ async function checkPendingInscricao(timeId: string): Promise<boolean> {
   }
 }
 
-export const criarInscricaoTime = functions.https.onCall(async (data: InscricaoTimeData, context: functions.https.CallableContext) => {
+export const criarInscricaoTime = functions.https.onCall(async (request) => {
+  const data = request.data as InscricaoTimeData;
+  const auth = request.auth;
   try {
     // Verificar autenticação
-    if (!context.auth) {
+    if (!auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
     }
 
     // Verificar se o usuário é o capitão
-    if (data.captainId !== context.auth.uid) {
+    if (data.captainId !== auth.uid) {
       throw new functions.https.HttpsError('permission-denied', 'Apenas o capitão pode criar inscrição');
     }
 
@@ -228,7 +230,7 @@ export const criarInscricaoTime = functions.https.onCall(async (data: InscricaoT
     const valor = VALORES_INSCRICAO[`lote${loteAtual}` as keyof typeof VALORES_INSCRICAO][data.categoria];
 
     // Criar inscrição no Firestore com transação
-    const result = await db.runTransaction(async (transaction) => {
+    const result = await db.runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
       const inscricaoRef = db.collection('inscricoes_times').doc();
       
       const inscricaoData = {
@@ -244,8 +246,8 @@ export const criarInscricaoTime = functions.https.onCall(async (data: InscricaoT
         captainEmail: data.captainEmail,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: context.auth!.uid,
-        ipAddress: context.rawRequest?.ip || 'unknown'
+        createdBy: auth!.uid,
+        ipAddress: request.rawRequest?.ip || 'unknown'
       };
 
       transaction.set(inscricaoRef, inscricaoData);
@@ -302,8 +304,8 @@ export const criarInscricaoTime = functions.https.onCall(async (data: InscricaoT
 
     // Log administrativo
     await db.collection('adminLogs').add({
-      adminId: context.auth.uid,
-      adminEmail: context.auth.token.email || '',
+      adminId: auth.uid,
+      adminEmail: auth.token.email || '',
       acao: 'criacao_inscricao_time',
       targetId: result.inscricaoRef.id,
       targetType: 'inscricao_time',
@@ -313,7 +315,7 @@ export const criarInscricaoTime = functions.https.onCall(async (data: InscricaoT
         lote: loteAtual,
         valor,
         vagasRestantes: vagasDisponiveis.vagasRestantes,
-        ipAddress: context.rawRequest?.ip || 'unknown'
+        ipAddress: request.rawRequest?.ip || 'unknown'
       },
       createdAt: new Date(),
     });

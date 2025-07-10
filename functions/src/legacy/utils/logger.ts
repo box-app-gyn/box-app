@@ -1,6 +1,6 @@
 // Sistema de logging para Cloud Functions
 
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 
 interface LogLevel {
   DEBUG: 0;

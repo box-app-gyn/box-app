@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import admin from 'firebase-admin';
 import { logger } from './utils/logger';
 import axios from 'axios';
@@ -21,15 +21,14 @@ interface AudiovisualData {
   portfolio?: string;
 }
 
-export const validaAudiovisual = functions.https.onCall(
-  async (request) => {
-    const data = request.data as ValidaAudiovisualData;
-    const context = request;
-    const contextData = { functionName: 'validaAudiovisual', userId: context.auth?.uid };
+export const validaAudiovisual = functions.https.onCall(async (request) => {
+  const data = request.data as ValidaAudiovisualData;
+  const auth = request.auth;
+  const contextData = { functionName: 'validaAudiovisual', userId: auth?.uid };
   
     try {
       // Verificar autenticação
-      if (!context.auth) {
+      if (!auth) {
         logger.security('Tentativa de acesso não autenticado', {}, contextData);
         throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
       }
@@ -158,13 +157,12 @@ async function checkExistingAudiovisual(email: string): Promise<boolean> {
   }
 }
 
-export const criarInscricaoAudiovisual = functions.https.onCall(
-  async (request) => {
-    const data = request.data as AudiovisualData;
-    const context = request;
+export const criarInscricaoAudiovisual = functions.https.onCall(async (request) => {
+  const data = request.data as AudiovisualData;
+  const auth = request.auth;
     try {
       // Verificar autenticação
-      if (!context.auth) {
+      if (!auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
       }
 
@@ -183,7 +181,7 @@ export const criarInscricaoAudiovisual = functions.https.onCall(
       const valor = 29.90;
 
       // Criar inscrição no Firestore com transação
-      const result = await db.runTransaction(async (transaction) => {
+      const result = await db.runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
         const inscricaoRef = db.collection('audiovisual').doc();
         
         const inscricaoData = {
@@ -197,8 +195,8 @@ export const criarInscricaoAudiovisual = functions.https.onCall(
           status: 'pending',
           createdAt: new Date(),
           updatedAt: new Date(),
-          createdBy: context.auth!.uid,
-          ipAddress: context.rawRequest?.ip || 'unknown'
+          createdBy: auth!.uid,
+          ipAddress: request.rawRequest?.ip || 'unknown'
         };
 
         transaction.set(inscricaoRef, inscricaoData);

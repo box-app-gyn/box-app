@@ -4,16 +4,29 @@ import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import VideoSplashScreen from '../components/VideoSplashScreen';
 
 export default function Home() {
   const router = useRouter();
   const { user, loading, signInWithGoogle } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
-  // Se já está autenticado, vai para o dashboard
+  useEffect(() => {
+    // Splash só na primeira visita (pode usar localStorage se quiser persistir)
+    const alreadySeen = window.localStorage.getItem('splash_seen');
+    if (alreadySeen) setShowSplash(false);
+  }, []);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+    window.localStorage.setItem('splash_seen', '1');
+  };
+
+  // Redireciona se já autenticado
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/dashboard');
+      router.replace('/'); // Sempre para a home
     }
   }, [user, loading, router]);
 
@@ -22,11 +35,14 @@ export default function Home() {
     if (loading) {
       const timeout = setTimeout(() => {
         setAuthError('Timeout de carregamento. Verifique sua conexão.');
-      }, 10000); // 10 segundos
-
+      }, 10000);
       return () => clearTimeout(timeout);
     }
   }, [loading]);
+
+  if (showSplash) {
+    return <VideoSplashScreen onComplete={handleSplashComplete} />;
+  }
 
   if (loading && !authError) {
     return (
@@ -57,7 +73,7 @@ export default function Home() {
 
   return (
     <motion.main
-      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-green-700 p-6"
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-green-700 p-6 relative z-10"
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}

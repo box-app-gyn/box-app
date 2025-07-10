@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
-import ChatButton from '../components/ChatButton';
+
 import SplashScreen from '../components/SplashScreen';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 
@@ -283,11 +283,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <SplashScreen onComplete={handleSplashComplete} />
       )}
       
-      <div className="bg-animated-gradient" />
       <Component {...pageProps} />
       
-      {/* Chat Button */}
-      <ChatButton />
+      
       
       {/* PWA Install Prompt */}
       {showInstallPrompt && (

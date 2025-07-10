@@ -1,6 +1,4 @@
 import { onRequest } from 'firebase-functions/v2/https';
-import { NextRequest, NextResponse } from 'next/server';
-import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 
@@ -8,7 +6,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev, conf: { distDir: '.next' } });
 const handle = app.getRequestHandler();
 
-export const nextjsServer = onRequest(async (req, res) => {
+export const nextjsServer = onRequest(async (req: any, res: any) => {
   try {
     const parsedUrl = parse(req.url || '', true);
     
@@ -28,27 +26,8 @@ export const nextjsServer = onRequest(async (req, res) => {
     // Preparar o app Next.js
     await app.prepare();
     
-    // Criar request/response compatíveis com Next.js
-    const nextReq = new NextRequest(req.url || '', {
-      method: req.method,
-      headers: req.headers as any,
-      body: req.body
-    });
-    
-    // Processar com Next.js
-    const nextRes = await handle(nextReq, {
-      statusCode: 200,
-      headers: new Headers(),
-      body: null
-    });
-    
-    // Copiar headers da resposta Next.js
-    nextRes.headers.forEach((value, key) => {
-      res.set(key, value);
-    });
-    
-    // Enviar resposta
-    res.status(nextRes.status).send(nextRes.body);
+    // Processar com Next.js usando o request original
+    await handle(req, res);
     
   } catch (error) {
     console.error('[NextJS Server] Erro:', error);

@@ -1,5 +1,5 @@
 // /functions/src/index.ts
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import admin from 'firebase-admin';
 
 
@@ -18,8 +18,7 @@ import {
 } from './teams';
 import { logger, createRequestContext } from './utils/logger';
 
-// Chat Functions
-import { sendMessage, getChatHistory, saveFeedback, createSession, pollMessages } from './chat';
+
 
 // =====================================
 // EXPORTAÇÕES DE CLOUD FUNCTIONS
@@ -39,12 +38,7 @@ export const responderConviteTimeFunction = responderConviteTime;
 export const listarConvitesUsuarioFunction = listarConvitesUsuario;
 export const cancelarConviteTimeFunction = cancelarConviteTime;
 
-// Funções de Chat
-export const sendMessageFunction = sendMessage;
-export const getChatHistoryFunction = getChatHistory;
-export const saveFeedbackFunction = saveFeedback;
-export const createSessionFunction = createSession;
-export const pollMessagesFunction = pollMessages;
+
 
 // Funções de Usuário
 export { onUserCreated } from './user-created';
@@ -81,7 +75,7 @@ class RateLimitService {
       }
     }
     
-    expiredKeys.forEach(key => this.rateLimitMap.delete(key));
+    expiredKeys.forEach((key: string) => this.rateLimitMap.delete(key));
     
     // Se ainda estiver muito grande, remover entradas mais antigas
     if (this.rateLimitMap.size > RateLimitService.MAX_RATE_LIMIT_ENTRIES) {
@@ -89,7 +83,7 @@ class RateLimitService {
       entries.sort((a, b) => a[1].resetTime - b[1].resetTime);
       
       const toRemove = entries.slice(0, this.rateLimitMap.size - RateLimitService.MAX_RATE_LIMIT_ENTRIES);
-      toRemove.forEach(([key]) => this.rateLimitMap.delete(key));
+      toRemove.forEach(([key]: [string, any]) => this.rateLimitMap.delete(key));
     }
   }
 
@@ -297,6 +291,6 @@ const webhookService = new WebhookService(rateLimitService);
 // EXPORTAÇÃO DO WEBHOOK
 // =====================================
 
-export const flowpayWebhook = functions.https.onRequest(async (req, res) => {
-  await webhookService.handleWebhook(req, res);
+export const flowpayWebhook = functions.https.onRequest(async (request, response) => {
+  await webhookService.handleWebhook(request, response);
 }); 

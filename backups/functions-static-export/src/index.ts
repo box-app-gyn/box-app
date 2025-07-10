@@ -1,11 +1,11 @@
 // Firebase Functions - CERRADØ INTERBOX 2025
 import * as functions from 'firebase-functions';
 import { authenticateUser } from './legacy/middleware/auth';
-import { sendMessageFunction } from './legacy/chat';
+
 import { nextjsServer } from './nextjs-server';
 
 // Exportar funções existentes
-export { sendMessageFunction, authenticateUser };
+export { authenticateUser };
 
 // Exportar servidor Next.js
 export { nextjsServer };

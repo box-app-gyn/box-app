@@ -1,5 +1,5 @@
 // /functions/src/user-created.ts
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -7,7 +7,8 @@ if (!admin.apps.length) {
 }
 
 // Trigger quando usuário é criado
-export const onUserCreated = functions.auth.user().onCreate(async (user) => {
+export const onUserCreated = functions.auth.onUserCreated(async (event) => {
+  const user = event.data;
   try {
     const { uid, email, displayName, photoURL } = user;
 

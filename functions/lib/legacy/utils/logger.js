@@ -36,7 +36,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.firebaseLogger = exports.logger = void 0;
 exports.createRequestContext = createRequestContext;
-const functions = __importStar(require("firebase-functions"));
+const functions = __importStar(require("firebase-functions/v2"));
 const LOG_LEVELS = {
     DEBUG: 0,
     INFO: 1,

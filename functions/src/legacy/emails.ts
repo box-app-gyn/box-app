@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import { logger } from './utils/logger';
 
 interface EmailConfirmacaoData {
@@ -131,8 +131,10 @@ const emailTemplates = {
 };
 
 // Função para enviar email de confirmação
-export const enviaEmailConfirmacao = functions.https.onCall(async (data: EmailConfirmacaoData, context: functions.https.CallableContext) => {
-  const contextData = { userId: context.auth?.uid };
+export const enviaEmailConfirmacao = functions.https.onCall(async (request) => {
+  const data = request.data as EmailConfirmacaoData;
+  const auth = request.auth;
+  const contextData = { userId: auth?.uid };
   
   try {
     // Validar dados

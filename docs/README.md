@@ -33,23 +33,27 @@ Plataforma para eventos fotográficos no Cerrado - Landing page, captação de i
 ## 🛠️ Setup
 
 1. **Clone o repositório**
+
 ```bash
 git clone <url-do-repo>
 cd cerrado-app
 ```
 
 2. **Instale as dependências**
+
 ```bash
 npm install
 ```
 
 3. **Configure as variáveis de ambiente**
+
 ```bash
 cp env.example .env.local
 # Edite .env.local com suas credenciais
 ```
 
 4. **Execute o projeto**
+
 ```bash
 npm run dev
 ```

@@ -222,6 +222,7 @@
     pointer-events: none;
     z-index: -1;
     background: linear-gradient(120deg, #0038d0cc 0%, #ff1bdd44 100%);
+    background-size: 200% 200%; /* Adicionar esta linha */
     mix-blend-mode: lighten;
     animation: gradientMove 8s ease-in-out infinite alternate;
   }
