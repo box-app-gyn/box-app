@@ -10,9 +10,9 @@
     "source": "functions"
   },
   "hosting": {
-    "public": ".next",
+    "public": "out",
     "rewrites": [
-      { "source": "/api/**", "function": "testFunction" },
+      { "source": "/api/**", "function": "nextjsServer" },
       { "source": "**", "destination": "/index.html" }
     ],
     "ignore": [

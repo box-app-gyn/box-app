@@ -54,7 +54,7 @@ export const validaAudiovisual = functions.https.onCall(async (request) => {
       const tipo = audiovisualData?.tipo || 'fotografo';
 
       // Atualizar status do profissional audiovisual
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         status: aprovado ? 'approved' : 'rejected',
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
@@ -252,8 +252,8 @@ export const criarInscricaoAudiovisual = functions.https.onCall(async (request) 
 
       // Log administrativo
       await db.collection('adminLogs').add({
-        adminId: context.auth.uid,
-        adminEmail: context.auth.token.email || '',
+        adminId: auth!.uid,
+        adminEmail: auth!.token.email || '',
         acao: 'criacao_inscricao_audiovisual',
         targetId: result.inscricaoRef.id,
         targetType: 'audiovisual',
@@ -261,7 +261,7 @@ export const criarInscricaoAudiovisual = functions.https.onCall(async (request) 
           nome: data.nome,
           area: data.area,
           valor,
-          ipAddress: context.rawRequest?.ip || 'unknown'
+          ipAddress: request.rawRequest?.ip || 'unknown'
         },
         createdAt: new Date(),
       });

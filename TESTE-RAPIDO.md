@@ -13,6 +13,7 @@
 ## 🔧 Correções Implementadas
 
 ### ✅ Problemas Resolvidos:
+
 1. **Loop infinito**: React DevTools removido do `_document.tsx`
 2. **Meta tags viewport**: Removidas duplicatas
 3. **PWA Install Prompt**: Trigger adicionado no `_app.tsx`

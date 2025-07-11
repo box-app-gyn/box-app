@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) router.push('/');
+    if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
 
   if (loading) return <div>Carregando...</div>;

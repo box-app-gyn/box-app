@@ -1,5 +1,5 @@
 // /functions/src/user-created.ts
-import * as functions from 'firebase-functions/v2';
+import * as functions from 'firebase-functions/v1';
 import admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -7,49 +7,18 @@ if (!admin.apps.length) {
 }
 
 // Trigger quando usuário é criado
-export const onUserCreated = functions.auth.onUserCreated(async (event) => {
-  const user = event.data;
+export const onUserCreated = functions.auth.user().onCreate(async (user) => {
   try {
     const { uid, email, displayName, photoURL } = user;
-
-    // Criar documento do usuário no Firestore
-    const userData = {
-      uid,
-      email: email || '',
-      displayName: displayName || '',
-      photoURL: photoURL || '',
-      role: 'publico',
-      isActive: true,
-      cidade: '',
-      box: '',
-      whatsapp: '',
-      telefone: '',
-      categoria: 'atleta',
-      mensagem: '',
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      // 🎯 GAMIFICAÇÃO CAMADA 1
-      gamification: {
-        points: 10, // Pontos iniciais por cadastro
-        level: 'iniciante',
-        totalActions: 1,
-        lastActionAt: admin.firestore.FieldValue.serverTimestamp(),
-        achievements: ['first_blood'], // Primeira conquista
-        rewards: [],
-        streakDays: 1,
-        lastLoginStreak: admin.firestore.FieldValue.serverTimestamp(),
-        referralCode: `REF${uid.substring(0, 8).toUpperCase()}`,
-        referrals: [],
-        referralPoints: 0
-      }
-    };
-
-    await admin.firestore().collection('users').doc(uid).set(userData);
-
-    console.log('✅ Usuário criado com sucesso:', { uid, email, displayName });
-
+    await admin.firestore().collection('users').doc(uid).set({
+      email,
+      displayName,
+      photoURL,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      status: 'active',
+    }, { merge: true });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('❌ Erro ao criar usuário:', errorMessage);
+    console.error('Erro ao criar usuário no Firestore:', error);
   }
 }); 

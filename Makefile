@@ -42,6 +42,28 @@ deploy: build ## Deploy completo (build + deploy)
 	@echo "🚀 Deploy completo iniciado..."
 	@echo "✅ Deploy concluído!"
 
+# Comandos de deploy específicos
+deploy-hosting: build ## Deploy apenas do hosting
+	@echo "🌐 Fazendo deploy do hosting..."
+	firebase deploy --only hosting
+	@echo "✅ Deploy do hosting concluído!"
+
+deploy-functions: ## Deploy apenas das functions
+	@echo "⚙️ Fazendo deploy das functions..."
+	cd functions && npm run build
+	firebase deploy --only functions
+	@echo "✅ Deploy das functions concluído!"
+
+deploy-firestore: ## Deploy apenas das regras do Firestore
+	@echo "📊 Fazendo deploy das regras do Firestore..."
+	firebase deploy --only firestore:rules
+	@echo "✅ Deploy do Firestore concluído!"
+
+deploy-storage: ## Deploy apenas das regras de storage
+	@echo "💾 Fazendo deploy das regras de storage..."
+	firebase deploy --only storage
+	@echo "✅ Deploy do storage concluído!"
+
 # Comandos de manutenção
 install: ## Instala dependências
 	@echo "📦 Instalando dependências..."

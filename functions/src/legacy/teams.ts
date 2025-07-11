@@ -4,22 +4,6 @@ import { logger } from './utils/logger';
 
 const db = admin.firestore();
 
-interface ConviteTimeData {
-  teamId: string;
-  teamName: string;
-  captainId: string;
-  captainName: string;
-  invitedEmail: string;
-  invitedName?: string;
-}
-
-interface RespostaConviteData {
-  conviteId: string;
-  resposta: 'aceito' | 'recusado';
-  userId: string;
-  userName: string;
-}
-
 // Função para enviar convite para time
 export const enviarConviteTime = functions.https.onCall(async (request) => {
   const data = request.data;
@@ -111,6 +95,102 @@ export const enviarConviteTime = functions.https.onCall(async (request) => {
   }
 });
 
+// Função para listar convites do usuário
+export const listarConvitesUsuario = functions.https.onCall(async (request) => {
+  const auth = request.auth;
+  const contextData = { userId: auth?.uid };
+  
+  try {
+    if (!auth?.uid) {
+      throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
+    }
+
+    // Buscar convites onde o usuário é o convidado
+    const convitesSnapshot = await db.collection('convites_times')
+      .where('invitedEmail', '==', auth.token.email)
+      .where('status', '==', 'pendente')
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const convites = convitesSnapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    logger.business('Convites do usuário listados', {
+      userId: auth.uid,
+      count: convites.length
+    }, contextData);
+
+    return {
+      success: true,
+      convites
+    };
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    logger.error('Erro ao listar convites do usuário', { error: errorMessage }, contextData);
+    throw error;
+  }
+});
+
+// Função para cancelar convite
+export const cancelarConviteTime = functions.https.onCall(async (request) => {
+  const data = request.data;
+  const auth = request.auth;
+  const contextData = { userId: auth?.uid };
+  
+  try {
+    if (!data.conviteId) {
+      throw new functions.https.HttpsError('invalid-argument', 'ID do convite obrigatório');
+    }
+
+    if (!auth?.uid) {
+      throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
+    }
+
+    // Buscar convite
+    const conviteRef = db.collection('convites_times').doc(data.conviteId);
+    const conviteDoc = await conviteRef.get();
+
+    if (!conviteDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Convite não encontrado');
+    }
+
+    const conviteData = conviteDoc.data();
+    if (!conviteData) {
+      throw new functions.https.HttpsError('internal', 'Dados do convite inválidos');
+    }
+
+    // Verificar se o usuário é o capitão do time
+    if (auth.uid !== conviteData.captainId) {
+      throw new functions.https.HttpsError('permission-denied', 'Apenas o capitão pode cancelar convites');
+    }
+
+    // Cancelar convite
+    await conviteRef.update({
+      status: 'cancelado',
+      canceledAt: admin.firestore.FieldValue.serverTimestamp(),
+      canceledBy: auth.uid
+    });
+
+    logger.business('Convite de time cancelado', {
+      conviteId: data.conviteId,
+      teamId: conviteData.teamId
+    }, contextData);
+
+    return {
+      success: true,
+      message: 'Convite cancelado com sucesso'
+    };
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    logger.error('Erro ao cancelar convite de time', { error: errorMessage }, contextData);
+    throw error;
+  }
+});
+
 // Função para responder a convite
 export const responderConviteTime = functions.https.onCall(async (request) => {
   const data = request.data;
@@ -198,109 +278,6 @@ export const responderConviteTime = functions.https.onCall(async (request) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     logger.error('Erro ao responder convite de time', { error: errorMessage }, contextData);
-    throw error;
-  }
-});
-
-// Função para listar convites do usuário
-export const listarConviteTime = functions.https.onCall(async (request) => {
-  const data = request.data;
-  const auth = request.auth;
-  const contextData = { userId: auth?.uid };
-  
-  try {
-    if (!data.userId) {
-      throw new functions.https.HttpsError('invalid-argument', 'UserId obrigatório');
-    }
-
-    // Verificar se o usuário está consultando seus próprios convites
-    if (auth?.uid !== data.userId) {
-      throw new functions.https.HttpsError('permission-denied', 'Apenas o próprio usuário pode consultar seus convites');
-    }
-
-    // Buscar convites pendentes para o usuário
-    const convitesSnapshot = await db.collection('convites_times')
-      .where('invitedEmail', '==', context.auth?.token.email)
-      .where('status', '==', 'pendente')
-      .orderBy('createdAt', 'desc')
-      .get();
-
-    const convites = convitesSnapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    logger.business('Convites do usuário consultados', {
-      userId: data.userId,
-      quantidade: convites.length
-    }, contextData);
-
-    return {
-      success: true,
-      convites
-    };
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    logger.error('Erro ao listar convites do usuário', { error: errorMessage }, contextData);
-    throw error;
-  }
-});
-
-// Função para cancelar convite (apenas capitão)
-export const cancelarConviteTime = functions.https.onCall(async (request) => {
-  const data = request.data;
-  const context = request;
-  const contextData = { userId: context.auth?.uid };
-  
-  try {
-    if (!data.conviteId) {
-      throw new functions.https.HttpsError('invalid-argument', 'ConviteId obrigatório');
-    }
-
-    // Buscar convite
-    const conviteRef = db.collection('convites_times').doc(data.conviteId);
-    const conviteDoc = await conviteRef.get();
-
-    if (!conviteDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Convite não encontrado');
-    }
-
-    const conviteData = conviteDoc.data();
-    if (!conviteData) {
-      throw new functions.https.HttpsError('internal', 'Dados do convite inválidos');
-    }
-
-    // Verificar se o usuário é o capitão
-    if (context.auth?.uid !== conviteData.captainId) {
-      throw new functions.https.HttpsError('permission-denied', 'Apenas o capitão pode cancelar o convite');
-    }
-
-    // Verificar se o convite ainda está pendente
-    if (conviteData.status !== 'pendente') {
-      throw new functions.https.HttpsError('failed-precondition', 'Convite já foi respondido');
-    }
-
-    // Cancelar convite
-    await conviteRef.update({
-      status: 'cancelado',
-      canceledAt: admin.firestore.FieldValue.serverTimestamp(),
-      canceledBy: context.auth?.uid
-    });
-
-    logger.business('Convite de time cancelado', {
-      conviteId: data.conviteId,
-      teamId: conviteData.teamId
-    }, contextData);
-
-    return {
-      success: true,
-      message: 'Convite cancelado com sucesso'
-    };
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    logger.error('Erro ao cancelar convite de time', { error: errorMessage }, contextData);
     throw error;
   }
 });

@@ -153,7 +153,7 @@ export interface AdminLog {
   acao: LogAcao;
   targetId?: string;
   targetType?: string;
-  detalhes: Record<string, any>;
+  detalhes: Record<string, unknown>;
   ipAddress: string;
   userAgent?: string;
   createdAt: Date;
@@ -189,7 +189,7 @@ export interface AppConfig {
 }
 
 // Tipos de resposta da API
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -275,7 +275,7 @@ export class ValidationError extends Error {
   constructor(
     message: string,
     public field: string,
-    public value: any,
+    public value: unknown,
     public errors: string[]
   ) {
     super(message);

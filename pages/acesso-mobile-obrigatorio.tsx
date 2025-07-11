@@ -24,7 +24,7 @@ export default function AcessoMobileObrigatorio() {
       </Head>
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Background total */}
+        {/* Background limpo sem degradê */}
         <Image
           src="/images/bg_1.webp"
           alt="Background Cerrado Interbox"
@@ -33,7 +33,9 @@ export default function AcessoMobileObrigatorio() {
           className="absolute inset-0"
           priority
         />
-        <div className="relative max-w-md w-full bg-white/10 backdrop-blur-lg rounded-2xl p-5 text-center border border-white/20 shadow-2xl overflow-hidden z-10">
+        
+        {/* Card principal com backdrop-blur mais sutil */}
+        <div className="relative max-w-md w-full bg-white/5 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 shadow-xl overflow-hidden z-10">
           {/* Decoração de canto */}
           <Image
             src="/images/corner.png"
@@ -44,6 +46,7 @@ export default function AcessoMobileObrigatorio() {
             style={{ pointerEvents: 'none', width: 'auto', height: 'auto' }}
             priority
           />
+          
           {/* Logo */}
           <div className="mb-6">
             <div className="flex items-center justify-center mx-auto mb-4">
@@ -59,18 +62,18 @@ export default function AcessoMobileObrigatorio() {
           </div>
 
           {/* Título */}
-          <h1 className="text-2xl font-bold text-white mb-4">
+          <h1 className="text-2xl font-bold text-white mb-4 drop-shadow-lg">
             ⚠️ Acesse pelo celular
           </h1>
 
           {/* Texto Explicativo */}
-          <p className="text-gray-300 mb-8 leading-relaxed">
+          <p className="text-gray-200 mb-8 leading-relaxed drop-shadow-md">
             Use o QR Code abaixo para acessar a plataforma oficial no seu celular.
           </p>
 
           {/* QR Code */}
           <div className="mb-8">
-            <div className="bg-white p-4 rounded-xl inline-block">
+            <div className="bg-white p-4 rounded-xl inline-block shadow-lg">
               <Image
                 src="/qrcode_cerrado.png"
                 alt="QR Code para acesso mobile"
@@ -105,7 +108,7 @@ export default function AcessoMobileObrigatorio() {
           {/* Botão Copiar Link */}
           <button
             onClick={copyToClipboard}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 shadow-lg"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -114,7 +117,7 @@ export default function AcessoMobileObrigatorio() {
           </button>
 
           {/* Texto Adicional */}
-          <p className="text-sm text-gray-400 mt-6">
+          <p className="text-sm text-gray-300 mt-6 drop-shadow-sm">
             A plataforma é otimizada para dispositivos móveis
           </p>
         </div>

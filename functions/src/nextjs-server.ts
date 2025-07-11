@@ -2,8 +2,8 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { parse } from 'url';
 import next from 'next';
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev, conf: { distDir: '.next' } });
+// Sempre usar modo produção no Cloud Run
+const app = next({ dev: false, conf: { distDir: '.next' } });
 const handle = app.getRequestHandler();
 
 export const nextjsServer = onRequest(async (req: any, res: any) => {
@@ -23,10 +23,7 @@ export const nextjsServer = onRequest(async (req: any, res: any) => {
       return;
     }
     
-    // Preparar o app Next.js
-    await app.prepare();
-    
-    // Processar com Next.js usando o request original
+    // Processar com Next.js
     await handle(req, res);
     
   } catch (error) {

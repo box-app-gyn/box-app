@@ -1,34 +1,19 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useAuth } from '../hooks/useAuth';
-import { signOut } from 'firebase/auth';
-import { auth, db } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { GamificationData } from '../lib/gamification';
 
-// Constantes de segurança
-const AUTH_TIMEOUT_MS = 10000; // 10 segundos
-const MAX_RETRY_ATTEMPTS = 3;
-const MOBILE_USER_AGENTS = /iphone|ipad|ipod|android|blackberry|iemobile|opera mini/i;
+// Tipos
+interface GamificationData {
+  level: number;
+  experience: number;
+  points: number;
+  achievements: string[];
+}
 
-// Dados padrão de gamificação
-const defaultStats: GamificationData = {
-  points: 0,
-  level: 'iniciante',
-  totalActions: 0,
-  lastActionAt: new Date(),
-  achievements: [],
-  rewards: [],
-  streakDays: 0,
-  lastLoginStreak: new Date(),
-  referralCode: '',
-  referrals: [],
-  referralPoints: 0
-};
-
-// Tipos de segurança
 interface SecureUserData {
   displayName?: string;
   email?: string;
@@ -46,173 +31,79 @@ interface AuthState {
 }
 
 export default function HomePage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
-  
-  // Estados seguros
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     userData: null,
     isLoading: true,
     error: null
   });
-
-  // Refs para evitar race conditions
-  const authTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const retryCountRef = useRef(0);
-  const isUnmountingRef = useRef(false);
-
-  // Função para sanitizar dados do usuário
-  const sanitizeUserData = (userData: any): SecureUserData | null => {
-    try {
-      if (!userData || typeof userData !== 'object') return null;
-      
-      return {
-        displayName: typeof userData.displayName === 'string' ? userData.displayName : undefined,
-        email: typeof userData.email === 'string' ? userData.email : undefined,
-        uid: typeof userData.uid === 'string' ? userData.uid : undefined,
-        photoURL: typeof userData.photoURL === 'string' ? userData.photoURL : undefined,
-        providerData: Array.isArray(userData.providerData) ? userData.providerData : undefined,
-        loginTime: typeof userData.loginTime === 'number' ? userData.loginTime : undefined
-      };
-    } catch (error) {
-      console.error('Erro ao sanitizar dados do usuário:', error);
-      return null;
-    }
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   // Sanitizar dados do usuário
-  const getUserStats = async (userId: string): Promise<GamificationData> => {
-    const docRef = doc(db, 'gamification_stats', userId);
-    const snap = await getDoc(docRef);
-    return snap.exists() ? (snap.data() as GamificationData) : defaultStats;
+  const sanitizeUserData = (userData: any): SecureUserData | null => {
+    if (!userData || typeof userData !== 'object') return null;
+    
+    return {
+      displayName: typeof userData.displayName === 'string' ? userData.displayName.slice(0, 100) : undefined,
+      email: typeof userData.email === 'string' ? userData.email.slice(0, 100) : undefined,
+      uid: typeof userData.uid === 'string' ? userData.uid.slice(0, 100) : undefined,
+      photoURL: typeof userData.photoURL === 'string' ? userData.photoURL.slice(0, 500) : undefined,
+      providerData: Array.isArray(userData.providerData) ? userData.providerData.slice(0, 5) : undefined,
+      loginTime: typeof userData.loginTime === 'number' ? userData.loginTime : Date.now()
+    };
   };
 
-
-
-
-  // Verificar se é dispositivo móvel de forma segura
+  // Verificar se é dispositivo móvel
   const isMobileDevice = useCallback((): boolean => {
     if (typeof window === 'undefined') return false;
-    
-    try {
-      const userAgent = navigator.userAgent.toLowerCase();
-      return MOBILE_USER_AGENTS.test(userAgent);
-    } catch (error) {
-      console.error('Erro ao detectar dispositivo móvel:', error);
-      return false;
-    }
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }, []);
 
-  // Verificar autenticação de forma segura
-  const verifyAuthentication = useCallback(async (): Promise<void> => {
-    if (isUnmountingRef.current) return;
+  // Verificação de autenticação simplificada
+  useEffect(() => {
+    // Verificar dispositivo móvel
+    if (typeof window !== 'undefined' && !isMobileDevice()) {
+      router.replace('/acesso-mobile-obrigatorio');
+      return;
+    }
 
-    try {
-      // Timeout de segurança
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        authTimeoutRef.current = setTimeout(() => {
-          reject(new Error('Timeout de autenticação'));
-        }, AUTH_TIMEOUT_MS);
-      });
+    // Listener de autenticação do Firebase
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        // Usuário autenticado
+        const sanitizedData = sanitizeUserData({
+          ...currentUser,
+          loginTime: Date.now()
+        });
 
-      const authCheck = async (): Promise<void> => {
-        if (typeof window === 'undefined') {
-          throw new Error('Executando no servidor');
-        }
-
-        const logged = localStorage.getItem('logged');
-        const authenticated = localStorage.getItem('authenticated');
-        const userDataStr = localStorage.getItem('user');
-
-        // Validações rigorosas
-        if (!logged || logged !== 'true' || !authenticated || authenticated !== 'true' || !userDataStr) {
-          throw new Error('Dados de autenticação inválidos');
-        }
-
-        // Verificar se os dados não foram manipulados
-        if (userDataStr.length > 10000) { // Limite de tamanho
-          throw new Error('Dados de usuário muito grandes');
-        }
-
-        const parsedUserData = JSON.parse(userDataStr);
-        const sanitizedData = sanitizeUserData(parsedUserData);
-
-        if (!sanitizedData || !sanitizedData.uid || !sanitizedData.email) {
-          throw new Error('Dados de usuário inválidos após sanitização');
-        }
-
-        // Verificar se o login não é muito antigo (24 horas)
-        if (sanitizedData.loginTime) {
-          const loginAge = Date.now() - sanitizedData.loginTime;
-          if (loginAge > 24 * 60 * 60 * 1000) {
-            throw new Error('Sessão expirada');
-          }
-        }
-
+        setUser(currentUser);
         setAuthState({
           isAuthenticated: true,
           userData: sanitizedData,
           isLoading: false,
           error: null
         });
-      };
-
-      await Promise.race([authCheck(), timeoutPromise]);
-    } catch (error) {
-      if (isUnmountingRef.current) return;
-
-      console.error('Erro na verificação de autenticação:', error);
-      
-      // Limpar dados corrompidos
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('logged');
-        localStorage.removeItem('authenticated');
-        localStorage.removeItem('user');
+      } else {
+        // Usuário não autenticado
+        setUser(null);
+        setAuthState({
+          isAuthenticated: false,
+          userData: null,
+          isLoading: false,
+          error: 'Usuário não autenticado'
+        });
       }
+    });
 
-      // Retry logic com backoff exponencial
-      if (retryCountRef.current < MAX_RETRY_ATTEMPTS) {
-        retryCountRef.current++;
-        const delay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 5000);
-        
-        setTimeout(() => {
-          if (!isUnmountingRef.current) {
-            verifyAuthentication();
-          }
-        }, delay);
-        return;
-      }
-
-      setAuthState({
-        isAuthenticated: false,
-        userData: null,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
-      });
-
-      // Redirecionar após falhas
-      router.replace('/');
-    } finally {
-      if (authTimeoutRef.current) {
-        clearTimeout(authTimeoutRef.current);
-      }
-    }
-  }, [router, sanitizeUserData]);
+    return () => unsubscribe();
+  }, [router, isMobileDevice, sanitizeUserData]);
 
   // Logout seguro
   const handleLogout = useCallback(async (): Promise<void> => {
     try {
       console.log('🚪 Iniciando logout seguro...');
       
-      // Limpar dados locais primeiro
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('logged');
-        localStorage.removeItem('authenticated');
-        localStorage.removeItem('user');
-        localStorage.removeItem('intro_watched');
-      }
-
       // Logout do Firebase
       await signOut(auth);
       
@@ -245,28 +136,8 @@ export default function HomePage() {
     }
   }, [router]);
 
-  // Efeitos de segurança
-  useEffect(() => {
-    // Verificar dispositivo móvel
-    if (typeof window !== 'undefined' && !isMobileDevice()) {
-      router.replace('/acesso-mobile-obrigatorio');
-      return;
-    }
-
-    // Verificar autenticação
-    verifyAuthentication();
-
-    // Cleanup
-    return () => {
-      isUnmountingRef.current = true;
-      if (authTimeoutRef.current) {
-        clearTimeout(authTimeoutRef.current);
-      }
-    };
-  }, [router, isMobileDevice, verifyAuthentication]);
-
   // Loading state seguro
-  if (authState.isLoading || authLoading) {
+  if (authState.isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
         <div className="text-center text-white">
@@ -359,6 +230,11 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* STATUS VISUAL COMPACTO */}
+          {authState.isAuthenticated && authState.userData && (
+            <StatusVisualHome userId={authState.userData.uid!} />
+          )}
+
           {/* Ações Seguras */}
           <div className="max-w-md mx-auto space-y-4">
             <button
@@ -384,11 +260,150 @@ export default function HomePage() {
               <p><strong>User Data:</strong> {authState.userData ? 'Presente' : 'Ausente'}</p>
               <p><strong>Router pathname:</strong> {router.pathname}</p>
               <p><strong>Firebase User:</strong> {user ? 'Presente' : 'Ausente'}</p>
-              <p><strong>Retry Count:</strong> {retryCountRef.current}</p>
             </div>
           </div>
         </div>
       </div>
     </>
+  );
+} 
+
+function StatusVisualHome({ userId }: { userId: string }) {
+  const [userType, setUserType] = useState<string>('');
+  const [gamification, setGamification] = useState<any>(null);
+  const [teamStatus, setTeamStatus] = useState<string>('');
+  const [submissionStatus, setSubmissionStatus] = useState<string>('');
+  const [campaignStatus, setCampaignStatus] = useState<string>('');
+  const [nextAction, setNextAction] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      // Buscar tipo de usuário
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+      setUserType(userData?.role || 'publico');
+      setGamification(userData?.gamification || null);
+
+      // Atleta/Judge: status do time
+      if (userData?.role === 'atleta' || userData?.role === 'judge') {
+        const teamsQuery = query(collection(db, 'teams'), where('atletas', 'array-contains', userId));
+        const teamsSnap = await getDocs(teamsQuery);
+        const teams = teamsSnap.docs.map(doc => doc.data());
+        if (teams.length === 0) {
+          setTeamStatus('Sem time');
+          setNextAction('Entrar ou criar um time');
+        } else {
+          const approved = teams.filter((t: any) => t.status === 'approved').length;
+          const pending = teams.filter((t: any) => t.status === 'pending').length;
+          if (approved > 0) {
+            setTeamStatus('Completo');
+            setNextAction('Acompanhe seu time');
+          } else if (pending > 0) {
+            setTeamStatus('Pendente');
+            setNextAction('Aguardar aprovação do time');
+          } else {
+            setTeamStatus('Incompleto');
+            setNextAction('Completar informações do time');
+          }
+        }
+      }
+      // Audiovisual: status da submissão
+      else if (userData?.role === 'fotografo' || userData?.role === 'videomaker') {
+        const subQuery = query(collection(db, 'audiovisual'), where('userId', '==', userId));
+        const subSnap = await getDocs(subQuery);
+        const subs = subSnap.docs.map(doc => doc.data());
+        if (subs.length === 0) {
+          setSubmissionStatus('Nenhuma submissão');
+          setNextAction('Fazer primeira submissão');
+        } else {
+          const approved = subs.filter((s: any) => s.status === 'approved').length;
+          const pending = subs.filter((s: any) => s.status === 'pending').length;
+          if (approved > 0) {
+            setSubmissionStatus('Aprovado');
+            setNextAction('Acompanhe o evento');
+          } else if (pending > 0) {
+            setSubmissionStatus('Pendente');
+            setNextAction('Aguardar aprovação da submissão');
+          } else {
+            setSubmissionStatus('Rejeitado');
+            setNextAction('Reenviar submissão');
+          }
+        }
+      }
+      // Marketing: status de campanhas
+      else if (userData?.role === 'marketing') {
+        const campQuery = query(collection(db, 'marketing_campaigns'), where('userId', '==', userId));
+        const campSnap = await getDocs(campQuery);
+        const camps = campSnap.docs.map(doc => doc.data());
+        if (camps.length === 0) {
+          setCampaignStatus('Sem campanhas');
+          setNextAction('Criar primeira campanha');
+        } else {
+          const active = camps.filter((c: any) => c.status === 'active').length;
+          const paused = camps.filter((c: any) => c.status === 'paused').length;
+          if (active > 0) {
+            setCampaignStatus('Ativa');
+            setNextAction('Acompanhe os resultados');
+          } else if (paused > 0) {
+            setCampaignStatus('Pausada');
+            setNextAction('Reativar campanha');
+          } else {
+            setCampaignStatus('Inativa');
+            setNextAction('Criar nova campanha');
+          }
+        }
+      } else {
+        setNextAction('Explorar o app');
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, [userId]);
+
+  // Layout sóbrio, compacto
+  if (loading) return null;
+  return (
+    <div className="max-w-md mx-auto bg-gray-900/80 border border-gray-700 rounded-lg p-4 mb-8 text-gray-100">
+      <div className="flex flex-col gap-2">
+        {/* Nível de gamificação */}
+        {gamification && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-300">Nível:</span>
+            <span className="font-semibold capitalize text-green-400">{gamification.level || 'iniciante'}</span>
+            <span className="text-xs text-gray-400 ml-2">{gamification.points} pts</span>
+          </div>
+        )}
+        {/* Status do time */}
+        {userType === 'atleta' || userType === 'judge' ? (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-300">Status do time:</span>
+            <span className={`font-semibold ${teamStatus === 'Completo' ? 'text-green-400' : teamStatus === 'Pendente' ? 'text-yellow-400' : 'text-gray-400'}`}>{teamStatus}</span>
+          </div>
+        ) : null}
+        {/* Status da submissão */}
+        {(userType === 'fotografo' || userType === 'videomaker') && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-300">Status da submissão:</span>
+            <span className={`font-semibold ${submissionStatus === 'Aprovado' ? 'text-green-400' : submissionStatus === 'Pendente' ? 'text-yellow-400' : submissionStatus === 'Rejeitado' ? 'text-red-400' : 'text-gray-400'}`}>{submissionStatus}</span>
+          </div>
+        )}
+        {/* Status de campanhas */}
+        {userType === 'marketing' && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-300">Status das campanhas:</span>
+            <span className={`font-semibold ${campaignStatus === 'Ativa' ? 'text-green-400' : campaignStatus === 'Pausada' ? 'text-yellow-400' : 'text-gray-400'}`}>{campaignStatus}</span>
+          </div>
+        )}
+        {/* Próxima ação */}
+        {nextAction && (
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-sm text-gray-400">Próxima ação:</span>
+            <span className="font-semibold text-blue-300">{nextAction}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 } 

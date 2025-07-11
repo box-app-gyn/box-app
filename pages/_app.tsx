@@ -276,13 +276,20 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="color-scheme" content="dark light" />
       </Head>
 
-
-      
-      {/* Splash Screen */}
-      {showSplash && (
-        <SplashScreen onComplete={handleSplashComplete} />
-      )}
-      
+      {/* Removido: <div className="bg-animated-gradient" /> */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0,
+        backgroundImage: 'url(/images/bg_1.webp)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        pointerEvents: 'none',
+      }} />
       <Component {...pageProps} />
       
       

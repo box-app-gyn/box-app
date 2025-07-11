@@ -26,7 +26,7 @@ export default function Home() {
   // Redireciona se já autenticado
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/'); // Sempre para a home
+      router.replace('/home'); // Para a home autenticada
     }
   }, [user, loading, router]);
 

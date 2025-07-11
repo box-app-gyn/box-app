@@ -29,7 +29,7 @@ export const useAuth = () => {
     try {
       const introWatched = localStorage.getItem(INTRO_WATCHED_KEY);
       return introWatched === 'true';
-    } catch (error) {
+    } catch {
       return false;
     }
   }, []);
@@ -49,7 +49,7 @@ export const useAuth = () => {
         ...prev,
         hasWatchedIntro: watched
       }));
-    } catch (error) {
+    } catch {
       // Silenciar erro
     }
   }, []);

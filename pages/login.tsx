@@ -52,12 +52,12 @@ export default function Login() {
               // Usuário novo, redirecionar para setup-mfa
               router.push('/setup-mfa');
             } else {
-              // Usuário existente, redirecionar para dashboard
-              router.push('/dashboard');
+              // Usuário existente, redirecionar para hub
+              router.push('/hub');
             }
           } catch (error) {
             console.error('Erro ao verificar documento do usuário:', error);
-            router.push('/dashboard');
+            router.push('/hub');
           }
         };
         // Adicionar um pequeno delay para garantir que o formulário seja visível
@@ -130,8 +130,8 @@ export default function Login() {
           return;
         }
         
-        // Se não tem MFA, redirecionar para dashboard (usuário existente)
-        router.push('/dashboard');
+        // Se não tem MFA, redirecionar para home (usuário existente)
+        router.push('/home');
         return;
       } else {
         await createUserWithEmailAndPassword(auth, sanitizedEmail, sanitizedPassword);
@@ -178,7 +178,7 @@ export default function Login() {
         await mfaUser.getSession();
         await mfaUser.enroll(multiFactorAssertion, 'Telefone');
         
-        router.push('/dashboard');
+        router.push('/home');
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Erro desconhecido');

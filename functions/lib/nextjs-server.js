@@ -7,8 +7,8 @@ exports.nextjsServer = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const url_1 = require("url");
 const next_1 = __importDefault(require("next"));
-const dev = process.env.NODE_ENV !== 'production';
-const app = (0, next_1.default)({ dev, conf: { distDir: '.next' } });
+// Sempre usar modo produção no Cloud Run
+const app = (0, next_1.default)({ dev: false, conf: { distDir: '.next' } });
 const handle = app.getRequestHandler();
 exports.nextjsServer = (0, https_1.onRequest)(async (req, res) => {
     try {
@@ -23,9 +23,7 @@ exports.nextjsServer = (0, https_1.onRequest)(async (req, res) => {
             res.status(200).send('');
             return;
         }
-        // Preparar o app Next.js
-        await app.prepare();
-        // Processar com Next.js usando o request original
+        // Processar com Next.js
         await handle(req, res);
     }
     catch (error) {
