@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import VideoSplashScreen from '../components/VideoSplashScreen';
+import InscricoesSection from '../components/InscricoesSection';
 
 export default function Home() {
   const router = useRouter();
@@ -103,6 +104,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Seção de Inscrições */}
+      <InscricoesSection />
     </motion.main>
   );
 } 

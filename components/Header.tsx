@@ -252,6 +252,20 @@ export default function Header() {
                   <motion.div
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.35 }}
+                  >
+                    <Link 
+                      href="/inscricoes" 
+                      className="text-2xl font-bold text-green-400 hover:text-green-300 transition-all duration-300 block py-3 border-b border-green-500/20 hover:border-green-500/40"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      🎯 Inscrições
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
                     <Link 
