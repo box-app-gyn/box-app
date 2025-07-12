@@ -23,7 +23,14 @@ export default function SetupMFA() {
   const { checkRateLimit, attempts, maxAttempts } = useRateLimit();
   const [showConfetti, setShowConfetti] = useState(false);
 
+  // Protege todo o componente do SSR
+  if (typeof window === 'undefined') {
+    // Garante que nada de Firebase rode no SSR/SSG
+    return null;
+  }
+
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
