@@ -39,10 +39,12 @@
 - **Kit especial:** 50 primeiros times (exceto RX)
 
 ### **2º LOTE** (25/07/2025 a 16/08/2025 ou até 180 times)
+
 - **RX:** R$ 544,95
 - **Todas as demais categorias:** R$ 444,95
 
 ### **3º LOTE** (08/08/2025 a 08/09/2025 ou até 220 times)
+
 - **RX:** R$ 594,95
 - **Todas as demais categorias:** R$ 494,95
 
@@ -59,8 +61,10 @@
 *Pode aumentar para 60 times dependendo da procura
 
 ## 🎬 **Audiovisual**
+
 - **Valor:** R$ 29,90
-- **Processo:** 
+- **Processo:**
+
   1. Cadastro de interessados
   2. Salva contato no Firestore
   3. Redireciona para checkout
@@ -68,6 +72,7 @@
 ## 📊 **Estrutura de Dados Atualizada**
 
 ### **Interface de Inscrição:**
+
 ```typescript
 interface InscricaoTime {
   timeId: string;
@@ -106,6 +111,7 @@ interface Audiovisual {
 ```
 
 ### **Valores por Categoria e Lote:**
+
 ```javascript
 const VALORES_INSCRICAO = {
   lote1: {
@@ -149,6 +155,7 @@ const LIMITES_LOTES = {
 ## 🔄 **Fluxo de Inscrição**
 
 ### **Para Times:**
+
 1. **Usuário seleciona categoria**
 2. **Sistema verifica lote atual e vagas disponíveis**
 3. **Calcula valor baseado na categoria e lote**
@@ -159,6 +166,7 @@ const LIMITES_LOTES = {
 8. **Atualiza status da inscrição**
 
 ### **Para Audiovisual:**
+
 1. **Usuário preenche formulário**
 2. **Salva dados no Firestore**
 3. **Redireciona para checkout R$ 29,90**
@@ -168,6 +176,7 @@ const LIMITES_LOTES = {
 ## 📋 **Webhook FlowPay**
 
 ### **Payload Esperado:**
+
 ```json
 {
   "orderId": "flowpay_order_id",
@@ -203,4 +212,4 @@ const LIMITES_LOTES = {
 - **Kit especial:** Apenas 50 primeiros times (exceto RX)
 - **Vagas flexíveis:** Amador e Iniciante podem aumentar
 - **Audiovisual:** Valor fixo de R$ 29,90
-- **Sistema flexível:** Preparado para novos produtos futuros 
+- **Sistema flexível:** Preparado para novos produtos futuros

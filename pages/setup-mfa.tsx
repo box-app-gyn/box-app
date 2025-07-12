@@ -94,7 +94,7 @@ export default function SetupMFA() {
       });
       setShowConfetti(true);
       setTimeout(() => {
-        router.push('/home');
+        router.push('/hub');
       }, 1800);
     } catch (err) {
       setError(handleAuthError(err));
@@ -104,7 +104,7 @@ export default function SetupMFA() {
   }, [phoneNumber, displayName, user, router, checkRateLimit, loading]);
 
   const handleSkip = useCallback(() => {
-    router.push('/home');
+    router.push('/hub');
   }, [router]);
 
   // Cleanup ao desmontar

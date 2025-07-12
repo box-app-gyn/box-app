@@ -56,6 +56,15 @@ export const useAuth = () => {
 
   // Efeito principal - simplificado
   useEffect(() => {
+    // Verificar se estamos no cliente
+    if (typeof window === 'undefined') {
+      setAuthState(prev => ({
+        ...prev,
+        loading: false
+      }));
+      return;
+    }
+
     // Verificar intro primeiro
     const introWatched = checkIntroWatched();
     

@@ -239,19 +239,35 @@ function DashboardContent() {
             <h2 className="text-xl font-semibold text-white mb-4">⚡ Ações Rápidas</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {userData?.userType === 'audiovisual' ? (
-                <button
-                  onClick={() => router.push('/dashboard/audiovisual')}
-                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 px-4 rounded-lg transition-colors"
-                >
-                  📹 Dashboard Audiovisual
-                </button>
+                <>
+                  <button
+                    onClick={() => router.push('/dashboard/audiovisual')}
+                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 px-4 rounded-lg transition-colors"
+                  >
+                    📹 Dashboard Audiovisual
+                  </button>
+                  <button
+                    onClick={() => router.push('/pagamento-audiovisual')}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors"
+                  >
+                    💳 Pagamento Audiovisual
+                  </button>
+                </>
               ) : userData?.userType === 'atleta' ? (
-                <button
-                  onClick={() => router.push('/dashboard/atleta')}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition-colors"
-                >
-                  🏋️‍♀️ Dashboard Atleta
-                </button>
+                <>
+                  <button
+                    onClick={() => router.push('/dashboard/atleta')}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition-colors"
+                  >
+                    🏋️‍♀️ Dashboard Atleta
+                  </button>
+                  <button
+                    onClick={() => router.push('/pagamento')}
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-4 rounded-lg transition-colors"
+                  >
+                    💳 Pagamento
+                  </button>
+                </>
               ) : userData?.userType === 'marketing' ? (
                 <button
                   onClick={() => router.push('/dashboard/marketing')}

@@ -23,6 +23,7 @@ export const useFormStorage = () => {
 
   // Carregar dados salvos na inicialização
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const savedData = getFormData();
     setFormData(savedData);
   }, []);
@@ -75,6 +76,7 @@ export const useTeamStorage = () => {
 
   // Carregar dados salvos na inicialização
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const savedData = getTeamData();
     setTeamData(savedData);
   }, []);
@@ -110,6 +112,7 @@ export const useCategoriaStorage = () => {
 
   // Carregar categoria salva na inicialização
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const savedCategoria = getCategoria();
     setCategoria(savedCategoria);
   }, []);
@@ -145,6 +148,7 @@ export const usePaymentStorage = () => {
 
   // Carregar status salvo na inicialização
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const savedStatus = getPaymentStatus();
     setPaymentStatus(savedStatus);
   }, []);

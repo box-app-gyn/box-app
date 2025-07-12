@@ -1,0 +1,46 @@
+{
+  "name": "interbox-flowpay",
+  "version": "1.0.0",
+  "description": "Módulo de integração FlowPay/OpenPix para o sistema Interbox",
+  "main": "backend/functions/index.ts",
+  "site": "interbox-flowpay",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node backend/scripts/register-webhook.ts",
+    "deploy:functions": "firebase deploy --only functions",
+    "register-webhook": "ts-node backend/scripts/register-webhook.ts",
+    "check-payments": "ts-node backend/scripts/manual-status-check.ts",
+    "test": "jest",
+    "dev:local": "firebase emulators:start --only functions,firestore",
+    "dev:functions": "firebase emulators:start --only functions",
+    "dev:all": "firebase emulators:start",
+    "test:webhook": "ts-node backend/scripts/test-webhook.ts",
+    "test:webhook-manual": "ts-node backend/scripts/test-webhook-manual.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase": "^11.10.0",
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^6.3.2",
+    "node-fetch": "^3.3.2",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.10.0",
+    "jest": "^29.7.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  },
+  "keywords": [
+    "flowpay",
+    "openpix",
+    "pix",
+    "payment",
+    "firebase",
+    "interbox"
+  ],
+  "author": "Interbox Team",
+  "license": "MIT"
+}

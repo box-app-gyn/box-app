@@ -1,55 +1,19 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.flowpayWebhook = exports.onUserCreated = exports.pollMessagesFunction = exports.createSessionFunction = exports.saveFeedbackFunction = exports.getChatHistoryFunction = exports.sendMessageFunction = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.criarInscricaoAudiovisualFunction = exports.validaAudiovisualFunction = exports.criarInscricaoTimeFunction = void 0;
+exports.flowpayWebhook = exports.onUserCreated = exports.cancelarConviteTimeFunction = exports.listarConvitesUsuarioFunction = exports.responderConviteTimeFunction = exports.enviarConviteTimeFunction = exports.enviaEmailConfirmacaoFunction = exports.criarInscricaoAudiovisualFunction = exports.validaAudiovisualFunction = exports.criarInscricaoTimeFunction = void 0;
 // /functions/src/index.ts
-const functions = __importStar(require("firebase-functions"));
-const firebase_admin_1 = __importDefault(require("firebase-admin"));
+import * as functions from "firebase-functions";
+import * as firebase_admin_1 from "firebase-admin";
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp();
 }
-const pedidos_1 = require("./pedidos");
-const audiovisual_1 = require("./audiovisual");
-const emails_1 = require("./emails");
-const teams_1 = require("./teams");
-const logger_1 = require("./utils/logger");
-// Chat Functions
-const chat_1 = require("./chat");
+import * as pedidos_1 from "./pedidos";
+import * as audiovisual_1 from "./audiovisual";
+import * as emails_1 from "./emails";
+import * as teams_1 from "./teams";
+import * as logger_1 from "./utils/logger";
+
 // =====================================
 // EXPORTAÇÕES DE CLOUD FUNCTIONS
 // =====================================
@@ -64,14 +28,9 @@ exports.enviarConviteTimeFunction = teams_1.enviarConviteTime;
 exports.responderConviteTimeFunction = teams_1.responderConviteTime;
 exports.listarConvitesUsuarioFunction = teams_1.listarConvitesUsuario;
 exports.cancelarConviteTimeFunction = teams_1.cancelarConviteTime;
-// Funções de Chat
-exports.sendMessageFunction = chat_1.sendMessage;
-exports.getChatHistoryFunction = chat_1.getChatHistory;
-exports.saveFeedbackFunction = chat_1.saveFeedback;
-exports.createSessionFunction = chat_1.createSession;
-exports.pollMessagesFunction = chat_1.pollMessages;
+
 // Funções de Usuário
-var user_created_1 = require("./user-created");
+import * as user_created_1 from "./user-created";
 Object.defineProperty(exports, "onUserCreated", { enumerable: true, get: function () { return user_created_1.onUserCreated; } });
 class RateLimitService {
     constructor() {
@@ -141,7 +100,7 @@ class WebhookService {
         const currentTime = Math.floor(Date.now() / 1000);
         return Math.abs(currentTime - requestTime) <= WebhookService.TIME_WINDOW;
     }
-    validateSignature(body, signature) {
+    validateSignature() {
         try {
             // TODO: Implementar verificação de assinatura
             // const webhookSecret = functions.config().flowpay.webhook_secret;
@@ -240,7 +199,7 @@ class WebhookService {
                 return;
             }
             // Validar assinatura
-            if (!this.validateSignature(req.body, signature)) {
+            if (!this.validateSignature()) {
                 logger_1.logger.security('Assinatura inválida no webhook', {}, context);
                 res.status(401).json({ error: 'Invalid signature' });
                 return;

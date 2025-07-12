@@ -28,15 +28,16 @@ export default function PWAInstallPrompt({ onClose }: PWAInstallPromptProps) {
                       (window.navigator as { standalone?: boolean }).standalone === true;
     setIsStandalone(standalone);
 
+    // Desabilitado temporariamente para evitar popup intrusivo
     // Mostrar popup apenas se for iOS ou Android e não estiver em modo standalone
-    if ((iOS || android) && !standalone) {
-      // Aguarda um pouco para não aparecer imediatamente
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 2000);
+    // if ((iOS || android) && !standalone) {
+    //   // Aguarda um pouco para não aparecer imediatamente
+    //   const timer = setTimeout(() => {
+    //     setIsVisible(true);
+    //   }, 2000);
 
-      return () => clearTimeout(timer);
-    }
+    //   return () => clearTimeout(timer);
+    // }
   }, []);
 
   const handleInstall = () => {

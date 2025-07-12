@@ -9,24 +9,34 @@ const nextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
   
-  // Configuração para export estático (Firebase Hosting)
-  output: 'export',
+  // Configuração condicional para export estático (apenas em produção)
+  ...(process.env.NODE_ENV === 'production' && {
+    output: 'export',
+  }),
   
   // Configurações de produção
   compress: true,
   generateEtags: true,
   poweredByHeader: false,
   
-  // Configurações de imagens otimizadas
+  // Configurações de imagens otimizadas para export estático
   images: {
     unoptimized: true, // Necessário para export estático
     domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Configurações de webpack para produção
+  // Configurações de webpack para produção e export estático
   webpack: (config, { dev, isServer }) => {
+    // Excluir pasta functions/lib do build
+    config.externals = config.externals || [];
+    config.externals.push({
+      'functions/lib': 'commonjs functions/lib',
+    });
+    
     if (!dev && !isServer) {
       // Otimizações para produção
       config.optimization.splitChunks = {
@@ -46,6 +56,14 @@ const nextConfig = {
           },
         },
       };
+      
+      // Otimizações específicas para export estático
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
     }
     
     return config;
@@ -55,6 +73,13 @@ const nextConfig = {
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
+  },
+  
+  // Configurações para PWA em export estático
+  experimental: {
+    // Otimizações para export estático
+    optimizeCss: true,
+    optimizePackageImports: ['framer-motion', 'react-apexcharts'],
   },
 }
 

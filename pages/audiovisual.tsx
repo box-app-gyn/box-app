@@ -157,27 +157,46 @@ export default function Audiovisual() {
               {/* <AudiovisualAnalysis /> */}
             </div>
 
-            {/* Botão Google Forms minimalista */}
-            <div className="text-center mt-12 relative z-10">
-              <a
-                href="/audiovisual/form"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleParticipateClick}
-                className="inline-block relative cursor-pointer transition-transform duration-200 hover:scale-105"
-              >
-                <div className="relative">
-                  {/* Sombra natural (retangular) */}
-                  <div className="absolute inset-0 bg-pink-600/20 rounded-xl blur-lg transform rotate-1 scale-105"></div>
-                  <div className="absolute inset-0 bg-pink-600/10 rounded-xl blur-md transform -rotate-1 scale-105"></div>
-                  {/* Fita original */}
-                  <div className="relative strobo-button papel-vintage">
-                    <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-2xl tracking-wide z-10">
-                      Quero participar
-                    </span>
+            {/* Botões de ação */}
+            <div className="text-center mt-12 relative z-10 space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a
+                  href="/audiovisual/form"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleParticipateClick}
+                  className="inline-block relative cursor-pointer transition-transform duration-200 hover:scale-105"
+                >
+                  <div className="relative">
+                    {/* Sombra natural (retangular) */}
+                    <div className="absolute inset-0 bg-pink-600/20 rounded-xl blur-lg transform rotate-1 scale-105"></div>
+                    <div className="absolute inset-0 bg-pink-600/10 rounded-xl blur-md transform -rotate-1 scale-105"></div>
+                    {/* Fita original */}
+                    <div className="relative strobo-button papel-vintage">
+                      <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-2xl tracking-wide z-10">
+                        Quero participar
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </a>
+                </a>
+                
+                <a
+                  href="/pagamento-audiovisual"
+                  className="inline-block relative cursor-pointer transition-transform duration-200 hover:scale-105"
+                >
+                  <div className="relative">
+                    {/* Sombra natural (retangular) */}
+                    <div className="absolute inset-0 bg-blue-600/20 rounded-xl blur-lg transform rotate-1 scale-105"></div>
+                    <div className="absolute inset-0 bg-blue-600/10 rounded-xl blur-md transform -rotate-1 scale-105"></div>
+                    {/* Fita original */}
+                    <div className="relative strobo-button papel-vintage bg-blue-600">
+                      <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-xl tracking-wide z-10">
+                        💳 Pagamento R$ 29,90
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
 

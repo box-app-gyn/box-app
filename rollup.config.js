@@ -1,6 +1,6 @@
 import { visualizer } from 'rollup-plugin-visualizer'
 
-export default {
+const config = {
   plugins: [
     visualizer({
       filename: 'bundle-graph.html',
@@ -8,3 +8,5 @@ export default {
     })
   ]
 }
+
+export default config

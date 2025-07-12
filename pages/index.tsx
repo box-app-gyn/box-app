@@ -26,7 +26,7 @@ export default function Home() {
   // Redireciona se já autenticado
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/home'); // Para a home autenticada
+      router.replace('/hub'); // Direto para o hub
     }
   }, [user, loading, router]);
 
@@ -106,6 +106,17 @@ export default function Home() {
         </button>
       </div>
       <p className="text-xs text-gray-400 mt-8 text-center">Ao continuar, você concorda com os <Link href="/termos-uso" className="underline">Termos de Uso</Link>.</p>
+
+      {/* Seção Inscreva-se Destacada */}
+      <section className="w-full max-w-2xl mx-auto mt-16 mb-8 flex flex-col items-center">
+        <div className="bg-white/10 border border-green-400/30 rounded-2xl shadow-lg p-8 w-full flex flex-col items-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-green-300 mb-2 text-center">Ainda não faz parte?</h2>
+          <p className="text-gray-200 mb-6 text-center">Garanta sua vaga no maior evento esportivo do Cerrado.<br/>Inscreva seu time ou sua equipe de mídia agora mesmo!</p>
+          <Link href="/cadastro" className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow transition-all duration-200">
+            Inscreva-se
+          </Link>
+        </div>
+      </section>
     </motion.main>
   );
 } 

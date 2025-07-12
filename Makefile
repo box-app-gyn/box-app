@@ -36,10 +36,16 @@ mobile: ## Inicia servidor para desenvolvimento mobile
 firebase: ## Deploy para Firebase
 	@echo "🔥 Fazendo deploy para Firebase..."
 	npm run build
-	firebase deploy
+	firebase deploy --only hosting
 
 deploy: build ## Deploy completo (build + deploy)
 	@echo "🚀 Deploy completo iniciado..."
+	firebase deploy --only hosting
+	@echo "✅ Deploy concluído!"
+
+deploy-build: ## Deploy completo (build + deploy)
+	@echo "🚀 Deploy completo iniciado..."
+	firebase deploy --only hosting
 	@echo "✅ Deploy concluído!"
 
 # Comandos de deploy específicos
@@ -95,6 +101,14 @@ export: ## Exporta para arquivos estáticos
 	@echo "📤 Exportando para arquivos estáticos..."
 	npm run export
 
+export-static: ## Exporta para arquivos estáticos (configuração específica)
+	@echo "📤 Exportando para arquivos estáticos..."
+	npm run build
+
+export-pwa: ## Exporta PWA estática
+	@echo "📱 Exportando PWA estática..."
+	npm run build
+
 # Comandos de desenvolvimento
 dev-clean: clean dev ## Limpa e inicia desenvolvimento
 	@echo "🧹 Desenvolvimento limpo iniciado!"
@@ -115,7 +129,7 @@ security: ## Executa verificações de segurança
 # Comandos de PWA
 pwa-build: ## Build específico para PWA
 	@echo "📱 Fazendo build PWA..."
-	npm run pwa:build
+	npm run build
 
 pwa-test: ## Testa PWA
 	@echo "🧪 Testando PWA..."

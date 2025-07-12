@@ -111,9 +111,10 @@ export default function App({ Component, pageProps }: AppProps) {
           clearTimeout(installPromptTimeoutRef.current);
         }
         
-        installPromptTimeoutRef.current = setTimeout(() => {
-          setShowInstallPrompt(true);
-        }, 5000);
+        // Comentado temporariamente para evitar popup intrusivo
+        // installPromptTimeoutRef.current = setTimeout(() => {
+        //   setShowInstallPrompt(true);
+        // }, 5000);
       }
     } catch (error) {
       console.error('Erro ao mostrar prompt de instalação:', error);

@@ -1,5 +1,9 @@
 import { SECURITY_UTILS } from '../constants/security';
 
+// Tipos para melhor tipagem
+type SanitizedObject = Record<string, unknown>;
+type FormDataValue = string | number | boolean | unknown[] | Record<string, unknown> | null;
+
 // Função principal de sanitização
 export const sanitizeInput = (input: string, maxLength: number = 100): string => {
   if (typeof input !== 'string') return '';
@@ -93,7 +97,7 @@ export const sanitizeEmail = (email: string): string => {
 };
 
 // Sanitização para números
-export const sanitizeNumber = (value: any, min: number = 0, max: number = Number.MAX_SAFE_INTEGER): number => {
+export const sanitizeNumber = (value: unknown, min: number = 0, max: number = Number.MAX_SAFE_INTEGER): number => {
   const num = Number(value);
   
   if (isNaN(num) || !isFinite(num)) {
@@ -104,7 +108,7 @@ export const sanitizeNumber = (value: any, min: number = 0, max: number = Number
 };
 
 // Sanitização para objetos
-export const sanitizeObject = (obj: any, maxDepth: number = 3): any => {
+export const sanitizeObject = (obj: unknown, maxDepth: number = 3): unknown => {
   if (maxDepth <= 0) return null;
   
   if (obj === null || obj === undefined) {
@@ -119,13 +123,13 @@ export const sanitizeObject = (obj: any, maxDepth: number = 3): any => {
     return obj.slice(0, 100).map(item => sanitizeObject(item, maxDepth - 1));
   }
   
-  const sanitized: any = {};
-  const keys = Object.keys(obj).slice(0, 50); // Limitar número de propriedades
+  const sanitized: SanitizedObject = {};
+  const keys = Object.keys(obj as Record<string, unknown>).slice(0, 50); // Limitar número de propriedades
   
   for (const key of keys) {
     const sanitizedKey = sanitizeInput(key, 50);
     if (sanitizedKey) {
-      sanitized[sanitizedKey] = sanitizeObject(obj[key], maxDepth - 1);
+      sanitized[sanitizedKey] = sanitizeObject((obj as Record<string, unknown>)[key], maxDepth - 1);
     }
   }
   
@@ -133,7 +137,7 @@ export const sanitizeObject = (obj: any, maxDepth: number = 3): any => {
 };
 
 // Sanitização para JSON
-export const sanitizeJson = (jsonString: string): any => {
+export const sanitizeJson = (jsonString: string): unknown => {
   if (typeof jsonString !== 'string') return null;
   
   try {
@@ -170,8 +174,8 @@ export const sanitizePhone = (phone: string): string => {
 };
 
 // Função para validar e sanitizar dados de formulário
-export const sanitizeFormData = (data: any): any => {
-  const sanitized: any = {};
+export const sanitizeFormData = (data: Record<string, FormDataValue>): Record<string, FormDataValue> => {
+  const sanitized: Record<string, FormDataValue> = {};
   
   for (const [key, value] of Object.entries(data)) {
     const sanitizedKey = sanitizeInput(key, 50);
@@ -187,7 +191,7 @@ export const sanitizeFormData = (data: any): any => {
         typeof item === 'string' ? sanitizeInput(item, 100) : item
       );
     } else if (typeof value === 'object' && value !== null) {
-      sanitized[sanitizedKey] = sanitizeObject(value, 2);
+      sanitized[sanitizedKey] = sanitizeObject(value, 2) as FormDataValue;
     } else {
       sanitized[sanitizedKey] = value;
     }
