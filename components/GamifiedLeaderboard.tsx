@@ -31,7 +31,7 @@ function sanitizeUrl(url: string): string {
 
 export default function GamifiedLeaderboard({
   title = "🔥 Comunidade Ativa",
-  subtitle = "Os mais engajados da tribo",
+  subtitle = "Os mais engajados da comunidade",
   showUserPosition = true,
   className = ""
 }: GamifiedLeaderboardProps) {
@@ -50,7 +50,18 @@ export default function GamifiedLeaderboard({
 
   // 🎨 COR DO NÍVEL
   const getLevelColor = (level: GamificationLevel) => {
-    return GAMIFICATION_LEVELS[level]?.color || '#6B7280';
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[level.toLowerCase()];
+    return levelKey ? GAMIFICATION_LEVELS[levelKey]?.color || '#6B7280' : '#6B7280';
   };
 
   // 📊 FORMATAR PONTOS

@@ -84,7 +84,7 @@ export default function GlitchScanner({
             animate={accessGranted.get() > 0.8 ? { opacity: 1 } : { opacity: 0 }}
             className="text-green-400"
           >
-            ACCESS GRANTED
+            ACESSO PERMITIDO
           </motion.div>
         </div>
       </motion.div>

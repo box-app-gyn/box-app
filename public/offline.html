@@ -3,104 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CERRADØ - Offline</title>
+    <title>Sem Conexão - Cerrado Interbox</title>
+    <meta name="theme-color" content="#1a1a1a">
+    <link rel="icon" href="/favicon.ico">
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background: #000;
-            color: #fff;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .container {
             padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
         }
-        .logo {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 30px;
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
         }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon svg {
+            width: 40px;
+            height: 40px;
+            fill: #ff6b6b;
+        }
+
         h1 {
             font-size: 24px;
-            margin-bottom: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
+
         p {
             font-size: 16px;
             line-height: 1.5;
-            margin-bottom: 20px;
-            opacity: 0.8;
+            margin-bottom: 24px;
+            opacity: 0.9;
         }
-        .button {
-            background: #fff;
-            color: #000;
+
+        .retry-btn {
+            background: #ff6b6b;
+            color: white;
             border: none;
             padding: 12px 24px;
             border-radius: 8px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
-            text-decoration: none;
-            transition: opacity 0.2s;
+            transition: background 0.2s;
         }
-        .button:hover {
-            opacity: 0.9;
+
+        .retry-btn:hover {
+            background: #ff5252;
         }
+
+        .retry-btn:active {
+            transform: translateY(1px);
+        }
+
         .status {
-            margin-top: 20px;
+            margin-top: 16px;
             font-size: 14px;
-            opacity: 0.6;
+            opacity: 0.7;
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
         }
-        .pulse {
-            animation: pulse 2s infinite;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cached-content {
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .cached-content h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .cached-content ul {
+            list-style: none;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .cached-content li {
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .cached-content li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="/logos/logo_circulo.png" alt="CERRADØ" class="logo pulse">
-        <h1>Você está offline</h1>
-        <p>
-            Parece que você perdeu a conexão com a internet.
-            Não se preocupe, você ainda pode acessar algumas funcionalidades do CERRADØ INTERBOX.
-        </p>
-        <a href="/" class="button" onclick="checkOnline(event)">Tentar novamente</a>
-        <p class="status">
-            Verificando conexão...
-            <span id="connectionStatus">offline</span>
-        </p>
+        <div class="icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M24 8.98C20.93 5.9 16.69 4 12 4S3.07 5.9 0 8.98L12 21 24 8.98zM2.92 9.07C5.51 7.08 8.67 6 12 6s6.49 1.08 9.08 3.07l-9.08 9.08-9.08-9.08z"/>
+            </svg>
+        </div>
+
+        <h1>Sem Conexão</h1>
+        <p>Você está offline. Verifique sua conexão com a internet e tente novamente.</p>
+
+        <button class="retry-btn" onclick="checkConnection()">
+            Tentar Novamente
+        </button>
+
+        <div class="spinner" id="spinner"></div>
+        <div class="status" id="status">Verificando conexão...</div>
+
+        <div class="cached-content">
+            <h3>Conteúdo Disponível Offline:</h3>
+            <ul>
+                <li>Página inicial</li>
+                <li>Informações do evento</li>
+                <li>Formulários de inscrição</li>
+                <li>Páginas de pagamento</li>
+                <li>Dashboard básico</li>
+            </ul>
+        </div>
     </div>
 
     <script>
-        function checkOnline(e) {
-            if (!navigator.onLine) {
-                e.preventDefault();
-                alert('Você ainda está offline. Por favor, verifique sua conexão.');
-            }
+        let isChecking = false;
+
+        function checkConnection() {
+            if (isChecking) return;
+            
+            isChecking = true;
+            const btn = document.querySelector('.retry-btn');
+            const spinner = document.getElementById('spinner');
+            const status = document.getElementById('status');
+            
+            btn.style.display = 'none';
+            spinner.style.display = 'block';
+            status.textContent = 'Verificando conexão...';
+
+            // Simular verificação de conexão
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    status.textContent = 'Conexão restaurada! Redirecionando...';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    status.textContent = 'Ainda sem conexão. Tente novamente.';
+                    btn.style.display = 'inline-block';
+                    spinner.style.display = 'none';
+                    isChecking = false;
+                }
+            }, 2000);
         }
 
-        function updateStatus() {
-            const status = document.getElementById('connectionStatus');
-            status.textContent = navigator.onLine ? 'online' : 'offline';
-            if (navigator.onLine) {
+        // Verificar conexão automaticamente
+        window.addEventListener('online', () => {
+            const status = document.getElementById('status');
+            status.textContent = 'Conexão restaurada! Redirecionando...';
+            setTimeout(() => {
                 window.location.reload();
-            }
+            }, 1000);
+        });
+
+        window.addEventListener('offline', () => {
+            const status = document.getElementById('status');
+            status.textContent = 'Conexão perdida.';
+        });
+
+        // Verificar se há conteúdo em cache
+        if ('caches' in window) {
+            caches.keys().then(cacheNames => {
+                if (cacheNames.length > 0) {
+                    console.log('Caches disponíveis:', cacheNames);
+                }
+            });
         }
 
-        window.addEventListener('online', updateStatus);
-        window.addEventListener('offline', updateStatus);
-        updateStatus();
+        // Verificar se o service worker está ativo
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                if (registration.active) {
+                    console.log('Service Worker ativo');
+                }
+            });
+        }
     </script>
 </body>
 </html> 

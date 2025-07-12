@@ -1,12 +1,7 @@
-const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
+import admin from 'firebase-admin';
 
 // Inicializar Firebase Admin
-const serviceAccount = require('../vertex-ai-sa-key.json');
-
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
   projectId: 'cerrado-interbox'
 });
 

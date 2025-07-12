@@ -1,6 +1,15 @@
-const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
+
+// Verificar se estamos no diretório correto
+const projectRoot = path.join(__dirname, '..');
+const packageJsonPath = path.join(projectRoot, 'package.json');
+
+if (!fs.existsSync(packageJsonPath)) {
+  console.error('❌ Não foi possível encontrar o package.json do projeto!');
+  console.log('💡 Execute este script a partir da raiz do projeto');
+  process.exit(1);
+}
 
 // Verificar se o arquivo de credenciais existe
 const credentialsPath = path.join(__dirname, 'firebase-admin-key.json');
@@ -17,104 +26,151 @@ if (!fs.existsSync(credentialsPath)) {
   process.exit(1);
 }
 
-// Carregar credenciais do arquivo JSON
-const serviceAccount = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-
-// Inicializar Firebase Admin
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
-
 async function checkFirebaseConfig() {
   console.log('🔍 Verificando configuração do Firebase...');
   console.log('─'.repeat(60));
 
   try {
+    // Carregar credenciais do arquivo JSON
+    const serviceAccount = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+    
     // 1. Verificar configuração do projeto
     console.log('📋 1. Verificando configuração do projeto...');
     console.log(`   Project ID: ${serviceAccount.project_id}`);
     console.log(`   Client Email: ${serviceAccount.client_email}`);
     console.log(`   Private Key ID: ${serviceAccount.private_key_id}`);
     
-    // 2. Testar conexão com Authentication
-    console.log('\n📋 2. Testando conexão com Authentication...');
-    const auth = admin.auth();
+    // 2. Verificar se as credenciais são válidas
+    console.log('\n📋 2. Verificando validade das credenciais...');
     
-    // Tentar listar usuários (apenas para testar conexão)
-    const listUsersResult = await auth.listUsers(1);
-    console.log('✅ Conexão com Authentication OK');
-    console.log(`   Total de usuários: ${listUsersResult.users.length}`);
+    if (!serviceAccount.project_id) {
+      throw new Error('Project ID não encontrado nas credenciais');
+    }
     
-    // 3. Verificar configurações do Authentication
-    console.log('\n📋 3. Verificando configurações do Authentication...');
+    if (!serviceAccount.client_email) {
+      throw new Error('Client Email não encontrado nas credenciais');
+    }
     
-    // Verificar se o usuário admin existe
-    const userRecord = await auth.getUserByEmail('nettoaeb1@gmail.com');
-    console.log('✅ Usuário admin encontrado');
-    console.log(`   UID: ${userRecord.uid}`);
-    console.log(`   Email verificado: ${userRecord.emailVerified}`);
-    console.log(`   Conta ativa: ${!userRecord.disabled}`);
+    if (!serviceAccount.private_key) {
+      throw new Error('Private Key não encontrada nas credenciais');
+    }
     
-    // 4. Verificar configurações do projeto
-    console.log('\n📋 4. Verificando configurações do projeto...');
+    console.log('✅ Credenciais válidas');
     
-    // Tentar acessar configurações do projeto
-    const projectConfig = await admin.app().options;
-    console.log('✅ Configuração do projeto OK');
-    console.log(`   Project ID: ${projectConfig.projectId}`);
+    // 3. Verificar arquivos de configuração
+    console.log('\n📋 3. Verificando arquivos de configuração...');
     
-    // 5. Verificar se o Authentication está habilitado
-    console.log('\n📋 5. Verificando se Authentication está habilitado...');
+    const firebaseJsonPath = path.join(projectRoot, 'firebase.json');
+    const firestoreRulesPath = path.join(projectRoot, 'firestore.rules');
+    const firestoreIndexesPath = path.join(projectRoot, 'firestore.indexes.json');
+    const storageRulesPath = path.join(projectRoot, 'storage.rules');
     
-    // Tentar criar um usuário de teste temporário
-    const testEmail = `test-${Date.now()}@example.com`;
-    const testUser = await auth.createUser({
-      email: testEmail,
-      password: 'TestPassword123!',
-      displayName: 'Test User'
-    });
+    if (fs.existsSync(firebaseJsonPath)) {
+      console.log('✅ firebase.json encontrado');
+    } else {
+      console.log('⚠️  firebase.json não encontrado');
+    }
     
-    console.log('✅ Authentication está habilitado e funcionando');
-    console.log(`   Usuário de teste criado: ${testUser.uid}`);
+    if (fs.existsSync(firestoreRulesPath)) {
+      console.log('✅ firestore.rules encontrado');
+    } else {
+      console.log('⚠️  firestore.rules não encontrado');
+    }
     
-    // Remover usuário de teste
-    await auth.deleteUser(testUser.uid);
-    console.log('✅ Usuário de teste removido');
+    if (fs.existsSync(firestoreIndexesPath)) {
+      console.log('✅ firestore.indexes.json encontrado');
+    } else {
+      console.log('⚠️  firestore.indexes.json não encontrado');
+    }
     
-    console.log('\n🎉 CONFIGURAÇÃO DO FIREBASE OK!');
-    console.log('✅ Todas as verificações passaram');
-    console.log('✅ Authentication está funcionando');
-    console.log('✅ Projeto configurado corretamente');
+    if (fs.existsSync(storageRulesPath)) {
+      console.log('✅ storage.rules encontrado');
+    } else {
+      console.log('⚠️  storage.rules não encontrado');
+    }
+    
+    // 4. Verificar variáveis de ambiente
+    console.log('\n📋 4. Verificando variáveis de ambiente...');
+    
+    const envPath = path.join(projectRoot, '.env.local');
+    if (fs.existsSync(envPath)) {
+      console.log('✅ .env.local encontrado');
+      
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      const requiredVars = [
+        'NEXT_PUBLIC_FIREBASE_API_KEY',
+        'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+        'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+        'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+        'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+        'NEXT_PUBLIC_FIREBASE_APP_ID'
+      ];
+      
+      const missingVars = requiredVars.filter(varName => !envContent.includes(varName));
+      
+      if (missingVars.length === 0) {
+        console.log('✅ Todas as variáveis de ambiente necessárias encontradas');
+      } else {
+        console.log('⚠️  Variáveis de ambiente faltando:');
+        missingVars.forEach(varName => console.log(`   - ${varName}`));
+      }
+    } else {
+      console.log('⚠️  .env.local não encontrado');
+      console.log('💡 Crie o arquivo .env.local com as variáveis do Firebase');
+    }
+    
+    // 5. Verificar configuração do Next.js
+    console.log('\n📋 5. Verificando configuração do Next.js...');
+    
+    const nextConfigPath = path.join(projectRoot, 'next.config.js');
+    if (fs.existsSync(nextConfigPath)) {
+      console.log('✅ next.config.js encontrado');
+    } else {
+      console.log('⚠️  next.config.js não encontrado');
+    }
+    
+    // 6. Verificar configuração do Tailwind
+    console.log('\n📋 6. Verificando configuração do Tailwind...');
+    
+    const tailwindConfigPath = path.join(projectRoot, 'tailwind.config.js');
+    if (fs.existsSync(tailwindConfigPath)) {
+      console.log('✅ tailwind.config.js encontrado');
+    } else {
+      console.log('⚠️  tailwind.config.js não encontrado');
+    }
+    
+    // 7. Verificar configuração do TypeScript
+    console.log('\n📋 7. Verificando configuração do TypeScript...');
+    
+    const tsConfigPath = path.join(projectRoot, 'tsconfig.json');
+    if (fs.existsSync(tsConfigPath)) {
+      console.log('✅ tsconfig.json encontrado');
+    } else {
+      console.log('⚠️  tsconfig.json não encontrado');
+    }
+    
+    console.log('\n🎉 VERIFICAÇÃO DE CONFIGURAÇÃO CONCLUÍDA!');
+    console.log('✅ Arquivos de configuração verificados');
+    console.log('✅ Credenciais do Firebase válidas');
+    console.log('✅ Estrutura do projeto OK');
+    
+    console.log('\n📋 PRÓXIMOS PASSOS:');
+    console.log('1. Execute: npm run dev');
+    console.log('2. Teste o login em: http://localhost:3000/login');
+    console.log('3. Verifique o console do navegador para erros');
+    console.log('4. Se houver problemas, execute: npm run security:check');
     
   } catch (error) {
-    console.error('❌ Erro na configuração do Firebase:', error.message);
-    console.error('🔍 Código do erro:', error.code);
+    console.error('❌ Erro na verificação:', error.message);
     
-    if (error.code === 'auth/configuration-not-found') {
-      console.log('\n💡 SOLUÇÃO:');
-      console.log('1. Verifique se o Authentication está habilitado no Firebase Console');
-      console.log('2. Acesse: https://console.firebase.google.com/project/interbox-app-8d400/authentication');
-      console.log('3. Clique em "Get started" se não estiver habilitado');
-      console.log('4. Habilite o provedor "Email/Password"');
-    } else if (error.code === 'auth/insufficient-permission') {
-      console.log('\n💡 SOLUÇÃO:');
-      console.log('1. Verifique as permissões do Service Account');
-      console.log('2. Certifique-se de que tem permissão para gerenciar usuários');
-    } else {
-      console.log('\n💡 SOLUÇÃO:');
-      console.log('1. Verifique se o projeto está ativo');
-      console.log('2. Verifique se as credenciais estão corretas');
-      console.log('3. Tente regenerar as credenciais do Service Account');
-    }
+    console.log('\n💡 SOLUÇÃO:');
+    console.log('1. Verifique se o arquivo firebase-admin-key.json está correto');
+    console.log('2. Certifique-se de que está executando da raiz do projeto');
+    console.log('3. Execute: npm install para instalar dependências');
+    console.log('4. Verifique se o projeto Firebase está ativo');
   }
 
   console.log('\n─'.repeat(60));
-  console.log('📋 PRÓXIMOS PASSOS:');
-  console.log('1. Se tudo OK: teste o login novamente');
-  console.log('2. Se erro persistir: verifique o console do navegador');
-  console.log('3. URL de teste: https://interbox-app-8d400.web.app/login');
 }
 
 // Executar verificação

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+    <msapplication>
+        <tile>
+            <square150x150logo src="/logos/logo_circulo.png"/>
+            <square310x310logo src="/logos/logo_circulo.png"/>
+            <square70x70logo src="/logos/logo_circulo.png"/>
+            <wide310x150logo src="/logos/nome_hrz.png"/>
+            <TileColor>#1a1a1a</TileColor>
+            <TileImage src="/logos/logo_circulo.png"/>
+        </tile>
+    </msapplication>
+</browserconfig> 

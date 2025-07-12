@@ -12,7 +12,7 @@ export default function Beneficios() {
           <span>
             Aqui, a comunidade é protagonista.
             <br />
-            <span className="text-pink-600">INTERBØX esse ano é digital e o evento já começou!</span>
+            <span className="text-pink-600">INTERBØX PRÉ TEMPORADA 2025, o evento já começou!</span>
           </span>
         </h3>
         <div className="w-full flex justify-center items-center pointer-events-none select-none mb-12">
@@ -26,7 +26,7 @@ export default function Beneficios() {
             <div className="absolute left-1/2 -bottom-6 -translate-x-1/2 w-56 h-8 bg-black/30 blur-xl rounded-full opacity-70 z-0" />
             <Image
               src="/images/cellphone.png"
-              alt="Comunidade Interbox"
+              alt="Comunidade CERRADO INTERBØX"
               width={260}
               height={520}
               className="rounded-3xl shadow-none relative z-10"

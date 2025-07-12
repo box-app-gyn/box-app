@@ -1,0 +1,19 @@
+{
+    "collections": {
+      "users": {
+        "schema_changes": "manual_approval",
+        "field_additions": "review_required",
+        "index_changes": "manual_approval"
+      },
+      "products": {
+        "schema_changes": "manual_approval",
+        "field_additions": "auto_apply",
+        "index_changes": "review_required"
+      }
+    },
+    "security_rules": {
+      "changes": "manual_approval",
+      "testing_required": true
+    }
+  }
+  

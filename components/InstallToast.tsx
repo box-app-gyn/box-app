@@ -106,13 +106,12 @@ export default function InstallToast({ platform }: InstallToastProps) {
           {/* Content */}
           <div className="p-4">
             <div className="flex items-center space-x-3 mb-3">
-              <Image 
-                src="/logos/logo_circulo.png" 
+              <Image src="/logos/logo_circulo.png" 
                 alt="CERRADØ" 
                 width={32}
                 height={32}
                 className="w-8 h-8"
-              />
+               priority/>
               <div>
                 <h4 className="font-semibold text-gray-900">CERRADØ INTERBOX</h4>
                 <p className="text-xs text-gray-600">Experiência completa como app</p>

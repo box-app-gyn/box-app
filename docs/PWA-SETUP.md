@@ -16,29 +16,34 @@ Este documento descreve a implementação completa de PWA (Progressive Web App) 
 ## 📱 Funcionalidades Implementadas
 
 ### 1. Splash Screen Animada
+
 - **Vídeo de intro**: `/public/videos/intro.mp4`
 - **Fallback estático**: Logo + animação pulse
 - **Duração**: 3-5 segundos
 - **Transição suave** para o app
 
 ### 2. Detecção Inteligente de Dispositivo
+
 - **iOS + Safari**: Mostra splash e prompt de instalação
 - **Desktop/Android**: Funciona normalmente sem interferência
 - **Modo standalone**: Não mostra splash (já instalado)
 
 ### 3. Prompt de Instalação
+
 - **Aparece após 5 segundos** do splash
 - **Instruções visuais** específicas para iOS
 - **Benefícios destacados** da instalação
 - **Botão "Agora não"** para dispensar
 
 ### 4. Instruções Visuais
+
 - **3 passos claros** para instalação
 - **Ícones explicativos** do Safari
 - **Benefícios listados** da PWA
 - **Design responsivo** e acessível
 
 ### 5. Service Worker
+
 - **Cache inteligente** de recursos
 - **Funcionamento offline** básico
 - **Atualizações automáticas**
@@ -47,6 +52,7 @@ Este documento descreve a implementação completa de PWA (Progressive Web App) 
 ## 🛠️ Arquivos Criados/Modificados
 
 ### Novos Componentes
+
 ```
 components/
 ├── SplashScreen.tsx          # Splash com vídeo
@@ -56,12 +62,14 @@ components/
 ```
 
 ### Novos Hooks
+
 ```
 hooks/
 └── usePWA.ts                 # Gerenciamento de estado PWA
 ```
 
 ### Configurações
+
 ```
 lib/
 └── pwa-config.ts             # Configuração centralizada PWA
@@ -78,6 +86,7 @@ public/
 ```
 
 ### Arquivos Modificados
+
 ```
 pages/
 └── _app.tsx                  # Integração PWA
@@ -89,6 +98,7 @@ components/
 ## 📋 Checklist de Implementação
 
 ### ✅ Concluído
+
 - [x] Manifest.json configurado
 - [x] Meta tags iOS implementadas
 - [x] Componentes PWA criados
@@ -101,6 +111,7 @@ components/
 - [x] Configuração centralizada
 
 ### 🔄 Pendente (Arquivos Externos)
+
 - [ ] Criar vídeo `intro.mp4` (3-5s, MP4, H.264)
 - [ ] Gerar splash screens para todos os dispositivos iOS
 - [ ] Otimizar imagens para web
@@ -155,17 +166,20 @@ components/
 - Sem prompt de instalação
 
 ### iOS + Safari
+
 - Splash screen com vídeo
 - Prompt de instalação após 5s
 - Instruções visuais
 - Comportamento de app nativo
 
 ### iOS + Chrome
+
 - Funciona normalmente
 - Sem splash screen
 - Sem prompt de instalação
 
 ### Android
+
 - Funciona normalmente
 - Sem splash screen
 - Sem prompt de instalação
@@ -173,6 +187,7 @@ components/
 ## 🔧 Configurações Avançadas
 
 ### Personalizar Delays
+
 ```typescript
 // lib/pwa-config.ts
 export const PWA_CONFIG = {
@@ -184,6 +199,7 @@ export const PWA_CONFIG = {
 ```
 
 ### Adicionar Novos Shortcuts
+
 ```typescript
 // lib/pwa-config.ts
 shortcuts: [
@@ -198,6 +214,7 @@ shortcuts: [
 ```
 
 ### Modificar Cache
+
 ```typescript
 // lib/pwa-config.ts
 cacheUrls: [
@@ -213,9 +230,11 @@ cacheUrls: [
 ## 🚀 Deploy e Produção
 
 ### Firebase Hosting
+
 A implementação é compatível com Firebase Hosting e não requer configurações adicionais.
 
 ### HTTPS Obrigatório
+
 PWA requer HTTPS em produção. Firebase Hosting já fornece isso automaticamente.
 
 ### Service Worker

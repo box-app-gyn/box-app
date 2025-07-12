@@ -16,7 +16,7 @@ export type ConviteStatus = 'pendente' | 'aceito' | 'recusado' | 'cancelado' | '
 export type AudiovisualTipo = 'fotografo' | 'videomaker' | 'editor' | 'drone' | 'audio' | 'iluminacao';
 
 // Categorias de competição
-export type CategoriaCompeticao = 'Scale' | 'RX' | 'Elite';
+export type CategoriaCompeticao = 'Iniciante' | 'Scale' | 'Amador' | 'Master 145+' | 'RX';
 
 // Lotes de inscrição
 export type LoteInscricao = 'pre_venda' | 'primeiro' | 'segundo' | 'terceiro' | 'quarto' | 'quinto';
@@ -32,50 +32,64 @@ export type StatusPatrocinador = 'ativo' | 'pendente' | 'inativo' | 'cancelado';
 
 // 🎯 GAMIFICAÇÃO CAMADA 1 - Tipos de ação que geram pontos
 export type GamificationAction = 
-  | 'cadastro'           // +10 XP
-  | 'indicacao_confirmada' // +50 XP
-  | 'compra_ingresso'    // +100 XP
-  | 'envio_conteudo'     // +75 XP
-  | 'qr_scan_evento'     // +25 XP (variável)
-  | 'prova_extra'        // +50 XP (variável)
-  | 'participacao_enquete' // +15 XP
-  | 'acesso_spoiler'     // +20 XP
-  | 'checkin_evento'     // +30 XP
-  | 'compartilhamento'   // +10 XP
-  | 'login_diario'       // +5 XP
-  | 'completar_perfil'   // +25 XP;
+  | 'CADASTRO'           // +10 $BOX
+  | 'LOGIN_DIARIO'       // +5 $BOX
+  | 'COMPLETAR_PERFIL'   // +25 $BOX
+  | 'CRIAR_TIME'         // +50 $BOX
+  | 'ENTRAR_TIME'        // +30 $BOX
+  | 'CONVIDAR_ATLETA'    // +15 $BOX
+  | 'ACEITAR_CONVITE'    // +25 $BOX
+  | 'COMPLETAR_TIME'     // +100 $BOX
+  | 'INSCRICAO_AUDIOVISUAL' // +40 $BOX
+  | 'APROVACAO_AUDIOVISUAL' // +60 $BOX
+  | 'INSCRICAO_EVENTO'   // +80 $BOX
+  | 'PAGAMENTO_CONFIRMADO' // +120 $BOX
+  | 'PRIMEIRA_VEZ'       // +25 $BOX
+  | 'STREAK_7_DIAS'      // +50 $BOX
+  | 'STREAK_30_DIAS'     // +200 $BOX
+  | 'REFERRAL'           // +30 $BOX
+  | 'VISITAR_APP'        // +2 $BOX
+  | 'COMPARTILHAR'       // +10 $BOX
+  | 'FEEDBACK'           // +15 $BOX
+  | 'AVALIAR'            // +10 $BOX;
 
 // Níveis de gamificação
 export type GamificationLevel = 
-  | 'iniciante'    // 0-99 XP
-  | 'bronze'       // 100-299 XP
-  | 'prata'        // 300-599 XP
-  | 'ouro'         // 600-999 XP
-  | 'platina'      // 1000-1999 XP
-  | 'diamante'     // 2000+ XP;
+  | 'iniciante'    // 0-99 $BOX
+  | 'bronze'       // 100-299 $BOX
+  | 'prata'        // 300-599 $BOX
+  | 'ouro'         // 600-999 $BOX
+  | 'platina'      // 1000-1999 $BOX
+  | 'diamante'     // 2000+ $BOX;
 
 // Status de recompensa
 export type RewardStatus = 'disponivel' | 'resgatada' | 'expirada';
 
 // Coleção: users
-export interface FirestoreUser {
+export interface FirestoreUser { 
   uid: string;
   email: string;
   displayName?: string;
   photoURL?: string;
   role: UserRole;
   phone?: string;
+  cidade?: string;
+  box?: string;
+  whatsapp?: string;
+  telefone?: string;
+  categoria?: 'atleta' | 'judge' | 'espectador' | 'midia';
+  mensagem?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   isActive: boolean;
   metadata?: {
     lastLogin?: Timestamp;
     loginCount?: number;
-    preferences?: Record<string, any>;
+    preferences?: Record<string, unknown>;
   };
   // 🎯 GAMIFICAÇÃO CAMADA 1
   gamification?: {
-    points: number;                    // Pontos totais (XP)
+    points: number;                    // Pontos totais ($BOX)
     level: GamificationLevel;          // Nível atual
     totalActions: number;              // Total de ações realizadas
     lastActionAt?: Timestamp;          // Última ação realizada
@@ -151,7 +165,7 @@ export interface FirestorePedido {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   pagamentoConfirmado?: Timestamp;
-  webhookData?: Record<string, any>;
+  webhookData?: Record<string, unknown>;
   gateway: 'pix' | 'cartao' | 'cripto';
 }
 
@@ -238,7 +252,7 @@ export interface FirestoreAdminLog {
   acao: 'validacao_audiovisual' | 'aprovacao_audiovisual' | 'rejeicao_audiovisual' | 'criacao_pedido' | 'confirmacao_pagamento';
   targetId: string; // ID do usuário/audiovisual/pedido afetado
   targetType: 'user' | 'audiovisual' | 'pedido';
-  detalhes: Record<string, any>;
+  detalhes: Record<string, unknown>;
   createdAt: Timestamp;
   ipAddress?: string;
   userAgent?: string;
@@ -298,7 +312,7 @@ export interface EmailConfirmacaoData {
   userEmail: string;
   userName: string;
   tipo: 'pedido' | 'audiovisual' | 'admin';
-  dadosAdicionais?: Record<string, any>;
+  dadosAdicionais?: Record<string, unknown>;
 }
 
 // Tipos para funções de times
@@ -327,7 +341,7 @@ export interface FirestoreGamificationAction {
   action: GamificationAction;
   points: number;
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Timestamp;
   processed: boolean;
   processedAt?: Timestamp;
@@ -387,7 +401,7 @@ export interface FirestoreGamificationUserReward {
   redeemedAt: Timestamp;
   expiresAt?: Timestamp;
   usedAt?: Timestamp;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Coleção: gamification_achievements (conquistas)

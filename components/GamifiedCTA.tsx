@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useCallback } from 'react';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import Link from 'next/link';
+
 
 interface GamifiedCTAProps {
   children: React.ReactNode;
@@ -32,7 +33,7 @@ function validateAndSanitizeUrl(url: string): string {
       const urlObj = new URL(trimmedUrl);
       // Permitir apenas domínios confiáveis
       const allowedDomains = [
-        'interbox.com.br',
+        'cerradointerbox.com.br',
         'flowpay.com.br',
         'firebaseapp.com',
         'googleapis.com',
@@ -66,7 +67,7 @@ export default function GamifiedCTA({
   tooltipText = "VOCÊ FOI ESCOLHIDO",
   onClick 
 }: GamifiedCTAProps) {
-  const { trackCTA } = useAnalytics();
+
   const [showTooltip, setShowTooltip] = useState(false);
 
   // Validar e sanitizar props
@@ -78,14 +79,11 @@ export default function GamifiedCTA({
   const isValid = sanitizedHref !== '#';
 
   const handleClick = useCallback(() => {
-    // Rastrear clique no CTA
-    trackCTA(children as string, window.location.pathname);
-    
     // Executar onClick customizado se fornecido
     if (onClick) {
       onClick();
     }
-  }, [children, onClick, trackCTA]);
+  }, [onClick]);
 
   const handleHoverStart = useCallback(() => {
     if (sanitizedTooltipText) {
@@ -105,49 +103,52 @@ export default function GamifiedCTA({
       whileHover={{ scale: isValid ? 1.05 : 1 }}
       transition={{ duration: 0.33, ease: "easeOut" }}
     >
-      <a 
-        href={sanitizedHref}
-        onClick={handleClick}
-        className={`relative overflow-hidden ${sanitizedClassName} ${
-          !isValid ? 'cursor-not-allowed opacity-50' : ''
-        }`}
-        aria-label={sanitizedTooltipText}
-        rel={sanitizedHref.startsWith('https://') ? 'noopener noreferrer' : undefined}
-        target={sanitizedHref.startsWith('https://') ? '_blank' : undefined}
-      >
-        {children}
-        
-        {/* Tooltip energético */}
-        {sanitizedTooltipText && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.8 }}
-            animate={showTooltip ? { 
-              opacity: 1, 
-              y: -5, 
-              scale: 1 
-            } : { 
-              opacity: 0, 
-              y: 10, 
-              scale: 0.8 
-            }}
-            transition={{ 
-              duration: 0.33, 
-              ease: "easeOut",
-              delay: 0.1 
-            }}
-            className="absolute -top-12 left-1/2 transform -translate-x-1/2 
-                       bg-pink-600 text-white px-3 py-1 rounded-lg text-sm font-bold
-                       shadow-[0_0_15px_#E50914] z-10 whitespace-nowrap
-                       after:content-[''] after:absolute after:top-full after:left-1/2 
-                       after:transform after:-translate-x-1/2 after:border-4 
-                       after:border-transparent after:border-t-pink-600"
-            role="tooltip"
-            aria-hidden={!showTooltip}
-          >
-            {sanitizedTooltipText}
-          </motion.div>
-        )}
-      </a>
+      {isValid && sanitizedHref.startsWith('/') ? (
+        <Link href={sanitizedHref} className={`relative overflow-hidden ${sanitizedClassName} ${!isValid ? 'cursor-not-allowed opacity-50' : ''}`} aria-label={sanitizedTooltipText}>
+          {children}
+        </Link>
+      ) : (
+        <a 
+          href={sanitizedHref}
+          onClick={handleClick}
+          className={`relative overflow-hidden ${sanitizedClassName} ${!isValid ? 'cursor-not-allowed opacity-50' : ''}`}
+          aria-label={sanitizedTooltipText}
+          rel={sanitizedHref.startsWith('https://') ? 'noopener noreferrer' : undefined}
+          target={sanitizedHref.startsWith('https://') ? '_blank' : undefined}
+        >
+          {children}
+        </a>
+      )}
+      {/* Tooltip energético */}
+      {sanitizedTooltipText && (
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.8 }}
+          animate={showTooltip ? { 
+            opacity: 1, 
+            y: -5, 
+            scale: 1 
+          } : { 
+            opacity: 0, 
+            y: 10, 
+            scale: 0.8 
+          }}
+          transition={{ 
+            duration: 0.33, 
+            ease: "easeOut",
+            delay: 0.1 
+          }}
+          className="absolute -top-12 left-1/2 transform -translate-x-1/2 
+bg-pink-600 text-white px-3 py-1 rounded-lg text-sm font-bold
+shadow-[0_0_15px_#E50914] z-10 whitespace-nowrap
+after:content-[''] after:absolute after:top-full after:left-1/2 
+after:transform after:-translate-x-1/2 after:border-4 
+after:border-transparent after:border-t-pink-600"
+          role="tooltip"
+          aria-hidden={!showTooltip}
+        >
+          {sanitizedTooltipText}
+        </motion.div>
+      )}
     </motion.div>
   );
 } 

@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "cerrado-interbox-2025"
-  }
-} 
+    "default": "cerrado-interbox-2025",
+    "production": "interbox-app-8d400"
+  },
+  "targets": {},
+  "etags": {}
+}

@@ -1,0 +1,144 @@
+# Configurações de Monitoramento e Alertas para Cloud Run
+# Monitoring and Alerting Configuration for Cloud Run
+
+# Alertas de Performance
+alerts:
+  # Alerta de alta utilização de CPU
+  high_cpu:
+    condition:
+      display_name: "CPU Utilization > 80%"
+      filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/container/cpu/utilization"'
+      comparison: COMPARISON_GREATER_THAN
+      threshold_value: 0.8
+      duration: 300s  # 5 minutos
+    notification_channels:
+      - "projects/interbox-app-8d400/notificationChannels/email"
+    documentation:
+      content: "O serviço está com alta utilização de CPU. Verifique se há picos de tráfego ou problemas de performance."
+      mime_type: "text/markdown"
+
+  # Alerta de alta utilização de memória
+  high_memory:
+    condition:
+      display_name: "Memory Utilization > 85%"
+      filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/container/memory/utilization"'
+      comparison: COMPARISON_GREATER_THAN
+      threshold_value: 0.85
+      duration: 300s
+    notification_channels:
+      - "projects/interbox-app-8d400/notificationChannels/email"
+
+  # Alerta de latência alta
+  high_latency:
+    condition:
+      display_name: "Request Latency > 2s"
+      filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_latencies"'
+      comparison: COMPARISON_GREATER_THAN
+      threshold_value: 2000  # 2 segundos em ms
+      duration: 300s
+    notification_channels:
+      - "projects/interbox-app-8d400/notificationChannels/email"
+
+  # Alerta de erro 5xx
+  high_error_rate:
+    condition:
+      display_name: "Error Rate > 5%"
+      filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_count" AND metric.labels.response_code_class="5xx"'
+      comparison: COMPARISON_GREATER_THAN
+      threshold_value: 0.05  # 5%
+      duration: 300s
+    notification_channels:
+      - "projects/interbox-app-8d400/notificationChannels/email"
+
+# Dashboards de Monitoramento
+dashboards:
+  main_dashboard:
+    display_name: "InterBox App - Main Dashboard"
+    grid_layout:
+      columns: "2"
+      widgets:
+        - title: "CPU Utilization"
+          xy_chart:
+            data_sets:
+              - time_series_query:
+                  time_series_filter:
+                    filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/container/cpu/utilization"'
+            timeshift_duration: "0s"
+            y_axis:
+              label: "CPU %"
+              scale: LINEAR
+
+        - title: "Memory Utilization"
+          xy_chart:
+            data_sets:
+              - time_series_query:
+                  time_series_filter:
+                    filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/container/memory/utilization"'
+            timeshift_duration: "0s"
+            y_axis:
+              label: "Memory %"
+              scale: LINEAR
+
+        - title: "Request Count"
+          xy_chart:
+            data_sets:
+              - time_series_query:
+                  time_series_filter:
+                    filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_count"'
+            timeshift_duration: "0s"
+            y_axis:
+              label: "Requests/sec"
+              scale: LINEAR
+
+        - title: "Request Latency"
+          xy_chart:
+            data_sets:
+              - time_series_query:
+                  time_series_filter:
+                    filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_latencies"'
+            timeshift_duration: "0s"
+            y_axis:
+              label: "Latency (ms)"
+              scale: LINEAR
+
+# Logs de Auditoria
+audit_logs:
+  enabled: true
+  retention_days: 30
+  log_types:
+    - "ADMIN_READ"
+    - "DATA_READ"
+    - "DATA_WRITE"
+
+# Métricas Customizadas
+custom_metrics:
+  pwa_installations:
+    type: "GAUGE"
+    description: "Number of PWA installations"
+    unit: "1"
+    
+  user_sessions:
+    type: "CUMULATIVE"
+    description: "Number of user sessions"
+    unit: "1"
+    
+  form_submissions:
+    type: "CUMULATIVE"
+    description: "Number of form submissions"
+    unit: "1"
+
+# Configurações de SLO (Service Level Objectives)
+slo:
+  availability:
+    target: 0.999  # 99.9% uptime
+    window: 30d
+    measurement:
+      - good_service_filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_count" AND metric.labels.response_code!="5xx"'
+      - total_service_filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_count"'
+
+  latency:
+    target: 0.95  # 95% of requests under 500ms
+    window: 30d
+    measurement:
+      - good_service_filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_latencies" AND metric.value < 500'
+      - total_service_filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="git-box-app" AND metric.type="run.googleapis.com/request_latencies"' 

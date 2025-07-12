@@ -1,90 +1,92 @@
-'use client';
+import React, { useState, useEffect } from 'react';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import { usePWA } from '@/hooks/usePWA';
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
-export default function InstallBanner() {
-  const [isVisible, setIsVisible] = useState(false);
-  const { platform, isStandalone, canInstall } = usePWA();
+const InstallBanner: React.FC = () => {
+  const [showBanner, setShowBanner] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    // Mostrar banner apenas para Android/Chrome que podem instalar
-    if (platform === 'android' && canInstall && !isStandalone) {
-      // Verificar se já foi mostrado recentemente
-      const lastShown = localStorage.getItem('install-banner-last-shown');
-      const now = Date.now();
-      const threeHours = 3 * 60 * 60 * 1000; // 3 horas
+    const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowBanner(true);
+    };
 
-      if (!lastShown || now - parseInt(lastShown) > threeHours) {
-        const timer = setTimeout(() => {
-          setIsVisible(true);
-          localStorage.setItem('install-banner-last-shown', now.toString());
-        }, 5000);
+    const handleAppInstalled = () => {
+      setShowBanner(false);
+      setDeferredPrompt(null);
+    };
 
-        return () => clearTimeout(timer);
-      }
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowBanner(false);
     }
-  }, [platform, canInstall, isStandalone]);
-
-  const handleClose = () => {
-    setIsVisible(false);
+    
+    setDeferredPrompt(null);
   };
 
-  const handleInstall = () => {
-    // Trigger instalação PWA
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      // Mostrar instruções ou trigger instalação
-      setIsVisible(false);
-    }
+  const handleDismiss = () => {
+    setShowBanner(false);
+    setDeferredPrompt(null);
   };
 
-  if (!isVisible) return null;
+  if (!showBanner) {
+    return null;
+  }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -100, opacity: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
-        style={{ zIndex: 10002 }}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <Image 
-              src="/logos/logo_circulo.png" 
-              alt="CERRADØ" 
-              width={32}
-              height={32}
-              className="w-8 h-8"
-            />
-            <div>
-              <p className="text-sm font-medium">Instalar CERRADØ</p>
-              <p className="text-xs opacity-90">Acesso rápido à tela inicial</p>
-            </div>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+      <div className="flex items-center justify-between max-w-md mx-auto">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleInstall}
-              className="px-3 py-1 bg-white text-green-600 text-xs font-semibold rounded-full hover:bg-gray-100 transition-colors"
-            >
-              Instalar
-            </button>
-            <button
-              onClick={handleClose}
-              className="text-white hover:text-gray-200 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+          <div>
+            <p className="font-medium text-gray-900">Instalar App</p>
+            <p className="text-sm text-gray-600">Acesse mais rápido</p>
           </div>
         </div>
-      </motion.div>
-    </AnimatePresence>
+        
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleInstall}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+          >
+            Instalar
+          </button>
+          
+          <button
+            onClick={handleDismiss}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   );
-} 
+};
+
+export default InstallBanner; 

@@ -1,5 +1,4 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('../vertex-ai-sa-key.json');
 
 // Inicializar Firebase Admin
 if (!admin.apps.length) {
@@ -47,7 +46,7 @@ async function checkGamificationPermissions() {
       const userData = doc.data();
       if (userData.gamification) {
         usersWithGamification++;
-        console.log(`✅ Usuário ${userData.email || userData.displayName}: ${userData.gamification.points} XP (${userData.gamification.level})`);
+        console.log(`✅ Usuário ${userData.email || userData.displayName}: ${userData.gamification.points} $BOX (${userData.gamification.level})`);
       }
     });
 

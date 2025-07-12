@@ -1,0 +1,96 @@
+# Firebase App Hosting Configuration
+# Configuração de variáveis de ambiente para o backend
+
+env_variables:
+  # Firebase Config
+  NEXT_PUBLIC_FIREBASE_API_KEY: "${NEXT_PUBLIC_FIREBASE_API_KEY}"
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}"
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: "${NEXT_PUBLIC_FIREBASE_PROJECT_ID}"
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}"
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}"
+  NEXT_PUBLIC_FIREBASE_APP_ID: "${NEXT_PUBLIC_FIREBASE_APP_ID}"
+  
+  # Vertex AI Config
+  VERTEX_AI_PROJECT_ID: "${VERTEX_AI_PROJECT_ID}"
+  VERTEX_AI_LOCATION: "${VERTEX_AI_LOCATION}"
+  
+  # Google Analytics
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: "${NEXT_PUBLIC_GA_MEASUREMENT_ID}"
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: "${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}"
+  
+  # App Config
+  NODE_ENV: "production"
+  
+  # Secrets (serão configurados via Firebase Console)
+  FIREBASE_SERVICE_ACCOUNT_KEY: "${FIREBASE_SERVICE_ACCOUNT_KEY}"
+  VERTEX_AI_SA_KEY: "${VERTEX_AI_SA_KEY}"
+
+# Configurações do App Hosting
+runtime: nodejs18
+
+# Configurações de rede
+network:
+  session_affinity: true
+  ingress: all
+  egress: all
+
+# Configurações de recursos (otimizadas para PWA)
+resources:
+  cpu: 1
+  memory_gb: 1.0
+  disk_size_gb: 10
+
+# Configurações de escalonamento (otimizadas para eventos)
+automatic_scaling:
+  min_instances: 1
+  max_instances: 5
+
+# Configurações de health check
+liveness_check:
+  path: "/api/health"
+  check_interval: 30s
+  timeout: 4s
+  failure_threshold: 3
+  success_threshold: 2
+
+readiness_check:
+  path: "/api/health"
+  check_interval: 5s
+  timeout: 4s
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout: 300s
+
+# Configurações de segurança
+security:
+  allow_unauthenticated: true
+
+# Configurações de logs
+logging:
+  level: info
+  format: json
+
+# Configurações de métricas
+monitoring:
+  enabled: true
+  metrics:
+    - cpu_utilization
+    - memory_utilization
+    - request_count
+    - request_latency
+
+# Configurações de cache
+cache:
+  enabled: true
+  max_age: 3600  # 1 hora
+  stale_while_revalidate: 86400  # 24 horas
+
+# Configurações de timeout
+timeout:
+  request_timeout: 300s  # 5 minutos
+  startup_timeout: 300s  # 5 minutos
+
+# Configurações de concurrency
+concurrency:
+  max_concurrent_requests: 80
+  max_concurrent_requests_per_instance: 40 

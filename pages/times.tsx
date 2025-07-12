@@ -1,38 +1,16 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import GamifiedCTA from '../components/GamifiedCTA';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { useAnalytics } from '@/hooks/useAnalytics';
+
 import SEOHead from '@/components/SEOHead';
 
 const TimesPage: React.FC = () => {
-  const { trackPage, trackCTA, trackScroll } = useAnalytics();
 
-  // Tracking de visualização da página de times
-  useEffect(() => {
-    trackPage('times');
-  }, [trackPage]);
-
-  // Tracking de scroll na página de times
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercentage = Math.round((scrollY / pageHeight) * 100);
-      
-      // Rastrear scroll a cada 25% da página
-      if (scrollPercentage > 0 && scrollPercentage % 25 === 0) {
-        trackScroll('times_page', scrollPercentage);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [trackScroll]);
 
   const handleCommunityClick = () => {
-    trackCTA('ENTRAR NA COMUNIDADE', '/times');
+    // Função vazia para manter compatibilidade
   };
 
   return (
@@ -77,7 +55,7 @@ const TimesPage: React.FC = () => {
                 <h3 className="text-lg md:text-xl font-bold text-green-400 mb-2">📏 Regras de participação</h3>
                 <ul className="list-disc list-inside text-green-100 space-y-1 ml-4">
                   <li>Idade mínima: 18 anos (menores podem participar com autorização dos pais/responsáveis)</li>
-                  <li>Categorias: Iniciante, Scale, Amador, Master 145+, Rx</li>
+                  <li>Categorias: Iniciante, Scale, Amador, Master 145+, RX</li>
                   <li>Alterações no time: até o momento do check-in</li>
                   <li className="text-xs text-green-300">
                     Obs: Alterações feitas a menos de um mês do evento podem não garantir kit personalizado (ex: tamanho de camisa).
@@ -132,7 +110,7 @@ const TimesPage: React.FC = () => {
 
               {/* Aviso — inscrições */}
               <div className="border-l-4 border-yellow-400 pl-4 py-4 bg-yellow-500/5 rounded-md relative overflow-hidden">
-                <Image src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" width={128} height={128} />
+                <Image src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" width={128} height={128} style={{ width: 'auto', height: 'auto' }} />
                 <h3 className="text-lg font-medium text-yellow-300 mb-2">⚠️ Inscrições ainda não abertas</h3>
                 <p className="text-gray-300 mb-2">
                   Os detalhes finais estão sendo validados com atletas convidados e boxes parceiros:

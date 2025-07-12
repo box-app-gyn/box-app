@@ -1,0 +1,23 @@
+# Política de Segurança - InterBox App
+# Security Policy - InterBox App
+
+# Contato para reportar vulnerabilidades
+Contact: mailto:contato@interbox.com.br
+
+# Data de expiração (1 ano)
+Expires: 2026-07-03T00:00:00.000Z
+
+# Idiomas aceitos
+Preferred-Languages: pt-BR, en
+
+# Política de recompensas (opcional)
+# Policy: https://interbox.com.br/security-policy
+
+# Agradecimentos
+Acknowledgments: https://interbox.com.br/security-hall-of-fame
+
+# Criptografia
+Encryption: https://interbox.com.br/pgp-key.txt
+
+# Canais de comunicação
+Canonical: https://interbox.com.br/.well-known/security.txt 

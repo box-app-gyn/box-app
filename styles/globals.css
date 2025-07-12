@@ -12,11 +12,22 @@
 @layer base {
   html {
     font-family: system-ui, sans-serif;
+    scroll-behavior: smooth;
   }
   
   body {
     @apply bg-interbox-dark text-interbox-white font-tech;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  img {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -222,6 +233,7 @@
     pointer-events: none;
     z-index: -1;
     background: linear-gradient(120deg, #0038d0cc 0%, #ff1bdd44 100%);
+    background-size: 200% 200%; /* Adicionar esta linha */
     mix-blend-mode: lighten;
     animation: gradientMove 8s ease-in-out infinite alternate;
   }
@@ -249,4 +261,38 @@
 
   .animate-fade-in { animation: fadeIn 0.7s cubic-bezier(.25,.46,.45,.94) both; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .mobile-optimized {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      perspective: 1000px;
+    }
+    
+    .mobile-smooth {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .mobile-reduced-motion {
+      animation-duration: 0.5s !important;
+      transition-duration: 0.2s !important;
+    }
+  }
+  
+  /* Prevent layout shifts */
+  .prevent-shift {
+    contain: layout style paint;
+  }
+  
+  /* Smooth scrolling for mobile */
+  @media (max-width: 768px) {
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 } 

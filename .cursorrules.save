@@ -1,0 +1,27 @@
+# Regras específicas para o Cursor
+ai_permissions:
+  auto_apply:
+    - "src/components/**/*.tsx"
+    - "src/styles/**/*.css"
+    - "src/utils/**/*.ts"
+
+  review_required:
+    - "src/hooks/**/*.ts"
+    - "src/services/**/*.ts"
+    - "src/pages/**/*.tsx"
+
+  manual_approval:
+    - "firestore.rules"
+    - "firebase.json"
+    - "src/lib/firebase.ts"
+    - "package.json"
+
+firestore_rules:
+  collection_changes: manual_approval
+  security_rules: manual_approval
+  indexes: review_required
+
+backup_before:
+  - firestore_schema_changes
+  - security_rules_changes
+  - api_changes

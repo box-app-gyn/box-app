@@ -1,5 +1,5 @@
-const { exec } = require('child_process');
-const util = require('util');
+import { exec } from 'child_process';
+import util from 'util';
 const execAsync = util.promisify(exec);
 
 async function verifyGamificationWithCLI() {

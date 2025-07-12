@@ -8,11 +8,11 @@ export default function PoliticaPrivacidade() {
   return (
     <>
       <SEOHead 
-        title="Política de Privacidade - CERRADØ INTERBOX 2025"
-        description="Política de privacidade do CERRADØ INTERBOX 2025. Saiba como coletamos, usamos e protegemos seus dados pessoais."
+        title="Política de Privacidade - CERRADØ INTERBØX.GAMES"
+        description="Política de privacidade do CERRADØ INTERBØX.GAMES. Saiba como coletamos, usamos e protegemos seus dados pessoais."
         image="/images/og-interbox.png"
         type="website"
-        keywords="política de privacidade, LGPD, proteção de dados, CERRADØ INTERBOX"
+        keywords="política de privacidade, LGPD, proteção de dados, CERRADØ INTERBØX.GAMES"
         tags={["privacidade", "LGPD", "proteção de dados"]}
         canonical="https://cerradointerbox.com.br/politica-privacidade"
         noIndex={true}
@@ -26,7 +26,7 @@ export default function PoliticaPrivacidade() {
           <div className="text-center mb-12">
             <Image
               src="/logos/logo_circulo.png"
-              alt="Interbox 2025 Logo"
+              alt="INTERBØX.GAMES Logo"
               width={80}
               height={80}
               className="mx-auto mb-6 drop-shadow-[0_2px_12px_rgba(255,27,221,0.7)]"
@@ -43,7 +43,7 @@ export default function PoliticaPrivacidade() {
           <div className="bg-black/60 backdrop-blur rounded-xl p-8 shadow-lg border border-pink-500/20">
             <div className="prose prose-invert max-w-none">
               <p className="text-lg text-gray-300 leading-relaxed mb-8">
-                A sua privacidade é prioridade para nós. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos seus dados no ecossistema digital do <strong>Cerrado Interbox 2025</strong>, operado pela equipe da FlowOFF em parceria com a organização oficial do evento.
+                A sua privacidade é prioridade para nós. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos seus dados no ecossistema digital do <strong>CERRADØ INTERBØX.GAMES</strong>, operado pela equipe da FlowOFF em parceria com a organização oficial do evento.
               </p>
 
               <div className="space-y-8">
@@ -117,7 +117,7 @@ export default function PoliticaPrivacidade() {
                     <li>• Cancelar o recebimento de comunicações</li>
                   </ul>
                   <p className="text-gray-300 mt-4">
-                    Entre em contato: <strong className="text-pink-400">contato@cerradointerbox.com.br</strong>
+                    Entre em contato: <strong className="text-pink-400">contato@cerradointerbox.com.br</strong> ou <strong className="text-pink-400">interbox25cerrado@gmail.com</strong>
                   </p>
                 </section>
 
@@ -147,7 +147,7 @@ export default function PoliticaPrivacidade() {
                     Dúvidas?
                   </h2>
                   <p className="text-gray-300">
-                    Fale com a gente: <strong className="text-pink-400">interbox25cerrado@gmail.com</strong>
+                    Fale com a gente: <strong className="text-pink-400">cerrado25interbox@gmail.com</strong> ou <strong className="text-pink-400">interbox25cerrado@gmail.com</strong>
                   </p>
                 </section>
               </div>

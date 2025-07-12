@@ -19,7 +19,7 @@ function sanitizeText(text: string): string {
 
 export default function GamifiedRewards({
   title = "🎁 Recompensas",
-  subtitle = "Resgate seus prêmios exclusivos",
+  subtitle = "Resgate seus prêmios exclusivos.",
   className = ""
 }: GamifiedRewardsProps) {
   const { availableRewards, stats, loading, redeemReward } = useGamification();
@@ -29,7 +29,18 @@ export default function GamifiedRewards({
 
   // 🎨 COR DO NÍVEL
   const getLevelColor = (level: GamificationLevel) => {
-    return GAMIFICATION_LEVELS[level]?.color || '#6B7280';
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[level.toLowerCase()];
+    return levelKey ? GAMIFICATION_LEVELS[levelKey]?.color || '#6B7280' : '#6B7280';
   };
 
   // 🎁 ÍCONE DA RECOMPENSA
@@ -69,17 +80,31 @@ export default function GamifiedRewards({
     
     // Validação robusta de tipos e existência
     if (typeof reward.requiredPoints !== 'number' || !reward.requiredLevel) return false;
-    if (!(reward.requiredLevel in GAMIFICATION_LEVELS)) return false;
+    
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const requiredLevelKey = levelMap[reward.requiredLevel.toLowerCase()];
+    const userLevelKey = levelMap[stats.level.toLowerCase()];
+    
+    if (!requiredLevelKey || !userLevelKey) return false;
     
     // Verificar pontos
     if (stats.points < reward.requiredPoints) return false;
     
     // Verificar nível
-    const levelIndex = Object.keys(GAMIFICATION_LEVELS).indexOf(reward.requiredLevel);
-    const userLevelIndex = Object.keys(GAMIFICATION_LEVELS).indexOf(stats.level);
+    const levelOrder = ['INICIANTE', 'BRONZE', 'PRATA', 'OURO', 'PLATINA', 'DIAMANTE'];
+    const requiredLevelIndex = levelOrder.indexOf(requiredLevelKey);
+    const userLevelIndex = levelOrder.indexOf(userLevelKey);
     
-    if (levelIndex === -1 || userLevelIndex === -1) return false;
-    return levelIndex <= userLevelIndex;
+    return requiredLevelIndex <= userLevelIndex;
   };
 
   // 📊 PROGRESSO PARA PRÓXIMA RECOMPENSA

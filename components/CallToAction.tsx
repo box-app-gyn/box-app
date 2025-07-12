@@ -9,7 +9,7 @@ export function AudiovisualInvite() {
   return (
     <section className="w-full py-8 bg-black border-t border-neutral-700 flex flex-col items-center justify-center">
       <h1 className="text-xl md:text-3xl font-bold text-white mb-1 text-center">
-        Fotógrafos, videomakers, criadores e mídia:
+        Fotógrafos, videomakers, criators e mídia:
       </h1>
       <h3 className="text-base md:text-xl font-bold text-white mb-4 text-center">
         Quer fazer parte da cobertura oficial do evento?
@@ -99,7 +99,7 @@ export default function CallToAction() {
             viewport={{ once: true }}
             className="bg-neutral-900 p-8 rounded-2xl border border-neutral-800 relative overflow-hidden"
           >
-                         <Image src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" width={128} height={128} />
+                         <Image src="/images/corner.png" alt="" className="absolute top-0 left-0 w-32 h-auto z-10 select-none pointer-events-none" draggable="false" width={128} height={128} style={{ width: 'auto', height: 'auto' }} />
             <h3 className="text-2xl font-bold text-white mb-6 text-center">
               Seja um Patrocinador
             </h3>

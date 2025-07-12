@@ -1,7 +1,11 @@
-const admin = require('firebase-admin');
-const { getFirestore } = require('firebase-admin/firestore');
-const path = require('path');
-const fs = require('fs');
+import admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Verificar se o arquivo de credenciais existe
 const credentialsPath = path.join(__dirname, 'firebase-admin-key.json');

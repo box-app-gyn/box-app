@@ -3,6 +3,7 @@
 ## ✅ Configuração Implementada
 
 ### 📸 **Imagem OG**
+
 - **Arquivo**: `/public/images/og-interbox.png`
 - **Dimensões**: 1200x630px (formato recomendado)
 - **Formato**: PNG
@@ -11,6 +12,7 @@
 ### 🎯 **Páginas Configuradas**
 
 #### **1. Home (/)**
+
 ```html
 <title>CERRADØ INTERBOX 2025 - O Maior Evento de Times da América Latina</title>
 <meta property="og:title" content="CERRADØ INTERBOX 2025 - O Maior Evento de Times da América Latina" />
@@ -19,6 +21,7 @@
 ```
 
 #### **2. Audiovisual (/audiovisual)**
+
 ```html
 <title>Audiovisual & Creators - CERRADØ INTERBOX 2025</title>
 <meta property="og:title" content="Audiovisual & Creators - CERRADØ INTERBOX 2025" />
@@ -26,6 +29,7 @@
 ```
 
 #### **3. Times (/times)**
+
 ```html
 <title>Para Atletas - CERRADØ INTERBOX 2025</title>
 <meta property="og:title" content="Para Atletas - CERRADØ INTERBOX 2025" />
@@ -33,6 +37,7 @@
 ```
 
 #### **4. Formulário (/audiovisual/form)**
+
 ```html
 <title>Candidatura Audiovisual - CERRADØ INTERBOX 2025</title>
 <meta property="og:title" content="Candidatura Audiovisual - CERRADØ INTERBOX 2025" />
@@ -42,6 +47,7 @@
 ## 🔧 **Componente SEOHead**
 
 ### **Funcionalidades:**
+
 - ✅ **Open Graph** (Facebook, LinkedIn)
 - ✅ **Twitter Cards**
 - ✅ **Schema.org** (Structured Data)
@@ -50,6 +56,7 @@
 - ✅ **Favicon** e Apple Touch Icon
 
 ### **Uso:**
+
 ```typescript
 import SEOHead from '@/components/SEOHead';
 
@@ -64,6 +71,7 @@ import SEOHead from '@/components/SEOHead';
 ## 🧪 **Como Testar**
 
 ### **1. Facebook Sharing Debugger**
+
 1. Acesse: https://developers.facebook.com/tools/debug/
 2. Cole a URL: `https://cerradointerbox.com.br`
 3. Clique em "Debug"

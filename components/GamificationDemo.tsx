@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useGamification } from '@/hooks/useGamification';
 import { GAMIFICATION_LEVELS, GAMIFICATION_POINTS } from '@/lib/gamification';
 import { GamificationAction } from '@/types/firestore';
+import { useGamification } from '@/hooks/useGamification';
 
 interface GamificationDemoProps {
   className?: string;
@@ -20,23 +20,35 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
 
   // 🎯 AÇÕES DE DEMONSTRAÇÃO
   const demoActions: { action: GamificationAction; label: string; icon: string; points: number }[] = [
-    { action: 'compartilhamento', label: 'Compartilhar', icon: '📤', points: GAMIFICATION_POINTS.compartilhamento },
-    { action: 'participacao_enquete', label: 'Participar Enquete', icon: '📊', points: GAMIFICATION_POINTS.participacao_enquete },
-    { action: 'completar_perfil', label: 'Completar Perfil', icon: '✅', points: GAMIFICATION_POINTS.completar_perfil },
-    { action: 'envio_conteudo', label: 'Enviar Conteúdo', icon: '📸', points: GAMIFICATION_POINTS.envio_conteudo },
-    { action: 'acesso_spoiler', label: 'Acessar Spoiler', icon: '🔮', points: GAMIFICATION_POINTS.acesso_spoiler },
-    { action: 'checkin_evento', label: 'Check-in Evento', icon: '📍', points: GAMIFICATION_POINTS.checkin_evento }
+    { action: 'COMPARTILHAR', label: 'Compartilhar', icon: '📤', points: GAMIFICATION_POINTS.COMPARTILHAR },
+    { action: 'COMPLETAR_PERFIL', label: 'Completar Perfil', icon: '✅', points: GAMIFICATION_POINTS.COMPLETAR_PERFIL },
+    { action: 'LOGIN_DIARIO', label: 'Login Diário', icon: '🔥', points: GAMIFICATION_POINTS.LOGIN_DIARIO },
+    { action: 'CADASTRO', label: 'Cadastro', icon: '📝', points: GAMIFICATION_POINTS.CADASTRO },
+    { action: 'INSCRICAO_AUDIOVISUAL', label: 'Enviar Conteúdo', icon: '📸', points: GAMIFICATION_POINTS.INSCRICAO_AUDIOVISUAL },
+    { action: 'VISITAR_APP', label: 'Check-in Evento', icon: '🎫', points: GAMIFICATION_POINTS.VISITAR_APP }
   ];
 
   // 🎨 COR DO NÍVEL
   const getLevelColor = (level: string) => {
-    if (!level || !(level in GAMIFICATION_LEVELS)) return '#6B7280';
-    return GAMIFICATION_LEVELS[level as keyof typeof GAMIFICATION_LEVELS]?.color || '#6B7280';
+    if (!level) return '#6B7280';
+    
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[level.toLowerCase()];
+    return levelKey ? GAMIFICATION_LEVELS[levelKey]?.color || '#6B7280' : '#6B7280';
   };
 
   // 🎯 EXECUTAR AÇÃO DE DEMO
   const handleDemoAction = async (action: GamificationAction) => {
-    if (!action || !(action in GAMIFICATION_POINTS)) {
+    if (!action) {
       console.error('Ação inválida:', action);
       return;
     }
@@ -81,7 +93,7 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          🎯 Gamificação Interbox 2025
+          🎯 Gamificação INTERBØX.GAMES
         </motion.h3>
         <motion.p 
           className="text-gray-400 text-sm"
@@ -89,7 +101,7 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          Cada ação gera pontos e desbloqueia recompensas exclusivas
+          Cada ação gera pontos e desbloqueia recompensas exclusivas.
         </motion.p>
       </div>
 
@@ -133,8 +145,8 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
         </div>
 
         <div className="flex justify-between text-xs text-gray-500">
-          <span>{levelProgress.current} XP</span>
-          <span>{levelProgress.next} XP</span>
+                          <span>{levelProgress.current} $BOX</span>
+                <span>{levelProgress.next} $BOX</span>
         </div>
       </div>
 
@@ -157,7 +169,7 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
                 <span className="text-xl">{demoAction.icon}</span>
                 <div className="flex-1">
                   <p className="text-white font-medium text-sm">{sanitizeText(demoAction.label)}</p>
-                  <p className="text-yellow-400 text-xs">+{demoAction.points} XP</p>
+                  <p className="text-yellow-400 text-xs">+{demoAction.points} $BOX</p>
                 </div>
               </div>
             </motion.button>
@@ -199,21 +211,21 @@ export default function GamificationDemo({ className = "" }: GamificationDemoPro
               <span>🔮</span>
               <span className="text-white text-sm">Spoiler do Workout</span>
             </div>
-            <span className="text-green-400 text-xs">50 XP</span>
+                            <span className="text-green-400 text-xs">50 $BOX</span>
           </div>
           <div className="flex items-center justify-between p-2 bg-blue-500/10 border border-blue-500/30 rounded">
             <div className="flex items-center space-x-2">
               <span>📊</span>
               <span className="text-white text-sm">Voto na Categoria</span>
             </div>
-            <span className="text-blue-400 text-xs">100 XP</span>
+                            <span className="text-blue-400 text-xs">100 $BOX</span>
           </div>
           <div className="flex items-center justify-between p-2 bg-purple-500/10 border border-purple-500/30 rounded">
             <div className="flex items-center space-x-2">
               <span>⭐</span>
               <span className="text-white text-sm">Destaque no Perfil</span>
             </div>
-            <span className="text-purple-400 text-xs">200 XP</span>
+                            <span className="text-purple-400 text-xs">200 $BOX</span>
           </div>
         </div>
       </div>

@@ -22,14 +22,14 @@ interface UseGamificationReturn {
   error: string | null;
 
   // Ações
-  addPoints: (action: GamificationAction, metadata?: Record<string, any>) => Promise<{ success: boolean; pointsAdded: number; newTotal: number; newLevel: GamificationLevel }>;
+  addPoints: (action: GamificationAction, metadata?: Record<string, any>) => Promise<{ success: boolean; pointsAdded: number; newTotal: number; newLevel: string }>;
   redeemReward: (rewardId: string) => Promise<{ success: boolean; reward?: FirestoreGamificationReward }>;
   refreshStats: () => Promise<void>;
   refreshLeaderboard: () => Promise<void>;
   refreshRewards: () => Promise<void>;
 
   // Utilitários
-  getLevelInfo: (level: GamificationLevel) => { min: number; max: number; color: string };
+  getLevelInfo: (level: GamificationLevel) => { minPoints: number; maxPoints: number; color: string };
   getLevelProgress: () => { current: number; next: number; percentage: number };
   getAchievementInfo: (achievementId: string) => any;
   getRewardInfo: (rewardId: string) => any;
@@ -52,12 +52,28 @@ export function useGamification(): UseGamificationReturn {
       setError(null);
       
       const userStats = await gamificationService.getUserStats(user.uid);
-      setStats(userStats);
+      setStats({
+        ...userStats,
+        level: userStats.level as GamificationLevel
+      });
 
       // Carregar recompensas disponíveis se temos os stats
       if (userStats) {
-        const rewards = await gamificationService.getAvailableRewards(userStats.level, userStats.points);
-        setAvailableRewards(rewards);
+        const rewards = await gamificationService.getAvailableRewards(userStats.level as GamificationLevel);
+        // Converter para o formato FirestoreGamificationReward
+        const convertedRewards: FirestoreGamificationReward[] = rewards.map(reward => ({
+          id: reward.id,
+          title: reward.title,
+          description: reward.description,
+          type: 'spoiler' as const, // Tipo padrão
+          requiredPoints: 0,
+          requiredLevel: 'requiredLevel' in reward ? reward.requiredLevel as GamificationLevel : 'iniciante',
+          currentRedemptions: 0,
+          isActive: true,
+          createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+          updatedAt: { seconds: Date.now() / 1000, nanoseconds: 0 }
+        }));
+        setAvailableRewards(convertedRewards);
       }
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
@@ -87,20 +103,14 @@ export function useGamification(): UseGamificationReturn {
       setLoading(true);
       setError(null);
 
-      const result = await gamificationService.addPoints(
-        user.uid,
-        user.email,
-        user.displayName,
-        action,
-        metadata
-      );
+      const result = await gamificationService.addPoints(user.uid, action);
 
       // Atualizar stats locais
       if (stats) {
         setStats({
           ...stats,
           points: result.newTotal,
-          level: result.newLevel,
+          level: result.newLevel as GamificationLevel,
           totalActions: stats.totalActions + 1
         });
       }
@@ -131,12 +141,7 @@ export function useGamification(): UseGamificationReturn {
       setLoading(true);
       setError(null);
 
-      const result = await gamificationService.redeemReward(
-        user.uid,
-        user.email,
-        user.displayName,
-        rewardId
-      );
+      const result = await gamificationService.redeemReward(user.uid, rewardId);
 
       // Atualizar recompensas do usuário
       if (stats && result.reward) {
@@ -164,33 +169,69 @@ export function useGamification(): UseGamificationReturn {
   const refreshLeaderboard = useCallback(() => loadLeaderboard(), [loadLeaderboard]);
   const refreshRewards = useCallback(async () => {
     if (stats) {
-      const rewards = await gamificationService.getAvailableRewards(stats.level, stats.points);
-      setAvailableRewards(rewards);
+      const rewards = await gamificationService.getAvailableRewards(stats.level as keyof typeof GAMIFICATION_LEVELS);
+      // Converter para o formato FirestoreGamificationReward
+      const convertedRewards: FirestoreGamificationReward[] = rewards.map(reward => ({
+        id: reward.id,
+        title: reward.title,
+        description: reward.description,
+        type: 'spoiler' as const, // Tipo padrão
+        requiredPoints: 0,
+                  requiredLevel: 'requiredLevel' in reward ? reward.requiredLevel as GamificationLevel : 'iniciante',
+        currentRedemptions: 0,
+        isActive: true,
+        createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+        updatedAt: { seconds: Date.now() / 1000, nanoseconds: 0 }
+      }));
+      setAvailableRewards(convertedRewards);
     }
   }, [stats]);
 
   // 📊 UTILITÁRIOS
   const getLevelInfo = useCallback((level: GamificationLevel) => {
-    return GAMIFICATION_LEVELS[level];
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[level.toLowerCase()];
+    return levelKey ? GAMIFICATION_LEVELS[levelKey] : GAMIFICATION_LEVELS.INICIANTE;
   }, []);
 
   const getLevelProgress = useCallback(() => {
     if (!stats) return { current: 0, next: 0, percentage: 0 };
 
-    const currentLevel = GAMIFICATION_LEVELS[stats.level];
-    const current = stats.points - currentLevel.min;
-    const next = currentLevel.max - currentLevel.min;
+    // Mapear nomes de nível para as chaves corretas
+    const levelMap: Record<string, keyof typeof GAMIFICATION_LEVELS> = {
+      'iniciante': 'INICIANTE',
+      'bronze': 'BRONZE', 
+      'prata': 'PRATA',
+      'ouro': 'OURO',
+      'platina': 'PLATINA',
+      'diamante': 'DIAMANTE'
+    };
+    
+    const levelKey = levelMap[stats.level.toLowerCase()];
+    const currentLevel = levelKey ? GAMIFICATION_LEVELS[levelKey] : GAMIFICATION_LEVELS.INICIANTE;
+    
+    const current = stats.points - currentLevel.minPoints;
+    const next = currentLevel.maxPoints - currentLevel.minPoints;
     const percentage = Math.min((current / next) * 100, 100);
 
     return { current, next, percentage };
   }, [stats]);
 
   const getAchievementInfo = useCallback((achievementId: string) => {
-    return GAMIFICATION_ACHIEVEMENTS.find(achievement => achievement.id === achievementId);
+    return Object.values(GAMIFICATION_ACHIEVEMENTS).find(achievement => achievement.id === achievementId);
   }, []);
 
   const getRewardInfo = useCallback((rewardId: string) => {
-    return GAMIFICATION_REWARDS.find(reward => reward.id === rewardId);
+    return Object.values(GAMIFICATION_REWARDS).find(reward => reward.id === rewardId);
   }, []);
 
   // 🚀 EFEITOS
@@ -215,7 +256,7 @@ export function useGamification(): UseGamificationReturn {
         const today = new Date().toDateString();
 
         if (lastLogin !== today) {
-          await addPoints('login_diario');
+          await addPoints('LOGIN_DIARIO');
           localStorage.setItem(`daily_login_${user.uid}`, today);
         }
       } catch (err) {

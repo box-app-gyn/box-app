@@ -28,15 +28,16 @@ export default function PWAInstallPrompt({ onClose }: PWAInstallPromptProps) {
                       (window.navigator as { standalone?: boolean }).standalone === true;
     setIsStandalone(standalone);
 
+    // Desabilitado temporariamente para evitar popup intrusivo
     // Mostrar popup apenas se for iOS ou Android e não estiver em modo standalone
-    if ((iOS || android) && !standalone) {
-      // Aguarda um pouco para não aparecer imediatamente
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 2000);
+    // if ((iOS || android) && !standalone) {
+    //   // Aguarda um pouco para não aparecer imediatamente
+    //   const timer = setTimeout(() => {
+    //     setIsVisible(true);
+    //   }, 2000);
 
-      return () => clearTimeout(timer);
-    }
+    //   return () => clearTimeout(timer);
+    // }
   }, []);
 
   const handleInstall = () => {
@@ -72,13 +73,12 @@ export default function PWAInstallPrompt({ onClose }: PWAInstallPromptProps) {
         >
           {/* Header */}
           <div className="text-center mb-4">
-            <Image 
-              src="/logos/logo_circulo.png" 
+            <Image src="/logos/logo_circulo.png" 
               alt="CERRADØ" 
               width={64}
               height={64}
               className="w-16 h-16 mx-auto mb-3"
-            />
+             priority/>
             <h2 className="text-xl font-bold text-gray-900 mb-2">
               Instalar CERRADØ
             </h2>

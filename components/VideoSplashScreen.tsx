@@ -13,14 +13,19 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
   const [videoError, setVideoError] = useState(false);
   const [showLogo, setShowLogo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     // Mostrar logo após 1 segundo
     const logoTimer = setTimeout(() => {
       setShowLogo(true);
     }, 1000);
 
-    return () => clearTimeout(logoTimer);
+    return () => {
+      isMounted.current = false;
+      clearTimeout(logoTimer);
+    };
   }, []);
 
   const handleVideoLoad = () => {
@@ -30,16 +35,14 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
   const handleVideoError = () => {
     setVideoError(true);
     setIsLoading(false);
-    // Se o vídeo falhar, mostrar splash por 3 segundos
     setTimeout(() => {
-      onComplete();
+      if (isMounted.current) onComplete();
     }, 3000);
   };
 
   const handleVideoEnd = () => {
-    // Aguardar um pouco antes de completar
     setTimeout(() => {
-      onComplete();
+      if (isMounted.current) onComplete();
     }, 500);
   };
 
@@ -68,13 +71,12 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
             className="absolute inset-0 flex items-center justify-center bg-black"
           >
             <div className="flex flex-col items-center space-y-4">
-              <Image 
-                src="/logos/logo_circulo.png" 
+              <Image src="/logos/logo_circulo.png" 
                 alt="CERRADØ" 
                 width={80}
                 height={80}
                 className="w-20 h-20 animate-pulse"
-              />
+               priority/>
               <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </div>
           </motion.div>
@@ -104,13 +106,12 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
             animate={{ scale: 1, opacity: 1 }}
             className="flex flex-col items-center space-y-6"
           >
-            <Image 
-              src="/logos/logo_circulo.png" 
+            <Image src="/logos/logo_circulo.png" 
               alt="CERRADØ" 
               width={120}
               height={120}
               className="w-30 h-30"
-            />
+             priority/>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -132,13 +133,12 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
               exit={{ opacity: 0, scale: 0.8 }}
               className="absolute top-8 left-8 z-10"
             >
-              <Image 
-                src="/logos/logo_circulo.png" 
+              <Image src="/logos/logo_circulo.png" 
                 alt="CERRADØ" 
                 width={60}
                 height={60}
                 className="w-15 h-15 drop-shadow-lg"
-              />
+               priority/>
             </motion.div>
           )}
         </AnimatePresence>
@@ -155,7 +155,7 @@ export default function VideoSplashScreen({ onComplete }: VideoSplashScreenProps
         </motion.button>
 
         {/* Progress Bar */}
-        {!isLoading && !videoError && videoRef.current && (
+        {!isLoading && !videoError && videoRef.current && videoRef.current.duration > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
