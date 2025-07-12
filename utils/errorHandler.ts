@@ -1,348 +1,220 @@
 import { logger } from './logger';
 
-// Tipos de erro customizados
-export class AppError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public statusCode: number = 500,
-    public isOperational: boolean = true
-  ) {
-    super(message);
-    this.name = 'AppError';
-    Error.captureStackTrace(this, this.constructor);
-  }
+export interface ErrorInfo {
+  message: string;
+  code?: string;
+  details?: any;
+  timestamp: number;
+  userAgent?: string;
+  url?: string;
+  stack?: string;
 }
 
-export class ValidationError extends AppError {
-  constructor(message: string, public field?: string) {
-    super(message, 'VALIDATION_ERROR', 400);
-    this.name = 'ValidationError';
-  }
+export interface ErrorReport {
+  errors: ErrorInfo[];
+  totalErrors: number;
+  lastError?: ErrorInfo;
 }
 
-export class AuthenticationError extends AppError {
-  constructor(message: string = 'Usuário não autenticado') {
-    super(message, 'AUTHENTICATION_ERROR', 401);
-    this.name = 'AuthenticationError';
+class ErrorHandler {
+  private errors: ErrorInfo[] = [];
+  private maxErrors = 100;
+  private isReporting = false;
+
+  constructor() {
+    this.setupGlobalHandlers();
   }
-}
 
-export class AuthorizationError extends AppError {
-  constructor(message: string = 'Acesso negado') {
-    super(message, 'AUTHORIZATION_ERROR', 403);
-    this.name = 'AuthorizationError';
-  }
-}
-
-export class NotFoundError extends AppError {
-  constructor(message: string = 'Recurso não encontrado') {
-    super(message, 'NOT_FOUND_ERROR', 404);
-    this.name = 'NotFoundError';
-  }
-}
-
-export class RateLimitError extends AppError {
-  constructor(message: string = 'Limite de requisições excedido') {
-    super(message, 'RATE_LIMIT_ERROR', 429);
-    this.name = 'RateLimitError';
-  }
-}
-
-// Função para tratar erros de autenticação Firebase
-export const handleAuthError = (error: unknown): string => {
-  try {
-    if (error instanceof Error) {
-      const errorCode = (error as any).code;
-      
-      // Log do erro para debugging
-      logger.error('Erro de autenticação:', { 
-        code: errorCode, 
-        message: error.message,
-        stack: error.stack 
-      });
-      
-      switch (errorCode) {
-        case 'auth/user-not-found':
-          return 'Usuário não encontrado';
-        case 'auth/wrong-password':
-          return 'Senha incorreta';
-        case 'auth/email-already-in-use':
-          return 'Email já está em uso';
-        case 'auth/weak-password':
-          return 'Senha muito fraca';
-        case 'auth/invalid-email':
-          return 'Email inválido';
-        case 'auth/too-many-requests':
-          return 'Muitas tentativas. Tente novamente em alguns minutos';
-        case 'auth/user-disabled':
-          return 'Conta desabilitada';
-        case 'auth/operation-not-allowed':
-          return 'Operação não permitida';
-        case 'auth/network-request-failed':
-          return 'Erro de conexão. Verifique sua internet';
-        case 'auth/popup-closed-by-user':
-          return 'Login cancelado pelo usuário';
-        case 'auth/popup-blocked':
-          return 'Popup bloqueado pelo navegador';
-        case 'auth/cancelled-popup-request':
-          return 'Solicitação de login cancelada';
-        case 'auth/account-exists-with-different-credential':
-          return 'Conta já existe com credenciais diferentes';
-        case 'auth/requires-recent-login':
-          return 'Requer login recente para esta operação';
-        case 'auth/invalid-credential':
-          return 'Credenciais inválidas';
-        case 'auth/invalid-verification-code':
-          return 'Código de verificação inválido';
-        case 'auth/invalid-verification-id':
-          return 'ID de verificação inválido';
-        case 'auth/missing-verification-code':
-          return 'Código de verificação ausente';
-        case 'auth/missing-verification-id':
-          return 'ID de verificação ausente';
-        case 'auth/quota-exceeded':
-          return 'Cota de requisições excedida';
-        case 'auth/retry-popup-request':
-          return 'Tente novamente';
-        default:
-          return 'Erro de autenticação. Tente novamente';
-      }
-    }
-    
-    // Se não for um Error, logar e retornar mensagem genérica
-    logger.error('Erro de autenticação desconhecido:', error);
-    return 'Erro inesperado. Tente novamente';
-  } catch (logError) {
-    // Fallback em caso de erro no próprio logger
-    console.error('Erro ao processar erro de autenticação:', logError);
-    return 'Erro interno. Tente novamente';
-  }
-};
-
-// Função para tratar erros de rede
-export const handleNetworkError = (error: unknown): string => {
-  try {
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-      
-      logger.error('Erro de rede:', { 
-        message: error.message,
-        stack: error.stack 
-      });
-      
-      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-        return 'Erro de conexão. Verifique sua internet';
-      }
-      
-      if (errorMessage.includes('timeout')) {
-        return 'Tempo limite excedido. Tente novamente';
-      }
-      
-      if (errorMessage.includes('cors')) {
-        return 'Erro de acesso. Tente novamente';
-      }
-      
-      if (errorMessage.includes('404')) {
-        return 'Recurso não encontrado';
-      }
-      
-      if (errorMessage.includes('500') || errorMessage.includes('502') || errorMessage.includes('503')) {
-        return 'Servidor temporariamente indisponível';
-      }
-    }
-    
-    return 'Erro de conexão. Tente novamente';
-  } catch (logError) {
-    console.error('Erro ao processar erro de rede:', logError);
-    return 'Erro interno. Tente novamente';
-  }
-};
-
-// Função para tratar erros de validação
-export const handleValidationError = (error: unknown): string => {
-  try {
-    if (error instanceof ValidationError) {
-      logger.warn('Erro de validação:', { 
-        field: error.field,
-        message: error.message 
-      });
-      return error.message;
-    }
-    
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-      
-      if (errorMessage.includes('required') || errorMessage.includes('obrigatório')) {
-        return 'Campo obrigatório não preenchido';
-      }
-      
-      if (errorMessage.includes('invalid') || errorMessage.includes('inválido')) {
-        return 'Dados inválidos';
-      }
-      
-      if (errorMessage.includes('length') || errorMessage.includes('tamanho')) {
-        return 'Tamanho inválido';
-      }
-      
-      if (errorMessage.includes('email')) {
-        return 'Email inválido';
-      }
-      
-      if (errorMessage.includes('password') || errorMessage.includes('senha')) {
-        return 'Senha inválida';
-      }
-    }
-    
-    return 'Dados inválidos';
-  } catch (logError) {
-    console.error('Erro ao processar erro de validação:', logError);
-    return 'Erro de validação';
-  }
-};
-
-// Função para tratar erros de storage
-export const handleStorageError = (error: unknown): string => {
-  try {
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-      
-      logger.error('Erro de storage:', { 
-        message: error.message,
-        stack: error.stack 
-      });
-      
-      if (errorMessage.includes('quota') || errorMessage.includes('storage')) {
-        return 'Espaço de armazenamento insuficiente';
-      }
-      
-      if (errorMessage.includes('permission') || errorMessage.includes('access')) {
-        return 'Sem permissão para acessar armazenamento';
-      }
-      
-      if (errorMessage.includes('not supported') || errorMessage.includes('não suportado')) {
-        return 'Armazenamento não suportado pelo navegador';
-      }
-    }
-    
-    return 'Erro de armazenamento';
-  } catch (logError) {
-    console.error('Erro ao processar erro de storage:', logError);
-    return 'Erro de armazenamento';
-  }
-};
-
-// Função para tratar erros de PWA
-export const handlePWAError = (error: unknown): string => {
-  try {
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-      
-      logger.error('Erro de PWA:', { 
-        message: error.message,
-        stack: error.stack 
-      });
-      
-      if (errorMessage.includes('service worker') || errorMessage.includes('sw')) {
-        return 'Erro no Service Worker';
-      }
-      
-      if (errorMessage.includes('cache')) {
-        return 'Erro no cache da aplicação';
-      }
-      
-      if (errorMessage.includes('install') || errorMessage.includes('instalação')) {
-        return 'Erro na instalação da aplicação';
-      }
-      
-      if (errorMessage.includes('update') || errorMessage.includes('atualização')) {
-        return 'Erro na atualização da aplicação';
-      }
-    }
-    
-    return 'Erro na aplicação';
-  } catch (logError) {
-    console.error('Erro ao processar erro de PWA:', logError);
-    return 'Erro na aplicação';
-  }
-};
-
-// Função principal para tratar erros
-export const handleError = (error: unknown, context?: string): string => {
-  try {
-    // Log do erro com contexto
-    logger.error(`Erro${context ? ` em ${context}` : ''}:`, error);
-    
-    // Tratar tipos específicos de erro
-    if (error instanceof AppError) {
-      return error.message;
-    }
-    
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-      
-      // Detectar tipo de erro baseado na mensagem
-      if (errorMessage.includes('auth') || errorMessage.includes('firebase')) {
-        return handleAuthError(error);
-      }
-      
-      if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('http')) {
-        return handleNetworkError(error);
-      }
-      
-      if (errorMessage.includes('validation') || errorMessage.includes('invalid') || errorMessage.includes('required')) {
-        return handleValidationError(error);
-      }
-      
-      if (errorMessage.includes('storage') || errorMessage.includes('localstorage') || errorMessage.includes('quota')) {
-        return handleStorageError(error);
-      }
-      
-      if (errorMessage.includes('pwa') || errorMessage.includes('service worker') || errorMessage.includes('cache')) {
-        return handlePWAError(error);
-      }
-    }
-    
-    // Fallback para erros desconhecidos
-    return 'Erro inesperado. Tente novamente';
-  } catch (logError) {
-    // Fallback em caso de erro no próprio tratamento
-    console.error('Erro ao processar erro:', logError);
-    return 'Erro interno. Tente novamente';
-  }
-};
-
-// Função para criar erro operacional
-export const createOperationalError = (message: string, code: string, statusCode: number = 500): AppError => {
-  return new AppError(message, code, statusCode, true);
-};
-
-// Função para criar erro de programação
-export const createProgrammingError = (message: string, code: string, statusCode: number = 500): AppError => {
-  return new AppError(message, code, statusCode, false);
-};
-
-// Função para verificar se erro é operacional
-export const isOperationalError = (error: unknown): boolean => {
-  if (error instanceof AppError) {
-    return error.isOperational;
-  }
-  return false;
-};
-
-// Função para processar erro e decidir se deve crashar a aplicação
-export const processError = (error: unknown, context?: string): void => {
-  const errorMessage = handleError(error, context);
-  
-  // Se não for operacional, crashar a aplicação
-  if (!isOperationalError(error)) {
-    logger.error('Erro crítico - aplicação será encerrada:', error);
-    // Em produção, você pode querer enviar para um serviço de monitoramento
-    // e depois encerrar graciosamente
+  private setupGlobalHandlers() {
     if (typeof window !== 'undefined') {
-      // No cliente, mostrar erro fatal
-      alert('Erro crítico na aplicação. A página será recarregada.');
-      window.location.reload();
+      window.addEventListener('error', (event) => {
+        this.handleError(event.error || new Error(event.message), {
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno
+        });
+      });
+
+      window.addEventListener('unhandledrejection', (event) => {
+        this.handleError(
+          event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
+          { type: 'unhandledrejection' }
+        );
+      });
+
+      window.addEventListener('beforeunload', () => {
+        this.reportErrors();
+      });
     }
   }
-}; 
+
+  handleError(error: Error | string, context?: any): void {
+    const errorInfo: ErrorInfo = {
+      message: typeof error === 'string' ? error : error.message,
+      code: this.getErrorCode(error),
+      details: context,
+      timestamp: Date.now(),
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      stack: error instanceof Error ? error.stack : undefined
+    };
+
+    this.errors.push(errorInfo);
+
+    if (this.errors.length > this.maxErrors) {
+      this.errors.shift();
+    }
+
+    console.error('Error captured:', errorInfo);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.group('Error Details');
+      console.error('Message:', errorInfo.message);
+      console.error('Code:', errorInfo.code);
+      console.error('Context:', errorInfo.details);
+      console.error('Stack:', errorInfo.stack);
+      console.groupEnd();
+    }
+
+    this.reportErrors();
+  }
+
+  private getErrorCode(error: Error | string): string {
+    if (typeof error === 'string') {
+      return 'UNKNOWN_ERROR';
+    }
+
+    const message = error.message.toLowerCase();
+    
+    if (message.includes('network') || message.includes('fetch')) {
+      return 'NETWORK_ERROR';
+    }
+    if (message.includes('firebase') || message.includes('firestore')) {
+      return 'FIREBASE_ERROR';
+    }
+    if (message.includes('auth') || message.includes('login')) {
+      return 'AUTH_ERROR';
+    }
+    if (message.includes('payment') || message.includes('pix')) {
+      return 'PAYMENT_ERROR';
+    }
+    if (message.includes('validation')) {
+      return 'VALIDATION_ERROR';
+    }
+    if (message.includes('permission') || message.includes('access')) {
+      return 'PERMISSION_ERROR';
+    }
+    if (message.includes('timeout')) {
+      return 'TIMEOUT_ERROR';
+    }
+    if (message.includes('quota') || message.includes('limit')) {
+      return 'QUOTA_ERROR';
+    }
+
+    return 'UNKNOWN_ERROR';
+  }
+
+  async reportErrors(): Promise<void> {
+    if (this.isReporting || this.errors.length === 0) {
+      return;
+    }
+
+    this.isReporting = true;
+
+    try {
+      const report: ErrorReport = {
+        errors: [...this.errors],
+        totalErrors: this.errors.length,
+        lastError: this.errors[this.errors.length - 1]
+      };
+
+      if (typeof window !== 'undefined' && 'navigator' in window && 'sendBeacon' in navigator) {
+        const success = navigator.sendBeacon('/api/error-report', JSON.stringify(report));
+        if (success) {
+          this.errors = [];
+        }
+      } else {
+        await fetch('/api/error-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(report)
+        });
+        this.errors = [];
+      }
+    } catch (error) {
+      console.error('Failed to report errors:', error);
+    } finally {
+      this.isReporting = false;
+    }
+  }
+
+  getErrorReport(): ErrorReport {
+    return {
+      errors: [...this.errors],
+      totalErrors: this.errors.length,
+      lastError: this.errors[this.errors.length - 1]
+    };
+  }
+
+  clearErrors(): void {
+    this.errors = [];
+  }
+
+  getErrorCount(): number {
+    return this.errors.length;
+  }
+
+  hasErrors(): boolean {
+    return this.errors.length > 0;
+  }
+}
+
+export const errorHandler = new ErrorHandler();
+
+export function handleAsyncError<T extends any[], R>(
+  fn: (...args: T) => Promise<R>
+): (...args: T) => Promise<R | null> {
+  return async (...args: T): Promise<R | null> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      errorHandler.handleError(error as Error);
+      return null;
+    }
+  };
+}
+
+export function createErrorBoundary(componentName: string) {
+  return (error: Error, errorInfo: any) => {
+    errorHandler.handleError(error, {
+      component: componentName,
+      errorInfo
+    });
+  };
+}
+
+export const errorMessages = {
+  NETWORK_ERROR: 'Erro de conexão. Verifique sua internet e tente novamente.',
+  FIREBASE_ERROR: 'Erro no servidor. Tente novamente em alguns instantes.',
+  AUTH_ERROR: 'Erro de autenticação. Faça login novamente.',
+  PAYMENT_ERROR: 'Erro no pagamento. Verifique os dados e tente novamente.',
+  VALIDATION_ERROR: 'Dados inválidos. Verifique as informações fornecidas.',
+  PERMISSION_ERROR: 'Acesso negado. Você não tem permissão para esta ação.',
+  TIMEOUT_ERROR: 'Tempo limite excedido. Tente novamente.',
+  QUOTA_ERROR: 'Limite excedido. Tente novamente mais tarde.',
+  UNKNOWN_ERROR: 'Erro inesperado. Tente novamente.'
+};
+
+export function getErrorMessage(code: string): string {
+  return errorMessages[code as keyof typeof errorMessages] || errorMessages.UNKNOWN_ERROR;
+}
+
+export function isRetryableError(error: Error | string): boolean {
+  const code = errorHandler.getErrorCode(error);
+  return ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'FIREBASE_ERROR'].includes(code);
+}
+
+export function shouldShowErrorToUser(error: Error | string): boolean {
+  const code = errorHandler.getErrorCode(error);
+  return !['QUOTA_ERROR', 'PERMISSION_ERROR'].includes(code);
+} 

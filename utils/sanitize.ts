@@ -1,201 +1,166 @@
-import { SECURITY_UTILS } from '../constants/security';
+import DOMPurify from 'isomorphic-dompurify';
 
-// Tipos para melhor tipagem
-type SanitizedObject = Record<string, unknown>;
-type FormDataValue = string | number | boolean | unknown[] | Record<string, unknown> | null;
+export interface SanitizeOptions {
+  allowedTags?: string[];
+  allowedAttributes?: Record<string, string[]>;
+  allowedSchemes?: string[];
+  allowDataAttributes?: boolean;
+  allowUnknownProtocols?: boolean;
+}
 
-// Função principal de sanitização
-export const sanitizeInput = (input: string, maxLength: number = 100): string => {
-  if (typeof input !== 'string') return '';
-  
-  return SECURITY_UTILS.sanitizeString(input, maxLength);
+const DEFAULT_OPTIONS: SanitizeOptions = {
+  allowedTags: [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'hr',
+    'strong', 'b', 'em', 'i', 'u', 's', 'mark',
+    'ul', 'ol', 'li',
+    'a', 'img',
+    'blockquote', 'pre', 'code',
+    'table', 'thead', 'tbody', 'tr', 'td', 'th',
+    'div', 'span'
+  ],
+  allowedAttributes: {
+    'a': ['href', 'title', 'target', 'rel'],
+    'img': ['src', 'alt', 'title', 'width', 'height'],
+    'div': ['class', 'id'],
+    'span': ['class', 'id'],
+    'p': ['class'],
+    'h1': ['class'], 'h2': ['class'], 'h3': ['class'],
+    'h4': ['class'], 'h5': ['class'], 'h6': ['class'],
+    'ul': ['class'], 'ol': ['class'], 'li': ['class'],
+    'table': ['class'], 'thead': ['class'], 'tbody': ['class'],
+    'tr': ['class'], 'td': ['class'], 'th': ['class']
+  },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  allowDataAttributes: false,
+  allowUnknownProtocols: false
 };
 
-// Sanitização específica para HTML
-export const sanitizeHtml = (input: string): string => {
-  if (typeof input !== 'string') return '';
-  
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;')
-    .replace(/javascript:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
-    .replace(/expression\s*\(/gi, '')
-    .replace(/import\s+url/gi, '')
-    .replace(/@import/gi, '');
-};
-
-// Sanitização para URLs
-export const sanitizeUrl = (url: string): string => {
-  if (typeof url !== 'string') return '';
-  
-  const trimmed = url.trim();
-  
-  // Permitir apenas URLs HTTPS ou relativas
-  if (trimmed.startsWith('http://')) {
+export function sanitizeHtml(html: string, options: SanitizeOptions = {}): string {
+  if (!html || typeof html !== 'string') {
     return '';
   }
+
+  const config = { ...DEFAULT_OPTIONS, ...options };
   
-  if (trimmed.startsWith('https://')) {
-    try {
-      const urlObj = new URL(trimmed);
-      // Verificar domínios permitidos
-      const allowedDomains = [
-        'interbox.com.br',
-        'flowpay.com.br',
-        'firebaseapp.com',
-        'googleapis.com',
-        'chat.whatsapp.com',
-        'www.google-analytics.com',
-        'www.googletagmanager.com'
-      ];
-      
-      if (allowedDomains.some(domain => urlObj.hostname.endsWith(domain))) {
-        return trimmed;
-      }
-    } catch {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: config.allowedTags,
+    ALLOWED_ATTR: config.allowedAttributes,
+    ALLOWED_URI_REGEXP: new RegExp(
+      `^(${config.allowedSchemes?.join('|')}):`,
+      'i'
+    ),
+    ALLOW_DATA_ATTR: config.allowDataAttributes,
+    ALLOW_UNKNOWN_PROTOCOLS: config.allowUnknownProtocols,
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+    KEEP_CONTENT: true,
+    RETURN_DOM: false,
+    RETURN_DOM_FRAGMENT: false,
+    RETURN_DOM_IMPORT: false,
+    RETURN_TRUSTED_TYPE: false
+  });
+}
+
+export function sanitizeText(text: string): string {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+
+  return text
+    .replace(/[<>]/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+=/gi, '')
+    .trim();
+}
+
+export function sanitizeUrl(url: string): string {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+
+  const cleanUrl = url.trim();
+  
+  if (!cleanUrl.match(/^https?:\/\//) && !cleanUrl.match(/^mailto:/) && !cleanUrl.match(/^tel:/)) {
+    return '';
+  }
+
+  try {
+    const urlObj = new URL(cleanUrl);
+    if (!['http:', 'https:', 'mailto:', 'tel:'].includes(urlObj.protocol)) {
       return '';
     }
-  }
-  
-  // Permitir URLs relativas ou âncoras
-  if (trimmed.startsWith('/') || trimmed.startsWith('#')) {
-    return trimmed;
-  }
-  
-  return '';
-};
-
-// Sanitização para emails
-export const sanitizeEmail = (email: string): string => {
-  if (typeof email !== 'string') return '';
-  
-  const trimmed = email.trim().toLowerCase();
-  
-  // Validar formato básico de email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(trimmed)) {
-    return '';
-  }
-  
-  // Verificar tamanho máximo
-  if (trimmed.length > 254) {
-    return '';
-  }
-  
-  // Verificar padrões suspeitos
-  if (SECURITY_UTILS.containsSuspiciousPattern(trimmed)) {
-    return '';
-  }
-  
-  return trimmed;
-};
-
-// Sanitização para números
-export const sanitizeNumber = (value: unknown, min: number = 0, max: number = Number.MAX_SAFE_INTEGER): number => {
-  const num = Number(value);
-  
-  if (isNaN(num) || !isFinite(num)) {
-    return min;
-  }
-  
-  return Math.max(min, Math.min(max, num));
-};
-
-// Sanitização para objetos
-export const sanitizeObject = (obj: unknown, maxDepth: number = 3): unknown => {
-  if (maxDepth <= 0) return null;
-  
-  if (obj === null || obj === undefined) {
-    return null;
-  }
-  
-  if (typeof obj !== 'object') {
-    return sanitizeInput(String(obj));
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.slice(0, 100).map(item => sanitizeObject(item, maxDepth - 1));
-  }
-  
-  const sanitized: SanitizedObject = {};
-  const keys = Object.keys(obj as Record<string, unknown>).slice(0, 50); // Limitar número de propriedades
-  
-  for (const key of keys) {
-    const sanitizedKey = sanitizeInput(key, 50);
-    if (sanitizedKey) {
-      sanitized[sanitizedKey] = sanitizeObject((obj as Record<string, unknown>)[key], maxDepth - 1);
-    }
-  }
-  
-  return sanitized;
-};
-
-// Sanitização para JSON
-export const sanitizeJson = (jsonString: string): unknown => {
-  if (typeof jsonString !== 'string') return null;
-  
-  try {
-    const parsed = JSON.parse(jsonString);
-    return sanitizeObject(parsed);
+    return cleanUrl;
   } catch {
-    return null;
+    return '';
   }
-};
+}
 
-// Validação de senha
-export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
-  return SECURITY_UTILS.isValidPassword(password);
-};
+export function sanitizeEmail(email: string): string {
+  if (!email || typeof email !== 'string') {
+    return '';
+  }
 
-// Sanitização para nomes de usuário
-export const sanitizeUsername = (username: string): string => {
-  if (typeof username !== 'string') return '';
+  const cleanEmail = email.trim().toLowerCase();
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   
-  return username
+  return emailRegex.test(cleanEmail) ? cleanEmail : '';
+}
+
+export function sanitizePhone(phone: string): string {
+  if (!phone || typeof phone !== 'string') {
+    return '';
+  }
+
+  return phone.replace(/[^\d+\-\(\)\s]/g, '').trim();
+}
+
+export function sanitizeName(name: string): string {
+  if (!name || typeof name !== 'string') {
+    return '';
+  }
+
+  return name
+    .replace(/[<>]/g, '')
+    .replace(/[^\w\sÀ-ÿ]/g, '')
     .trim()
-    .slice(0, 30)
-    .replace(/[^a-zA-Z0-9_-]/g, '') // Apenas letras, números, underscore e hífen
-    .toLowerCase();
-};
+    .substring(0, 100);
+}
 
-// Sanitização para telefones
-export const sanitizePhone = (phone: string): string => {
-  if (typeof phone !== 'string') return '';
-  
-  return phone
-    .replace(/\D/g, '') // Apenas números
-    .slice(0, 15); // Máximo 15 dígitos
-};
-
-// Função para validar e sanitizar dados de formulário
-export const sanitizeFormData = (data: Record<string, FormDataValue>): Record<string, FormDataValue> => {
-  const sanitized: Record<string, FormDataValue> = {};
+export function sanitizeFormData(data: Record<string, any>): Record<string, any> {
+  const sanitized: Record<string, any> = {};
   
   for (const [key, value] of Object.entries(data)) {
-    const sanitizedKey = sanitizeInput(key, 50);
-    
     if (typeof value === 'string') {
-      sanitized[sanitizedKey] = sanitizeInput(value, 1000);
-    } else if (typeof value === 'number') {
-      sanitized[sanitizedKey] = sanitizeNumber(value);
-    } else if (typeof value === 'boolean') {
-      sanitized[sanitizedKey] = Boolean(value);
-    } else if (Array.isArray(value)) {
-      sanitized[sanitizedKey] = value.slice(0, 10).map(item => 
-        typeof item === 'string' ? sanitizeInput(item, 100) : item
-      );
+      sanitized[key] = sanitizeText(value);
     } else if (typeof value === 'object' && value !== null) {
-      sanitized[sanitizedKey] = sanitizeObject(value, 2) as FormDataValue;
+      sanitized[key] = sanitizeFormData(value);
     } else {
-      sanitized[sanitizedKey] = value;
+      sanitized[key] = value;
     }
   }
   
   return sanitized;
-}; 
+}
+
+export function validateAndSanitizeInput(input: any, type: 'text' | 'email' | 'url' | 'phone' | 'name' | 'html'): string {
+  if (!input || typeof input !== 'string') {
+    return '';
+  }
+
+  switch (type) {
+    case 'email':
+      return sanitizeEmail(input);
+    case 'url':
+      return sanitizeUrl(input);
+    case 'phone':
+      return sanitizePhone(input);
+    case 'name':
+      return sanitizeName(input);
+    case 'html':
+      return sanitizeHtml(input);
+    case 'text':
+    default:
+      return sanitizeText(input);
+  }
+} 

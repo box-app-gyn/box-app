@@ -8,8 +8,6 @@ import {
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import Image from 'next/image';
-import { sanitizeInput } from '../utils/sanitize';
-import { handleAuthError } from '../utils/errorHandler';
 import { getValidatedUserType } from '../utils/storage';
 import { useRateLimit } from '../hooks/useRateLimit';
 import ConfettiExplosion from '../components/ConfettiExplosion';
@@ -66,7 +64,7 @@ export default function SetupMFA() {
       return;
     }
 
-    const sanitizedPhone = sanitizeInput(phoneNumber);
+    const sanitizedPhone = phoneNumber.trim();
 
     if (!sanitizedPhone) {
       setError('Preencha o campo de telefone');
@@ -97,7 +95,7 @@ export default function SetupMFA() {
         router.push('/hub');
       }, 1800);
     } catch (err) {
-      setError(handleAuthError(err));
+      setError(err instanceof Error ? err.message : 'Erro ao salvar dados');
     } finally {
       setLoading(false);
     }

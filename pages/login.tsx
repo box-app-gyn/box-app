@@ -7,17 +7,19 @@ import {
   User,
   GoogleAuthProvider,
   signInWithPopup,
-  sendEmailVerification
+  sendEmailVerification,
+  getRedirectResult,
+  signInWithRedirect
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import Image from 'next/image';
 import { getDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { sanitizeInput } from '../utils/sanitize';
-import { handleAuthError } from '../utils/errorHandler';
+import { sanitizeText } from '../utils/sanitize';
+import { getErrorMessage } from '../utils/errorHandler';
+import { commonValidators } from '../utils/validation';
 import { useRateLimit } from '../hooks/useRateLimit';
 import { UserType } from '../constants';
-import { validateEmail, validatePassword } from '../utils/validation';
 
 // Configurações
 const AUTH_CONFIG = {
@@ -57,6 +59,17 @@ const logError = (error: unknown, context: string) => {
   // }
 };
 
+// Detectar modo standalone PWA
+const isStandalone = typeof window !== 'undefined' && (
+  window.matchMedia('(display-mode: standalone)').matches ||
+  (window.navigator as { standalone?: boolean }).standalone === true
+);
+
+// Adicionar função de validação de senha
+const validatePassword = (value: string): boolean => {
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+};
+
 export default function Login() {
   const router = useRouter();
   const { checkRateLimit, attempts, maxAttempts } = useRateLimit();
@@ -86,7 +99,7 @@ export default function Login() {
   const isFormValid = useMemo(() => {
     if (!state.email || !state.password) return false;
     
-    const emailValid = validateEmail(state.email);
+    const emailValid = commonValidators.email(state.email);
     const passwordValid = state.isLogin || validatePassword(state.password);
     
     return emailValid && passwordValid;
@@ -149,7 +162,7 @@ export default function Login() {
       return 'Preencha todos os campos';
     }
 
-    if (!validateEmail(state.email)) {
+    if (!commonValidators.email(state.email)) {
       return 'Email inválido';
     }
 
@@ -181,7 +194,7 @@ export default function Login() {
       logError(error, 'handleLogin');
       return {
         success: false,
-        error: handleAuthError(error)
+        error: getErrorMessage(String(error))
       };
     }
   }, []);
@@ -215,45 +228,49 @@ export default function Login() {
       logError(error, 'handleSignup');
       return {
         success: false,
-        error: handleAuthError(error)
+        error: getErrorMessage(String(error))
       };
     }
   }, []);
 
-  // Função de login com Google - MELHORADA
+  // Função de login com Google adaptada para PWA
   const handleGoogleAuth = useCallback(async (userType: UserType): Promise<AuthResult> => {
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Verificar se é usuário novo
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      const isNewUser = !userDoc.exists();
-
-      if (isNewUser) {
-        await setDoc(doc(db, 'users', user.uid), {
-          email: user.email,
-          name: user.displayName,
-          userType,
-          createdAt: new Date(),
-          emailVerified: true,
-          profileComplete: false,
-          lastLoginAt: new Date(),
-          photoURL: user.photoURL
-        });
+      if (isStandalone) {
+        await signInWithRedirect(auth, provider);
+        return { success: false }; // O fluxo será continuado pelo getRedirectResult
       } else {
-        const existingData = userDoc.data();
-        const safeUpdates: Partial<{ lastLoginAt: Date; emailVerified: boolean; userType?: string; photoURL?: string }> = {
-          lastLoginAt: new Date(),
-          emailVerified: true
-        };
-        if (!existingData.userType) safeUpdates.userType = userType;
-        if (user.photoURL && user.photoURL !== existingData.photoURL) safeUpdates.photoURL = user.photoURL;
-        await updateDoc(doc(db, 'users', user.uid), safeUpdates);
-      }
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
 
-      return { success: true, user, isNewUser };
+        // Verificar se é usuário novo
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const isNewUser = !userDoc.exists();
+
+        if (isNewUser) {
+          await setDoc(doc(db, 'users', user.uid), {
+            email: user.email,
+            name: user.displayName,
+            userType,
+            createdAt: new Date(),
+            emailVerified: true,
+            profileComplete: false,
+            lastLoginAt: new Date(),
+            photoURL: user.photoURL
+          });
+        } else {
+          const existingData = userDoc.data();
+          const safeUpdates: Partial<{ lastLoginAt: Date; emailVerified: boolean; userType?: string; photoURL?: string }> = {
+            lastLoginAt: new Date(),
+            emailVerified: true
+          };
+          if (!existingData.userType) safeUpdates.userType = userType;
+          if (user.photoURL && user.photoURL !== existingData.photoURL) safeUpdates.photoURL = user.photoURL;
+          await updateDoc(doc(db, 'users', user.uid), safeUpdates);
+        }
+        return { success: true, user, isNewUser };
+      }
     } catch (error: unknown) {
       logError(error, 'handleGoogleAuth');
       if (typeof error === 'object' && error !== null && 'code' in error) {
@@ -265,8 +282,51 @@ export default function Login() {
           return { success: false, error: 'Você já tem uma janela de login aberta.' };
         }
       }
-      return { success: false, error: handleAuthError(error) };
+      return { success: false, error: getErrorMessage(String(error)) };
     }
+  }, []);
+
+  // Capturar resultado do redirect Google (PWA)
+  useEffect(() => {
+    if (!isStandalone) return;
+    setState((prev) => ({ ...prev, loading: true }));
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          // Atualizar ou criar usuário no Firestore
+          const user = result.user;
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const isNewUser = !userDoc.exists();
+          if (isNewUser) {
+            await setDoc(doc(db, 'users', user.uid), {
+              email: user.email,
+              name: user.displayName,
+              userType: state.userType,
+              createdAt: new Date(),
+              emailVerified: true,
+              profileComplete: false,
+              lastLoginAt: new Date(),
+              photoURL: user.photoURL
+            });
+          } else {
+            const existingData = userDoc.data();
+            const safeUpdates: Partial<{ lastLoginAt: Date; emailVerified: boolean; userType?: string; photoURL?: string }> = {
+              lastLoginAt: new Date(),
+              emailVerified: true
+            };
+            if (!existingData.userType) safeUpdates.userType = state.userType;
+            if (user.photoURL && user.photoURL !== existingData.photoURL) safeUpdates.photoURL = user.photoURL;
+            await updateDoc(doc(db, 'users', user.uid), safeUpdates);
+          }
+          router.replace('/hub');
+        }
+      })
+      .catch((error) => {
+        logError(error, 'getRedirectResult');
+        setState((prev) => ({ ...prev, error: 'Erro ao processar login Google.', loading: false, isProcessing: false }));
+      })
+      .finally(() => setState((prev) => ({ ...prev, loading: false, isProcessing: false })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handler principal do formulário
@@ -290,7 +350,7 @@ export default function Login() {
     }
 
     // Sanitizar entrada
-    const sanitizedEmail = sanitizeInput(state.email);
+    const sanitizedEmail = sanitizeText(state.email);
     
     updateState({ 
       isProcessing: true, 

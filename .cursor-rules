@@ -7,13 +7,16 @@
 # Deployment: Vercel/Netlify
 
 ## COMO O SISTEMA FUNCIONA
-# O Cursor lê este arquivo e automaticamente:
-# 1. Identifica o nível de risco pela localização do arquivo
-# 2. Aplica as regras correspondentes
-# 3. Pede aprovação quando necessário
+
+O.Cursor lê este arquivo e automaticamente:
+1.Identifica o nível de risco pela localização do arquivo
+2.Aplica as regras correspondentes
+3.Pede aprovação quando necessário
 
 ## NÍVEL 1 - ALTERAÇÕES AUTOMÁTICAS (Sem aprovação)
+
 # Pode alterar livremente:
+
 - src/components/**/*.{tsx,ts,jsx,js} (apenas UI e styling)
 - src/styles/**/*.{css,scss,module.css}
 - src/types/**/*.{ts,d.ts}
@@ -26,7 +29,9 @@
 - Imports e exports básicos
 
 ## NÍVEL 2 - REVISÃO OBRIGATÓRIA (Mostrar antes/depois)
-# Deve explicar E mostrar código:
+
+Deve explicar E mostrar código:
+
 - src/pages/**/*.{tsx,ts} (páginas Next.js)
 - src/app/**/*.{tsx,ts} (App Router Next.js 13+)
 - src/hooks/**/*.{ts,js} (custom hooks)

@@ -10,7 +10,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import Image from 'next/image';
 
-import { handleAuthError } from '../utils/errorHandler';
+// Removido: import { handleAuthError } from '../utils/errorHandler';
 import { useRateLimit } from '../hooks/useRateLimit';
 import { motion } from 'framer-motion';
 import ConfettiExplosion from '@/components/ConfettiExplosion';
@@ -207,7 +207,7 @@ export default function Cadastro() {
       }, 3000);
 
     } catch (err) {
-      setError(handleAuthError(err));
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
     } finally {
       setLoading(false);
     }
@@ -269,7 +269,7 @@ export default function Cadastro() {
       }, 3000);
 
     } catch (err) {
-      setError(handleAuthError(err));
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
     } finally {
       setLoading(false);
     }

@@ -149,3 +149,4 @@ node_modules/
 # Temporary folders
 tmp/
 temp/
+serviceAccountKey.json

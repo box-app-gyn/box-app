@@ -11,6 +11,8 @@
     "register-webhook": "ts-node backend/scripts/register-webhook.ts",
     "check-payments": "ts-node backend/scripts/manual-status-check.ts",
     "test": "jest",
+    "test:backend": "node test-backend.js",
+    "test:local": "BASE_URL=http://localhost:5001/interbox-app-8d400/us-central1/api node test-backend.js",
     "dev:local": "firebase emulators:start --only functions,firestore",
     "dev:functions": "firebase emulators:start --only functions",
     "dev:all": "firebase emulators:start",

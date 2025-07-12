@@ -39,11 +39,13 @@ class FlowPayAPI {
             },
             body: JSON.stringify({
                 url,
-                events
+                events,
+                isActive: true
             })
         });
         if (!response.ok) {
-            throw new Error(`Erro ao registrar webhook: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`Erro ao registrar webhook: ${response.status} - ${errorText}`);
         }
     }
 }

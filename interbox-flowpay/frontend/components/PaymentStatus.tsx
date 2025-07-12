@@ -4,12 +4,14 @@ interface PaymentStatusProps {
   status: 'pending' | 'paid' | 'cancelled';
   amount?: number;
   paidAt?: string;
+  paymentMethod?: 'pix' | 'card' | string;
 }
 
 export const PaymentStatus: React.FC<PaymentStatusProps> = ({
   status,
   amount,
-  paidAt
+  paidAt,
+  paymentMethod
 }) => {
   const getStatusConfig = () => {
     switch (status) {
@@ -37,21 +39,41 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({
     }
   };
 
+  const getPaymentMethodIcon = () => {
+    switch (paymentMethod) {
+      case 'pix':
+        return '📱';
+      case 'card':
+        return '💳';
+      default:
+        return '';
+    }
+  };
+
   const config = getStatusConfig();
 
   return (
-    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.color}`}>
-      <span className="mr-2">{config.icon}</span>
-      {config.text}
+    <div className="space-y-2">
+      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.color}`}>
+        <span className="mr-2">{config.icon}</span>
+        {config.text}
+        {paymentMethod && (
+          <span className="ml-2">
+            {getPaymentMethodIcon()} {paymentMethod.toUpperCase()}
+          </span>
+        )}
+      </div>
+      
       {amount && (
-        <span className="ml-2 font-bold">
+        <div className="text-lg font-semibold text-gray-900">
           R$ {amount.toFixed(2)}
-        </span>
+        </div>
       )}
+      
       {paidAt && status === 'paid' && (
-        <span className="ml-2 text-xs opacity-75">
-          {new Date(paidAt).toLocaleDateString('pt-BR')}
-        </span>
+        <div className="text-sm text-gray-500">
+          Pago em {new Date(paidAt).toLocaleDateString('pt-BR')}
+        </div>
       )}
     </div>
   );

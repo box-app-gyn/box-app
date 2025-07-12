@@ -16,18 +16,24 @@ export interface LogContext {
 }
 
 export interface LogLevel {
-  ERROR: 0;
-  WARN: 1;
-  INFO: 2;
-  DEBUG: 3;
+  DEBUG: 0;
+  INFO: 1;
+  WARN: 2;
+  ERROR: 3;
+  FATAL: 4;
 }
 
-const LOG_LEVELS: LogLevel = {
-  ERROR: 0,
-  WARN: 1,
-  INFO: 2,
-  DEBUG: 3,
-};
+export interface LogEntry {
+  timestamp: string;
+  level: keyof LogLevel;
+  message: string;
+  data?: any;
+  context?: string;
+  userId?: string;
+  sessionId?: string;
+  url?: string;
+  userAgent?: string;
+}
 
 // Configurações de logging
 const LOG_CONFIG = {
@@ -141,228 +147,254 @@ function addToBuffer(level: string, message: string, data: any, context?: LogCon
 // Classe Logger principal
 class Logger {
   private logLevel: number;
+  private maxLogs: number;
+  private logs: LogEntry[] = [];
+  private isProduction: boolean;
 
-  constructor(level: keyof LogLevel = 'INFO') {
-    this.logLevel = LOG_LEVELS[level];
+  constructor() {
+    this.isProduction = process.env.NODE_ENV === 'production';
+    this.logLevel = this.isProduction ? 1 : 0; // INFO em produção, DEBUG em desenvolvimento
+    this.maxLogs = 1000;
+  }
+
+  private createLogEntry(
+    level: keyof LogLevel,
+    message: string,
+    data?: any,
+    context?: string
+  ): LogEntry {
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      data,
+      context,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined
+    };
+
+    // Adicionar à lista de logs
+    this.logs.push(entry);
+    
+    // Manter apenas os últimos logs
+    if (this.logs.length > this.maxLogs) {
+      this.logs = this.logs.slice(-this.maxLogs);
+    }
+
+    return entry;
   }
 
   private shouldLog(level: keyof LogLevel): boolean {
-    return LOG_LEVELS[level] <= this.logLevel;
+    const levels: LogLevel = {
+      DEBUG: 0,
+      INFO: 1,
+      WARN: 2,
+      ERROR: 3,
+      FATAL: 4
+    };
+    return levels[level] >= this.logLevel;
   }
 
-  private formatMessage(level: string, message: string, data?: any, context?: LogContext): string {
-    const timestamp = new Date().toISOString();
-    const contextStr = context ? ` [${Object.entries(context).map(([k, v]) => `${k}:${v}`).join(', ')}]` : '';
-    const dataStr = data ? ` ${JSON.stringify(sanitizeLogData(data))}` : '';
-    
-    return `[${timestamp}] ${level.toUpperCase()}: ${truncateString(message, LOG_CONFIG.MAX_STRING_LENGTH)}${contextStr}${dataStr}`;
+  private formatLog(entry: LogEntry): string {
+    const { timestamp, level, message, context, data } = entry;
+    const contextStr = context ? ` [${context}]` : '';
+    const dataStr = data ? ` | ${JSON.stringify(data)}` : '';
+    return `${timestamp} ${level}${contextStr}: ${message}${dataStr}`;
   }
 
-  private log(level: keyof LogLevel, message: string, data?: any, context?: LogContext): void {
-    if (!this.shouldLog(level)) return;
+  private outputLog(entry: LogEntry): void {
+    if (!this.shouldLog(entry.level)) return;
 
-    const sanitizedData = sanitizeLogData(data);
-    const formattedMessage = this.formatMessage(level, message, sanitizedData, context);
+    const formattedLog = this.formatLog(entry);
 
-    // Log no console se habilitado
-    if (LOG_CONFIG.ENABLE_CONSOLE) {
-      switch (level) {
-        case 'ERROR':
-          console.error(formattedMessage);
-          break;
-        case 'WARN':
-          console.warn(formattedMessage);
-          break;
-        case 'INFO':
-          console.info(formattedMessage);
-          break;
-        case 'DEBUG':
-          console.debug(formattedMessage);
-          break;
+    switch (entry.level) {
+      case 'DEBUG':
+        console.debug(formattedLog);
+        break;
+      case 'INFO':
+        console.info(formattedLog);
+        break;
+      case 'WARN':
+        console.warn(formattedLog);
+        break;
+      case 'ERROR':
+      case 'FATAL':
+        console.error(formattedLog);
+        break;
+    }
+
+    // Em produção, enviar logs críticos para monitoramento
+    if (this.isProduction && (entry.level === 'ERROR' || entry.level === 'FATAL')) {
+      this.sendToMonitoring(entry);
+    }
+  }
+
+  private async sendToMonitoring(entry: LogEntry): Promise<void> {
+    try {
+      // Aqui você pode integrar com serviços de monitoramento como:
+      // - Sentry
+      // - LogRocket
+      // - Firebase Crashlytics
+      // - Custom API
+
+      if (typeof window !== 'undefined') {
+        // Enviar via beacon para não bloquear a página
+        const report = {
+          type: 'log',
+          level: entry.level,
+          message: entry.message,
+          data: entry.data,
+          context: entry.context,
+          timestamp: entry.timestamp,
+          url: entry.url,
+          userAgent: entry.userAgent
+        };
+
+        navigator.sendBeacon('/api/error-report', JSON.stringify({
+          errors: [report],
+          totalErrors: 1,
+          lastError: report
+        }));
       }
+    } catch (error) {
+      // Fallback para console em caso de erro no envio
+      console.error('Failed to send log to monitoring:', error);
     }
-
-    // Adicionar ao buffer para envio remoto
-    addToBuffer(level, message, sanitizedData, context);
   }
 
-  // Métodos públicos
-  error(message: string, error?: any, context?: LogContext): void {
-    const errorData = error instanceof Error
-      ? { 
-          message: error.message, 
-          stack: error.stack, 
-          name: error.name,
-          code: (error as any).code 
-        }
-      : error;
+  debug(message: string, data?: any, context?: string): void {
+    const entry = this.createLogEntry('DEBUG', message, data, context);
+    this.outputLog(entry);
+  }
+
+  info(message: string, data?: any, context?: string): void {
+    const entry = this.createLogEntry('INFO', message, data, context);
+    this.outputLog(entry);
+  }
+
+  warn(message: string, data?: any, context?: string): void {
+    const entry = this.createLogEntry('WARN', message, data, context);
+    this.outputLog(entry);
+  }
+
+  error(message: string, data?: any, context?: string): void {
+    const entry = this.createLogEntry('ERROR', message, data, context);
+    this.outputLog(entry);
+  }
+
+  fatal(message: string, data?: any, context?: string): void {
+    const entry = this.createLogEntry('FATAL', message, data, context);
+    this.outputLog(entry);
+  }
+
+  // Logs específicos para diferentes contextos
+  auth(message: string, data?: any): void {
+    this.info(message, data, 'AUTH');
+  }
+
+  payment(message: string, data?: any): void {
+    this.info(message, data, 'PAYMENT');
+  }
+
+  pwa(message: string, data?: any): void {
+    this.info(message, data, 'PWA');
+  }
+
+  network(message: string, data?: any): void {
+    this.info(message, data, 'NETWORK');
+  }
+
+  performance(message: string, data?: any): void {
+    this.info(message, data, 'PERFORMANCE');
+  }
+
+  // Métodos para análise e debug
+  getLogs(level?: keyof LogLevel, limit?: number): LogEntry[] {
+    let filtered = this.logs;
     
-    this.log('ERROR', message, errorData, context);
-  }
-
-  warn(message: string, data?: any, context?: LogContext): void {
-    this.log('WARN', message, data, context);
-  }
-
-  info(message: string, data?: any, context?: LogContext): void {
-    this.log('INFO', message, data, context);
-  }
-
-  debug(message: string, data?: any, context?: LogContext): void {
-    this.log('DEBUG', message, data, context);
-  }
-
-  // Método para logging de segurança
-  security(event: string, details: any, context?: LogContext): void {
-    const securityContext = {
-      ...context,
-      eventType: 'security',
-      timestamp: new Date().toISOString(),
-      severity: this.determineSecuritySeverity(event, details)
-    };
-
-    this.warn(`Security Event: ${event}`, details, securityContext);
-  }
-
-  private determineSecuritySeverity(event: string, details: any): 'low' | 'medium' | 'high' | 'critical' {
-    const eventLower = event.toLowerCase();
-    
-    // Eventos críticos
-    if (eventLower.includes('injection') || 
-        eventLower.includes('xss') || 
-        eventLower.includes('sql') ||
-        eventLower.includes('authentication bypass') ||
-        eventLower.includes('privilege escalation') ||
-        eventLower.includes('data breach')) {
-      return 'critical';
+    if (level) {
+      const levels: LogLevel = {
+        DEBUG: 0,
+        INFO: 1,
+        WARN: 2,
+        ERROR: 3,
+        FATAL: 4
+      };
+      filtered = this.logs.filter(log => levels[log.level] >= levels[level]);
     }
-    
-    // Eventos de alta severidade
-    if (eventLower.includes('rate limit') ||
-        eventLower.includes('brute force') ||
-        eventLower.includes('suspicious pattern') ||
-        eventLower.includes('unauthorized access') ||
-        eventLower.includes('malicious') ||
-        eventLower.includes('exploit')) {
-      return 'high';
+
+    if (limit) {
+      filtered = filtered.slice(-limit);
     }
-    
-    // Eventos de média severidade
-    if (eventLower.includes('invalid token') ||
-        eventLower.includes('expired session') ||
-        eventLower.includes('invalid input') ||
-        eventLower.includes('failed login')) {
-      return 'medium';
-    }
-    
-    return 'low';
+
+    return filtered;
   }
 
-  // Método para logging de performance
-  performance(operation: string, duration: number, context?: LogContext): void {
-    const performanceContext = {
-      ...context,
-      eventType: 'performance',
-      duration,
-      timestamp: new Date().toISOString()
+  getErrorCount(): number {
+    return this.logs.filter(log => log.level === 'ERROR' || log.level === 'FATAL').length;
+  }
+
+  getRecentErrors(limit: number = 10): LogEntry[] {
+    return this.logs
+      .filter(log => log.level === 'ERROR' || log.level === 'FATAL')
+      .slice(-limit);
+  }
+
+  clearLogs(): void {
+    this.logs = [];
+  }
+
+  exportLogs(): string {
+    return JSON.stringify(this.logs, null, 2);
+  }
+
+  // Método para performance monitoring
+  time(label: string): () => void {
+    const start = performance.now();
+    return () => {
+      const duration = performance.now() - start;
+      this.performance(`${label} completed in ${duration.toFixed(2)}ms`);
     };
-
-    const level = duration > 5000 ? 'WARN' : duration > 1000 ? 'INFO' : 'DEBUG';
-    this.log(level as keyof LogLevel, `Performance: ${operation}`, { duration }, performanceContext);
   }
 
-  // Método para logging de request
-  request(method: string, url: string, statusCode: number, duration: number, context?: LogContext): void {
-    const requestContext = {
-      ...context,
-      method,
-      url: SECURITY_UTILS.sanitizeString(url, 200),
-      statusCode,
-      duration,
-      eventType: 'request',
-      timestamp: new Date().toISOString()
-    };
-
-    if (statusCode >= 500) {
-      this.error(`Request failed: ${method} ${url} - ${statusCode}`, { statusCode, duration }, requestContext);
-    } else if (statusCode >= 400) {
-      this.warn(`Request error: ${method} ${url} - ${statusCode}`, { statusCode, duration }, requestContext);
-    } else {
-      this.info(`Request: ${method} ${url} - ${statusCode}`, { statusCode, duration }, requestContext);
-    }
+  // Método para monitorar erros de rede
+  logNetworkError(error: Error, url?: string): void {
+    this.error('Network error', {
+      message: error.message,
+      url: url || 'unknown',
+      stack: error.stack
+    }, 'NETWORK');
   }
 
-  // Método para logging de usuário
-  user(userId: string, action: string, details?: any, context?: LogContext): void {
-    const userContext = {
-      ...context,
-      userId: SECURITY_UTILS.sanitizeString(userId, 50),
-      action,
-      eventType: 'user_action',
-      timestamp: new Date().toISOString()
-    };
-
-    this.info(`User action: ${action}`, details, userContext);
+  // Método para monitorar erros de autenticação
+  logAuthError(error: Error, action?: string): void {
+    this.error('Authentication error', {
+      message: error.message,
+      action: action || 'unknown',
+      stack: error.stack
+    }, 'AUTH');
   }
 
-  // Método para logging de sistema
-  system(component: string, action: string, details?: any, context?: LogContext): void {
-    const systemContext = {
-      ...context,
-      component,
-      action,
-      eventType: 'system',
-      timestamp: new Date().toISOString()
-    };
-
-    this.info(`System: ${component} - ${action}`, details, systemContext);
-  }
-
-  // Método para logging de PWA
-  pwa(event: string, details?: any, context?: LogContext): void {
-    const pwaContext = {
-      ...context,
-      eventType: 'pwa',
-      timestamp: new Date().toISOString()
-    };
-
-    this.info(`PWA: ${event}`, details, pwaContext);
-  }
-
-  // Método para logging de gamificação
-  gamification(userId: string, action: string, points?: number, context?: LogContext): void {
-    const gamificationContext = {
-      ...context,
-      userId: SECURITY_UTILS.sanitizeString(userId, 50),
-      action,
-      points,
-      eventType: 'gamification',
-      timestamp: new Date().toISOString()
-    };
-
-    this.info(`Gamification: ${action}`, { points }, gamificationContext);
-  }
-
-  // Método para limpar buffer
-  flush(): void {
-    if (batchTimeout) {
-      clearTimeout(batchTimeout);
-      batchTimeout = null;
-    }
-    processLogBuffer();
-  }
-
-  // Método para obter estatísticas
-  getStats(): { bufferSize: number; totalLogs: number } {
-    return {
-      bufferSize: logBuffer.length,
-      totalLogs: logBuffer.length
-    };
+  // Método para monitorar erros de pagamento
+  logPaymentError(error: Error, paymentId?: string): void {
+    this.error('Payment error', {
+      message: error.message,
+      paymentId: paymentId || 'unknown',
+      stack: error.stack
+    }, 'PAYMENT');
   }
 }
 
-// Instância global do logger
 export const logger = new Logger();
+
+// Log inicial do sistema
+if (typeof window !== 'undefined') {
+  logger.info('Logger initialized', {
+    userAgent: navigator.userAgent,
+    url: window.location.href,
+    timestamp: new Date().toISOString()
+  });
+}
 
 // Função para criar contexto de request
 export const createRequestContext = (req: any): LogContext => ({

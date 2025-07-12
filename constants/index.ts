@@ -182,13 +182,13 @@ export function getTiposUsuarioArray() {
   return Object.values(TIPOS_USUARIO);
 }
 
-export function getCategoriasArrayFromFirestore(categoriasMap: any) {
+export function getCategoriasArrayFromFirestore(categoriasMap: Record<string, unknown>) {
   if (!categoriasMap || typeof categoriasMap !== 'object') return [];
   return Object.entries(categoriasMap)
-    .filter(([_, value]) => value && typeof value === 'object')
+    .filter(([, value]) => value && typeof value === 'object')
     .map(([key, value]) => ({
       key,
-      ...(value as Record<string, any>)
+      ...(value as Record<string, unknown>)
     }));
 }
 
@@ -196,5 +196,5 @@ export function getCategoriasArrayFromFirestore(categoriasMap: any) {
 // TIPOS TYPESCRIPT
 // =====================================
 
-export type UserType = typeof TIPOS_USUARIO[keyof typeof TIPOS_USUARIO]['value'];
+export type UserType = typeof TIPOS_USUARIO[keyof typeof TIPOS_USUARIO]['value']; // Tipos de usuário
 export type CategoriaType = typeof CATEGORIAS_COMPETICAO[keyof typeof CATEGORIAS_COMPETICAO]['value']; 

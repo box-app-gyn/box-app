@@ -1,44 +1,127 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  
+  // Usar apenas client-side rendering
+  output: 'export',
+  
+  // Desabilitar SSR
+  trailingSlash: true,
+  
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['react', 'react-dom'],
+    scrollRestoration: true
+  },
+
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+    styledComponents: false
+  },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
-  trailingSlash: false,
-  reactStrictMode: true,
-  
-  // Configuração condicional para export estático (apenas em produção)
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export',
-  }),
-  
-  // Configurações de produção
-  compress: true,
-  generateEtags: true,
-  poweredByHeader: false,
-  
-  // Configurações de imagens otimizadas para export estático
+
   images: {
-    unoptimized: true, // Necessário para export estático
-    domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
+    unoptimized: true,
+    domains: ['firebasestorage.googleapis.com'],
     formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias
+    minimumCacheTTL: 31536000,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
   },
-  
-  // Configurações de webpack para produção e export estático
+
+  headers: async () => {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=()'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          }
+        ]
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json'
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600'
+          }
+        ]
+      },
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache'
+          },
+          {
+            key: 'Expires',
+            value: '0'
+          }
+        ]
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          }
+        ]
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      }
+    ];
+  },
+
   webpack: (config, { dev, isServer }) => {
-    // Excluir pasta functions/lib do build
-    config.externals = config.externals || [];
-    config.externals.push({
-      'functions/lib': 'commonjs functions/lib',
-    });
-    
     if (!dev && !isServer) {
-      // Otimizações para produção
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
@@ -46,41 +129,61 @@ const nextConfig = {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all',
-            priority: 10,
+            priority: 10
           },
           common: {
             name: 'common',
             minChunks: 2,
             chunks: 'all',
-            priority: 5,
-          },
-        },
-      };
-      
-      // Otimizações específicas para export estático
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
+            priority: 5
+          }
+        }
       };
     }
-    
+
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack']
+    });
+
     return config;
   },
-  
-  // Configurações de performance
+
+  async rewrites() {
+    return [
+      {
+        source: '/service-worker.js',
+        destination: '/sw.js'
+      }
+    ];
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true
+      }
+    ];
+  },
+
+  generateEtags: false,
+
+  poweredByHeader: false,
+
+  compress: true,
+
+  productionBrowserSourceMaps: false,
+
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
+    pagesBufferLength: 2
   },
-  
-  // Configurações para PWA em export estático
-  experimental: {
-    // Otimizações para export estático
-    optimizeCss: true,
-    optimizePackageImports: ['framer-motion', 'react-apexcharts'],
-  },
-}
 
-export default nextConfig 
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY
+  }
+};
+
+export default nextConfig; 

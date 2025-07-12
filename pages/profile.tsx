@@ -6,7 +6,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db } from '../lib/firebase';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { sanitizeInput } from '../utils/sanitize';
+import { sanitizeHtml } from '../utils/sanitize';
 import { useGamification } from '@/hooks/useGamification';
 import GamifiedLeaderboard from '@/components/GamifiedLeaderboard';
 import GamifiedRewards from '@/components/GamifiedRewards';
@@ -122,11 +122,11 @@ export default function Profile() {
     try {
       // Sanitizar dados
       const sanitizedData = {
-        displayName: sanitizeInput(editForm.displayName),
-        bio: sanitizeInput(editForm.bio),
-        phoneNumber: sanitizeInput(editForm.phoneNumber),
-        area: sanitizeInput(editForm.area),
-        experience: sanitizeInput(editForm.experience)
+        displayName: sanitizeHtml(editForm.displayName),
+        bio: sanitizeHtml(editForm.bio),
+        phoneNumber: sanitizeHtml(editForm.phoneNumber),
+        area: sanitizeHtml(editForm.area),
+        experience: sanitizeHtml(editForm.experience)
       };
 
       // Atualizar no Firebase Auth

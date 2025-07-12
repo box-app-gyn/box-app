@@ -21,6 +21,7 @@
 5. **Dashboard desnecessário**: Arquivo removido
 
 ### 📱 Fluxo Correto:
+
 1. **Splash Screen** → 2. **Home** (login) → 3. **App Principal**
 
 ## 📱 Como Testar no Safari Mobile

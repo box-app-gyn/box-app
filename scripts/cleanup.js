@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
 
 console.log('🧹 Iniciando limpeza do projeto...\n');
 
@@ -41,11 +41,9 @@ function findFilesByPattern(dir, pattern) {
           files.push(fullPath);
         }
       }
-    } catch (error) {
-      // Ignorar erros de permissão
+    } catch {
     }
   }
-  
   scan(dir);
   return files;
 }

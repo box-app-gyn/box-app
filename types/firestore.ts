@@ -66,7 +66,7 @@ export type GamificationLevel =
 export type RewardStatus = 'disponivel' | 'resgatada' | 'expirada';
 
 // Coleção: users
-export interface FirestoreUser {
+export interface FirestoreUser { 
   uid: string;
   email: string;
   displayName?: string;
@@ -85,7 +85,7 @@ export interface FirestoreUser {
   metadata?: {
     lastLogin?: Timestamp;
     loginCount?: number;
-    preferences?: Record<string, any>;
+    preferences?: Record<string, unknown>;
   };
   // 🎯 GAMIFICAÇÃO CAMADA 1
   gamification?: {
@@ -165,7 +165,7 @@ export interface FirestorePedido {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   pagamentoConfirmado?: Timestamp;
-  webhookData?: Record<string, any>;
+  webhookData?: Record<string, unknown>;
   gateway: 'pix' | 'cartao' | 'cripto';
 }
 
@@ -252,7 +252,7 @@ export interface FirestoreAdminLog {
   acao: 'validacao_audiovisual' | 'aprovacao_audiovisual' | 'rejeicao_audiovisual' | 'criacao_pedido' | 'confirmacao_pagamento';
   targetId: string; // ID do usuário/audiovisual/pedido afetado
   targetType: 'user' | 'audiovisual' | 'pedido';
-  detalhes: Record<string, any>;
+  detalhes: Record<string, unknown>;
   createdAt: Timestamp;
   ipAddress?: string;
   userAgent?: string;
@@ -312,7 +312,7 @@ export interface EmailConfirmacaoData {
   userEmail: string;
   userName: string;
   tipo: 'pedido' | 'audiovisual' | 'admin';
-  dadosAdicionais?: Record<string, any>;
+  dadosAdicionais?: Record<string, unknown>;
 }
 
 // Tipos para funções de times
@@ -341,7 +341,7 @@ export interface FirestoreGamificationAction {
   action: GamificationAction;
   points: number;
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Timestamp;
   processed: boolean;
   processedAt?: Timestamp;
@@ -401,7 +401,7 @@ export interface FirestoreGamificationUserReward {
   redeemedAt: Timestamp;
   expiresAt?: Timestamp;
   usedAt?: Timestamp;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Coleção: gamification_achievements (conquistas)
